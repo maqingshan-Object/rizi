@@ -1,0 +1,35 @@
+{
+  "pages": [
+    "pages/days/days",
+    "pages/calendar/calendar",
+    "pages/profile/profile",
+    "pages/event-form/event-form",
+    "pages/event-detail/event-detail",
+    "pages/login/login",
+    "pages/privacy/privacy"
+  ],
+  "window": {
+    "navigationStyle": "custom",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#faf6eb",
+    "backgroundTextStyle": "dark"
+  },
+  "usingComponents": {
+    "nav-header": "/components/nav-header/nav-header",
+    "app-icon": "/components/app-icon/app-icon"
+  },
+  "tabBar": {
+    "custom": true,
+    "color": "#a69a87",
+    "selectedColor": "#876c42",
+    "backgroundColor": "#fffdf7",
+    "borderStyle": "white",
+    "list": [
+      {"pagePath": "pages/days/days", "text": "日子"},
+      {"pagePath": "pages/calendar/calendar", "text": "日历"},
+      {"pagePath": "pages/profile/profile", "text": "我的"}
+    ]
+  },
+  "lazyCodeLoading": "requiredComponents",
+  "sitemapLocation": "sitemap.json"
+}

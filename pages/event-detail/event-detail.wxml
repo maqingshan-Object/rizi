@@ -1,0 +1,79 @@
+<view class="app-page theme-{{theme}} subpage">
+  <nav-header title="珍藏的日子" back="{{true}}" theme="{{theme}}" />
+  <view class="page-body detail-body">
+    <view class="local-banner">
+      <app-icon name="lock" size="{{28}}" />
+      <text>{{guest ? '访客模式 · 这些日子仅保存在本机，不会云端同步。' : '当前日子仅保存在本机，不会云端同步。'}}</text>
+    </view>
+    <view wx:if="{{loading}}" class="paper page-state" aria-role="status">
+      <view class="skeleton-line" />
+      <view class="skeleton-number" />
+      <text class="muted">正在翻开珍藏的日子…</text>
+    </view>
+    <view wx:elif="{{error}}" class="paper page-state">
+      <image class="state-cat" src="/assets/cat-heart.png" mode="aspectFit" />
+      <text class="content-title">这个日子暂时没翻开</text>
+      <text class="form-error">{{error}}</text>
+      <button class="btn-primary" bindtap="onRetry">重新读取</button>
+    </view>
+    <view wx:elif="{{deleted}}" class="paper page-state" aria-role="status">
+      <image class="state-cat" src="/assets/cat-heart.png" mode="aspectFit" />
+      <text class="content-title">已删除这个日子</text>
+      <text class="form-help">其他珍藏的日子都还在，不会重复删除。</text>
+      <button class="btn-secondary" bindtap="onBack">返回上一页</button>
+    </view>
+    <view wx:elif="{{missing}}" class="paper page-state">
+      <image class="state-cat" src="/assets/cat-heart.png" mode="aspectFit" />
+      <text class="content-title">这个日子已不在这里</text>
+      <text class="form-help">没有找到所选的本机记录，它可能已经被删除。</text>
+      <button class="btn-secondary" bindtap="onBack">返回上一页</button>
+    </view>
+    <view wx:elif="{{event}}">
+      <view class="paper detail-hero">
+        <view class="hero-top">
+          <view class="detail-icon tint-{{event.tint}}"><app-icon name="{{event.icon}}" size="{{42}}" /></view>
+          <text class="pill">{{event.pin ? '特别的日子 · 已置顶' : event.categoryText}}</text>
+        </view>
+        <text class="content-title event-title">{{event.name}}</text>
+        <text class="count-status">{{event.statusText}}</text>
+        <view class="hero-number-row">
+          <text class="hero-number">{{event.countText}}</text>
+          <text class="hero-unit">{{event.unitText}}</text>
+        </view>
+        <view class="hero-bottom">
+          <view class="hero-caption">
+            <text class="hero-date">{{event.targetDateText}}</text>
+            <text class="hero-repeat">{{event.repeatText}} · {{event.modeText}}</text>
+            <text class="hero-phrase">{{event.phrase}}</text>
+          </view>
+          <image class="hero-cat" src="/assets/cat-heart.png" mode="aspectFit" />
+        </view>
+      </view>
+      <view wx:if="{{event.unavailable}}" class="form-error date-warning" aria-role="alert">当前没有下一次可换算日期。请编辑农历月日或闰月选项，支持范围内无有效日期时不能保存。</view>
+      <view class="paper information-paper">
+        <view class="detail-line"><text class="muted">日子分类</text><text class="detail-value">{{event.categoryText}}</text></view>
+        <view class="detail-line"><text class="muted">记录方式</text><text class="detail-value">{{event.modeText}}</text></view>
+        <view class="detail-line"><text class="muted">重复方式</text><text class="detail-value">{{event.repeatText}}</text></view>
+        <view class="detail-line"><text class="muted">日期历法</text><text class="detail-value">{{event.calendarText}}</text></view>
+        <view wx:if="{{event.lunarText}}" class="detail-line"><text class="muted">农历生日</text><text class="detail-value">{{event.lunarText}}</text></view>
+        <view class="detail-line"><text class="muted">{{event.dateLabel}}</text><text class="detail-value">{{event.targetDateText}}</text></view>
+        <view wx:if="{{event.repeat === 'yearly' && event.calendarType !== 'lunar'}}" class="detail-line"><text class="muted">最初记录日期</text><text class="detail-value">{{event.originalDateText}}</text></view>
+        <view class="detail-line"><text class="muted">置顶首页</text><text class="detail-value">{{event.pin ? '已置顶' : '未置顶'}}</text></view>
+        <view class="detail-line reminder-line"><text class="muted">日子提醒</text><text class="detail-value">不提醒 · 暂未支持</text></view>
+        <text class="form-help reminder-help">暂不支持真实订阅提醒，不会发送通知。</text>
+        <text wx:if="{{event.lunarHelp}}" class="form-help lunar-help">{{event.lunarHelp}}</text>
+      </view>
+      <view class="paper note-paper">
+        <view class="note-heading"><app-icon name="heart" size="{{28}}" /><text>留在心上的话</text></view>
+        <text class="letter-note">{{event.note || '把这个重要的日子，慢慢放在心上。'}}</text>
+      </view>
+      <view class="detail-actions">
+        <button class="btn-primary edit-button" bindtap="onEdit" disabled="{{busy}}"><app-icon name="edit" size="{{28}}" /><text>编辑这个日子</text></button>
+        <button class="btn-secondary" bindtap="onPin" disabled="{{busy}}">{{event.pin ? '取消首页置顶' : '放在首页最上面'}}</button>
+      </view>
+      <text class="form-help pin-help">置顶仅调整首页位置，不会删除任何日子。</text>
+      <button class="delete-button" bindtap="onDelete" disabled="{{busy}}">删除这个日子</button>
+      <text class="detail-footer muted">日子绵绵，岁岁有念。</text>
+    </view>
+  </view>
+</view>

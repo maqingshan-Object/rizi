@@ -1,0 +1,144 @@
+<view class="app-page theme-{{theme}} subpage">
+  <nav-header title="{{title}}" back="{{true}}" theme="{{theme}}" />
+  <view class="page-body form-body">
+    <view class="local-banner" aria-role="status">
+      <app-icon name="lock" size="{{28}}" />
+      <text>{{guest ? '访客模式 · 这些日子仅保存在本机，不会云端同步。' : '当前日子仅保存在本机，不会云端同步。'}}</text>
+    </view>
+    <view wx:if="{{loading}}" class="paper page-state" aria-role="status">
+      <view class="skeleton-line" />
+      <view class="skeleton-line short" />
+      <text class="muted">正在翻开这个日子…</text>
+    </view>
+    <view wx:elif="{{loadError}}" class="paper page-state">
+      <image src="/assets/cat-heart.png" class="state-cat" mode="aspectFit" />
+      <text class="content-title">暂时无法编辑</text>
+      <text class="form-error">{{loadError}}</text>
+      <text class="form-help">请点击左上角返回，不会覆盖或新建其他记录。</text>
+    </view>
+    <view wx:elif="{{saved}}" class="paper page-state" aria-role="status">
+      <image src="/assets/cat-heart.png" class="state-cat" mode="aspectFit" />
+      <text class="content-title">日子已保存在本机</text>
+      <text class="form-help">又多一个小小的期待。</text>
+      <button class="btn-primary" bindtap="onSavedBack">返回上一页</button>
+    </view>
+    <form wx:else bindsubmit="onSubmit">
+      <view class="form-intro">
+        <view class="intro-copy">
+          <text class="content-title">把重要的日子，放在心上</text>
+          <text class="muted intro-subtitle">记下牵挂，也记下慢慢长大的自己。</text>
+        </view>
+        <image class="intro-cat" src="/assets/cat-heart.png" mode="aspectFit" />
+      </view>
+      <view class="paper form-paper">
+        <view class="form-group">
+          <label class="form-label" for="event-name">这个日子叫什么</label>
+          <input id="event-name" class="form-input name-input" name="name" value="{{name}}" maxlength="20" placeholder="比如，妈妈的生日" bindinput="onNameInput" disabled="{{saving}}" />
+          <text class="form-help length-help">{{name.length}} / 20</text>
+        </view>
+        <view class="form-group">
+          <text class="form-label">日子分类</text>
+          <picker mode="selector" range="{{categories}}" range-key="label" value="{{categoryIndex}}" data-field="category" bindchange="onSelect" disabled="{{saving}}">
+            <view class="form-input picker-value"><text>{{categories[categoryIndex].label}}</text><app-icon name="next" size="{{24}}" /></view>
+          </picker>
+        </view>
+        <view class="form-group">
+          <text class="form-label">历法</text>
+          <picker mode="selector" range="{{calendars}}" range-key="label" value="{{calendarTypeIndex}}" data-field="calendarType" bindchange="onSelect" disabled="{{saving}}">
+            <view class="form-input picker-value"><text>{{calendars[calendarTypeIndex].label}}</text><app-icon name="next" size="{{24}}" /></view>
+          </picker>
+          <text class="form-help">农历仅用于生日，其他日子请选择公历。</text>
+        </view>
+        <view class="form-group">
+          <text class="form-label">记录方式</text>
+          <picker mode="selector" range="{{modes}}" range-key="label" value="{{modeIndex}}" data-field="mode" bindchange="onSelect" disabled="{{saving || calendarType === 'lunar'}}">
+            <view class="form-input picker-value {{calendarType === 'lunar' ? 'picker-locked' : ''}}"><text>{{modes[modeIndex].label}}</text><app-icon name="next" size="{{24}}" /></view>
+          </picker>
+        </view>
+        <view wx:if="{{calendarType === 'solar'}}" class="form-group">
+          <text class="form-label">公历日期</text>
+          <picker mode="date" value="{{date}}" start="1900-01-01" end="2100-12-31" bindchange="onDateChange" disabled="{{saving}}">
+            <view class="form-input picker-value"><text>{{date}}</text><app-icon name="calendar" size="{{28}}" /></view>
+          </picker>
+          <text class="form-help">支持 1900—2100 年的有效公历日期。</text>
+          <text wx:if="{{dateHint}}" class="form-error">{{dateHint}}</text>
+        </view>
+        <view wx:else class="lunar-section">
+          <text class="form-label">农历月日</text>
+          <view class="form-row lunar-row">
+            <view class="form-group row-field">
+              <text class="form-help small-label">月份</text>
+              <picker mode="selector" range="{{months}}" value="{{lunarMonthIndex}}" data-field="lunarMonth" bindchange="onSelect" disabled="{{saving}}">
+                <view class="form-input picker-value"><text>{{months[lunarMonthIndex]}}</text><app-icon name="next" size="{{22}}" /></view>
+              </picker>
+            </view>
+            <view class="form-group row-field">
+              <text class="form-help small-label">日数</text>
+              <picker mode="selector" range="{{days}}" value="{{lunarDayIndex}}" data-field="lunarDay" bindchange="onSelect" disabled="{{saving}}">
+                <view class="form-input picker-value"><text>{{days[lunarDayIndex]}}</text><app-icon name="next" size="{{22}}" /></view>
+              </picker>
+            </view>
+          </view>
+          <view class="form-group">
+            <text class="form-label">是否为闰月生日</text>
+            <picker mode="selector" range="{{leaps}}" range-key="label" value="{{lunarLeapIndex}}" data-field="lunarLeap" bindchange="onSelect" disabled="{{saving}}">
+              <view class="form-input picker-value"><text>{{leaps[lunarLeapIndex].label}}</text><app-icon name="next" size="{{24}}" /></view>
+            </picker>
+          </view>
+          <view class="lunar-notice">
+            <text class="form-help">{{lunarRangeText}}</text>
+            <text class="form-help">闰月并非每年都有：当年无对应闰月时，跳到下一个有对应闰月且日期有效的年份，不替换成普通月。月末无对应日期的年份也会跳过。</text>
+            <text wx:if="{{lunarDateText}}" class="converted-date">{{lunarDateText}}</text>
+            <text wx:if="{{lunarError}}" class="form-error">{{lunarError}}</text>
+          </view>
+        </view>
+        <view class="form-group">
+          <text class="form-label">重复</text>
+          <picker mode="selector" range="{{repeats}}" range-key="label" value="{{repeatIndex}}" data-field="repeat" bindchange="onSelect" disabled="{{saving || calendarType === 'lunar' || mode === 'countup'}}">
+            <view class="form-input picker-value {{calendarType === 'lunar' || mode === 'countup' ? 'picker-locked' : ''}}"><text>{{repeats[repeatIndex].label}}</text><app-icon name="next" size="{{24}}" /></view>
+          </picker>
+          <text wx:if="{{mode === 'countup'}}" class="form-help">正计时记录从开始日期至今天，不重复。</text>
+          <text wx:elif="{{calendarType === 'lunar'}}" class="form-help">农历生日固定为每年倒计时，日期保存为本次或下次换算的公历。</text>
+        </view>
+      </view>
+      <view class="paper form-paper appearance-paper">
+        <view class="form-row">
+          <view class="form-group row-field">
+            <text class="form-label">小图标</text>
+            <picker mode="selector" range="{{icons}}" range-key="label" value="{{iconIndex}}" data-field="icon" bindchange="onSelect" disabled="{{saving}}">
+              <view class="form-input picker-value"><view class="icon-value"><app-icon name="{{icon}}" size="{{30}}" /><text>{{icons[iconIndex].label}}</text></view><app-icon name="next" size="{{22}}" /></view>
+            </picker>
+          </view>
+          <view class="form-group row-field">
+            <text class="form-label">卡片颜色</text>
+            <picker mode="selector" range="{{tints}}" range-key="label" value="{{tintIndex}}" data-field="tint" bindchange="onSelect" disabled="{{saving}}">
+              <view class="form-input picker-value"><view class="icon-value"><view class="tint-dot tint-{{tint}}" /><text>{{tints[tintIndex].label}}</text></view><app-icon name="next" size="{{22}}" /></view>
+            </picker>
+          </view>
+        </view>
+        <view class="form-group">
+          <text class="form-label">置顶首页</text>
+          <picker mode="selector" range="{{pins}}" range-key="label" value="{{pinIndex}}" data-field="pin" bindchange="onSelect" disabled="{{saving}}">
+            <view class="form-input picker-value"><text>{{pins[pinIndex].label}}</text><app-icon name="next" size="{{24}}" /></view>
+          </picker>
+          <text class="form-help">置顶会替换首页当前置顶，不会删除其他日子。</text>
+        </view>
+        <view class="form-group">
+          <text class="form-label">日子提醒</text>
+          <picker mode="selector" range="{{reminders}}" value="{{reminderIndex}}" disabled="{{saving}}">
+            <view class="form-input picker-value"><text>{{reminder}}</text><app-icon name="bell" size="{{28}}" /></view>
+          </picker>
+          <text class="form-help">暂不支持真实订阅提醒，不会发送通知；当前仅保存“不提醒”。</text>
+        </view>
+        <view class="form-group note-group">
+          <label class="form-label" for="event-note">留一句小小的心意</label>
+          <textarea id="event-note" class="form-input note-input" name="note" value="{{note}}" maxlength="120" placeholder="想做的事，想说的话，都可以记在这里。" bindinput="onNoteInput" disabled="{{saving}}" />
+          <text class="form-help length-help">{{note.length}} / 120</text>
+        </view>
+      </view>
+      <view wx:if="{{error}}" class="form-error submit-error" aria-role="alert">{{error}}</view>
+      <button class="btn-primary save-button" form-type="submit" loading="{{saving}}" disabled="{{saving || lunarError}}">{{saving ? '正在保存…' : '把这个日子记下来'}}</button>
+      <text class="form-help footer-help">保存在本机，算日子是功能，陪伴是心意。</text>
+    </form>
+  </view>
+</view>

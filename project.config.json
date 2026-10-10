@@ -1,0 +1,25 @@
+{
+  "appid": "wxf63db4d43a9d71ca",
+  "projectname": "日子绵绵",
+  "compileType": "miniprogram",
+  "miniprogramRoot": "./",
+  "libVersion": "latest",
+  "setting": {
+    "es6": true,
+    "enhance": true,
+    "postcss": true,
+    "minified": true,
+    "minifyWXSS": true,
+    "minifyWXML": true
+  },
+  "packOptions": {
+    "ignore": [
+      {"type": "folder", "value": "tests"},
+      {"type": "folder", "value": ".workbuddy-ai"},
+      {"type": "folder", "value": ".git"},
+      {"type": "folder", "value": ".versioning"},
+      {"type": "file", "value": ".gitignore"}
+    ],
+    "include": []
+  }
+}

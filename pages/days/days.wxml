@@ -1,0 +1,106 @@
+<view class="app-page theme-{{theme}}">
+  <nav-header title="日子绵绵" theme="{{theme}}" />
+  <view class="days-content safe-bottom">
+    <view wx:if="{{guest}}" class="guest-banner">
+      <view class="guest-dot" />
+      <text>当前为访客记录 · 仅保存在此设备</text>
+    </view>
+
+    <view class="home-head">
+      <text class="date-line">{{todayLabel}}</text>
+      <text class="home-title">日子慢慢，爱满满</text>
+      <text class="home-subtitle">把小小的期待，装进每一天。</text>
+      <image class="head-cat" src="/assets/cat.png" mode="aspectFit" aria-label="温柔的奶油小猫" />
+    </view>
+
+    <view class="category-tabs" aria-label="事件分类">
+      <button wx:for="{{categories}}" wx:key="key" class="{{item.className}}" data-category="{{item.key}}" bindtap="onCategoryTap" hover-class="button-pressed" aria-label="{{item.label}}分类">
+        <text>{{item.label}}</text>
+      </button>
+    </view>
+
+    <view wx:if="{{loading}}" class="loading-state" aria-role="status" aria-label="正在读取本机记录">
+      <view class="skeleton skeleton-feature">
+        <view class="skeleton-line skeleton-title" />
+        <view class="skeleton-line skeleton-number" />
+        <view class="skeleton-line skeleton-date" />
+      </view>
+      <view class="cards-grid">
+        <view class="skeleton skeleton-card" />
+        <view class="skeleton skeleton-card" />
+      </view>
+      <text class="state-caption muted">正在翻开你的日子…</text>
+    </view>
+
+    <view wx:elif="{{error}}" class="paper empty-state page-state" aria-role="status">
+      <view class="state-icon"><app-icon name="days" size="36" /></view>
+      <text class="state-title">小日子暂时没翻开</text>
+      <text class="state-description muted">{{error}}</text>
+      <button class="btn-primary state-action" bindtap="onRetryTap" hover-class="button-pressed">重新读取</button>
+    </view>
+
+    <view wx:elif="{{!visibleCount}}" class="paper empty-state page-state">
+      <image class="empty-cat" src="/assets/cat-heart.png" mode="aspectFit" />
+      <text class="state-title">{{emptyTitle}}</text>
+      <text class="state-description muted">{{emptyDescription}}</text>
+      <button class="btn-primary state-action" bindtap="onAddTap" hover-class="button-pressed">记下一个日子</button>
+    </view>
+
+    <view wx:else>
+      <button wx:if="{{feature}}" class="feature-event" data-id="{{feature.id}}" bindtap="onEventTap" hover-class="card-pressed" aria-label="{{feature.name}}，{{feature.statusLabel}} {{feature.countText}} {{feature.unitLabel}}，查看详情">
+        <view class="feature-border" />
+        <view class="event-top">
+          <view class="event-heading">
+            <app-icon name="{{feature.icon}}" size="36" />
+            <text class="event-name">{{feature.name}}</text>
+          </view>
+          <text class="pill feature-pill">{{feature.featureLabel}}</text>
+        </view>
+        <text class="feature-status">{{feature.statusLabel}}</text>
+        <view class="feature-count">
+          <text class="feature-number">{{feature.countText}}</text>
+          <text class="feature-unit">{{feature.unitLabel}}</text>
+        </view>
+        <image class="feature-cat" src="/assets/cat-heart.png" mode="aspectFit" />
+        <text class="feature-phrase">{{feature.phrase}}</text>
+        <view class="event-footer">
+          <text>{{feature.displayDate}}{{feature.repeatText}}</text>
+          <view class="event-link"><text>查看</text><app-icon name="next" size="22" /></view>
+        </view>
+      </button>
+
+      <view wx:if="{{cards.length}}" class="cards-grid">
+        <button wx:for="{{cards}}" wx:key="id" class="event-card paper" data-id="{{item.id}}" bindtap="onEventTap" hover-class="card-pressed" aria-label="{{item.name}}，{{item.statusLabel}} {{item.countText}} {{item.unitLabel}}，查看详情">
+          <view class="event-band {{item.tintClass}}">
+            <app-icon name="{{item.icon}}" size="30" />
+            <text class="small-name">{{item.name}}</text>
+          </view>
+          <view class="event-card-body">
+            <text class="small-status">{{item.statusLabel}}</text>
+            <view class="small-count">
+              <text class="small-number">{{item.countText}}</text>
+              <text class="small-unit">{{item.unitLabel}}</text>
+            </view>
+            <text class="small-date">{{item.displayDate}}{{item.repeatText}}</text>
+          </view>
+        </button>
+      </view>
+
+      <button wx:if="{{life}}" class="life-card paper" data-id="{{life.id}}" bindtap="onEventTap" hover-class="card-pressed" aria-label="{{life.name}}，{{life.countText}} {{life.unitLabel}}，查看详情">
+        <view class="life-icon"><app-icon name="{{life.icon}}" size="38" /></view>
+        <view class="life-info">
+          <text class="life-title">{{life.name}}</text>
+          <text class="life-subtitle">又是值得好好生活的一天</text>
+        </view>
+        <view class="life-count">
+          <text class="life-number">{{life.countText}}</text>
+          <text class="life-unit">{{life.unitLabel}}</text>
+        </view>
+      </button>
+      <text class="home-quote">那些看似普通的日子，都藏着小小的幸福。</text>
+    </view>
+  </view>
+  <button class="fab page-fab" bindtap="onAddTap" hover-class="button-pressed" aria-label="新增一个日子">
+    <app-icon name="plus" size="44" color="white" />
+  </button>
+</view>

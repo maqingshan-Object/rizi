@@ -1,0 +1,114 @@
+<view class="app-page theme-{{theme}}">
+  <nav-header title="日子绵绵" theme="{{theme}}" />
+  <view class="calendar-content safe-bottom">
+    <view wx:if="{{guest}}" class="guest-banner">
+      <view class="guest-dot" />
+      <text>当前为访客记录 · 仅保存在此设备</text>
+    </view>
+
+    <view class="calendar-head">
+      <view class="month-heading">
+        <text class="month-title">{{monthLabel}}</text>
+        <text class="month-subtitle">翻过一页，又是新的期待。</text>
+      </view>
+      <view class="calendar-controls">
+        <button class="month-arrow" data-shift="-1" bindtap="onMonthTap" hover-class="button-pressed" disabled="{{loading}}" aria-label="上个月"><app-icon name="prev" size="32" /></button>
+        <button class="today-button" bindtap="onTodayTap" hover-class="button-pressed" disabled="{{loading}}" aria-label="返回今天"><text>今</text></button>
+        <button class="month-arrow" data-shift="1" bindtap="onMonthTap" hover-class="button-pressed" disabled="{{loading}}" aria-label="下个月"><app-icon name="next" size="32" /></button>
+      </view>
+    </view>
+
+    <view wx:if="{{loading}}" class="paper calendar-loading" aria-role="status" aria-label="正在整理月历">
+      <view class="skeleton-week" />
+      <view class="skeleton-month" />
+      <text class="state-caption">正在整理这个月的小期待…</text>
+    </view>
+
+    <view wx:elif="{{error}}" class="paper empty-state page-state" aria-role="status">
+      <view class="state-icon"><app-icon name="calendar" size="40" /></view>
+      <text class="state-title">月历暂时没翻开</text>
+      <text class="state-description muted">{{error}}</text>
+      <button class="btn-primary state-action" bindtap="onRetryTap" hover-class="button-pressed">重新读取</button>
+    </view>
+
+    <view wx:else>
+      <view class="paper calendar-paper">
+        <view class="week-labels">
+          <text wx:for="{{weekdays}}" wx:key="key" class="{{item.className}}">{{item.label}}</text>
+        </view>
+        <view class="calendar-cells">
+          <button wx:for="{{cells}}" wx:key="key" class="{{item.className}}" data-date="{{item.date}}" bindtap="onDateTap" hover-class="date-pressed" aria-label="{{item.ariaLabel}}">
+            <text class="date-number">{{item.day}}</text>
+            <text class="{{item.subLabelClass}}">{{item.subLabel}}</text>
+            <text wx:if="{{item.badge}}" class="{{item.badgeClass}}">{{item.badge}}</text>
+            <view class="event-dots">
+              <view wx:for="{{item.dots}}" wx:for-item="dot" wx:key="key" class="{{dot.className}}" />
+              <text wx:if="{{item.extraDots}}" class="more-dots">+</text>
+            </view>
+          </button>
+        </view>
+        <view class="calendar-legend">
+          <view class="legend-item"><text class="legend-badge rest-badge">休</text><text>休息日</text></view>
+          <view class="legend-item"><text class="legend-badge work-badge">补</text><text>调休上班</text></view>
+          <view class="legend-item"><view class="legend-dot" /><text>我的日子</text></view>
+        </view>
+      </view>
+
+      <view class="selection-summary soft-card">
+        <view class="selected-heading">
+          <text class="selected-date">{{selectedLabel}}</text>
+          <text class="selected-meta">{{selectedMeta}}</text>
+        </view>
+        <text class="pill selected-total">{{selectedCount}} 个日子</text>
+      </view>
+
+      <view class="section-heading section-title">
+        <text>这一天的日子</text>
+        <button class="inline-add" bindtap="onAddTap" hover-class="button-pressed" aria-label="为选中日期记一笔">
+          <app-icon name="plus" size="23" /><text>记一笔</text>
+        </button>
+      </view>
+      <view wx:if="{{selectedCount}}">
+        <button wx:for="{{selectedEvents}}" wx:key="rowKey" class="schedule paper" data-id="{{item.id}}" bindtap="onEventTap" hover-class="card-pressed" aria-label="{{item.name}}，{{item.whenText}}，查看详情">
+          <view class="schedule-icon {{item.tintClass}}"><app-icon name="{{item.icon}}" size="36" /></view>
+          <view class="schedule-info">
+            <text class="schedule-name">{{item.name}}</text>
+            <text class="schedule-meta">{{item.occurrenceDisplay}}{{item.repeatText}}</text>
+          </view>
+          <text class="{{item.whenClass}}">{{item.whenText}}</text>
+          <view class="schedule-chevron"><app-icon name="next" size="24" /></view>
+        </button>
+      </view>
+      <view wx:else class="selected-empty soft-card">
+        <view class="empty-icon"><app-icon name="leaf" size="32" /></view>
+        <text class="empty-copy">这一天还没有记录，也可以有新的小期待。</text>
+      </view>
+
+      <view class="section-heading section-title month-section-heading">
+        <text>本月的重要日子</text>
+        <text class="section-count muted">{{monthCount}} 个小期待</text>
+      </view>
+      <view wx:if="{{monthCount}}">
+        <button wx:for="{{monthEvents}}" wx:key="rowKey" class="schedule paper month-schedule" data-id="{{item.id}}" bindtap="onEventTap" hover-class="card-pressed" aria-label="{{item.occurrenceDisplay}}，{{item.name}}，{{item.whenText}}，查看详情">
+          <view class="schedule-date"><text class="schedule-day">{{item.dayText}}</text><text class="schedule-month">{{item.monthText}}</text></view>
+          <view class="schedule-icon {{item.tintClass}}"><app-icon name="{{item.icon}}" size="32" /></view>
+          <view class="schedule-info">
+            <text class="schedule-name">{{item.name}}</text>
+            <text class="schedule-meta">{{item.occurrenceDisplay}}{{item.repeatText}}</text>
+          </view>
+          <text class="{{item.whenClass}}">{{item.whenText}}</text>
+        </button>
+      </view>
+      <view wx:else class="paper empty-state month-empty">
+        <view class="state-icon"><app-icon name="calendar" size="36" /></view>
+        <text class="state-title">这个月，留一点空间给新期待</text>
+        <text class="state-description muted">点右下角的 ＋，为选中的日期记下一个日子。</text>
+      </view>
+      <view class="calendar-note muted">
+        <text>农历与休补标签仅在已有数据时显示；未标注的日期不代表已确认的假期安排。</text>
+      </view>
+      <text class="calendar-quote">每一个小圆点，都是生活的温柔提醒。</text>
+    </view>
+  </view>
+  <button class="fab page-fab" bindtap="onAddTap" hover-class="button-pressed" aria-label="为选中的日期新增日子"><app-icon name="plus" size="44" color="white" /></button>
+</view>

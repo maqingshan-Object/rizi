@@ -1,0 +1,35 @@
+# Local agent state and operating-system files
+.workbuddy-ai/
+.versioning/
+.DS_Store
+Thumbs.db
+
+# Developer-specific IDE configuration
+project.private.config.json
+.idea/
+.vscode/
+
+# Dependencies and generated artifacts
+node_modules/
+miniprogram_npm/
+coverage/
+dist/
+build/
+*.log
+*.tmp
+*.swp
+*.swo
+*.bundle
+
+# Credentials must never be committed
+.env
+.env.*
+!.env.example
+!.env.sample
+*.pem
+*.key
+*.p12
+*.pfx
+*.keystore
+credentials*.json
+secrets*.json

@@ -1,0 +1,47 @@
+.subpage { padding-bottom: calc(44rpx + env(safe-area-inset-bottom)); }
+.detail-body { padding-top: 24rpx; }
+.local-banner { display: flex; align-items: flex-start; gap: 14rpx; background: var(--soft); color: var(--accent); padding: 20rpx 24rpx; border-radius: 22rpx; font-size: 22rpx; line-height: 1.65; margin-bottom: 28rpx; }
+.local-banner app-icon { flex-shrink: 0; margin-top: 4rpx; }
+.detail-hero { padding: 34rpx 32rpx 28rpx; margin-bottom: 26rpx; overflow: hidden; }
+.hero-top { display: flex; align-items: center; justify-content: space-between; gap: 18rpx; }
+.detail-icon { display: flex; align-items: center; justify-content: center; width: 82rpx; height: 82rpx; border-radius: 28rpx; color: var(--accent); }
+.tint-pink { background: var(--pink); }
+.tint-mint { background: var(--mint); }
+.tint-yellow { background: var(--yellow); }
+.tint-blue { background: var(--blue); }
+.content-title { display: block; font-size: 32rpx; font-weight: 600; line-height: 1.65; }
+.event-title { margin-top: 26rpx; font-size: 35rpx; overflow-wrap: break-word; }
+.count-status { display: block; font-size: 24rpx; color: var(--accent); line-height: 1.8; margin-top: 18rpx; }
+.hero-number-row { display: flex; align-items: baseline; gap: 16rpx; margin-top: 4rpx; flex-wrap: wrap; }
+.hero-number { font-size: 112rpx; font-weight: 600; letter-spacing: -5rpx; line-height: 1.25; color: var(--accent); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.hero-unit { color: var(--accent); font-size: 29rpx; }
+.hero-bottom { display: flex; align-items: flex-end; justify-content: space-between; gap: 12rpx; margin-top: 14rpx; }
+.hero-caption { flex: 1; min-width: 0; }
+.hero-date { display: block; font-size: 26rpx; color: var(--ink); line-height: 1.7; }
+.hero-repeat { display: block; font-size: 22rpx; color: var(--muted); line-height: 1.8; margin-top: 4rpx; }
+.hero-phrase { display: block; font-size: 20rpx; color: var(--accent); line-height: 1.8; margin-top: 16rpx; }
+.hero-cat { width: 166rpx; height: 154rpx; flex-shrink: 0; }
+.information-paper { padding: 6rpx 30rpx 24rpx; margin-bottom: 24rpx; }
+.detail-line { display: flex; align-items: flex-start; justify-content: space-between; gap: 24rpx; padding: 24rpx 0; border-bottom: 1rpx solid #d9ceba55; font-size: 24rpx; line-height: 1.65; }
+.detail-line > .muted { flex-shrink: 0; }
+.detail-value { text-align: right; overflow-wrap: break-word; min-width: 0; }
+.reminder-line { border-bottom: 0; padding-bottom: 8rpx; }
+.form-help { display: block; color: var(--muted); font-size: 21rpx; line-height: 1.8; }
+.reminder-help { margin-top: 8rpx; }
+.lunar-help { margin-top: 20rpx; padding: 20rpx; background: var(--soft); color: var(--accent); border-radius: 18rpx; }
+.form-error { display: block; font-size: 23rpx; color: #a45151; line-height: 1.8; overflow-wrap: break-word; }
+.date-warning { padding: 24rpx; margin-bottom: 24rpx; background: var(--paper); border-radius: 22rpx; border: 1rpx solid #d5a6a666; }
+.note-paper { padding: 28rpx 30rpx 32rpx; margin-bottom: 32rpx; }
+.note-heading { display: flex; align-items: center; gap: 12rpx; font-size: 24rpx; color: var(--accent); }
+.letter-note { display: block; margin-top: 18rpx; font-size: 26rpx; line-height: 1.95; white-space: pre-wrap; overflow-wrap: break-word; }
+.detail-actions { display: flex; flex-direction: column; gap: 18rpx; }
+.edit-button { display: flex; align-items: center; justify-content: center; gap: 12rpx; }
+.edit-button[disabled] { background: var(--accent); color: #fffdf7; }
+.pin-help { text-align: center; margin-top: 16rpx; }
+.delete-button { color: #a45151; font-size: 24rpx; padding: 30rpx 20rpx; margin: 22rpx auto 0; border-radius: 20rpx; width: 100%; line-height: 1.6; }
+.detail-footer { display: block; text-align: center; font-size: 21rpx; margin-top: 22rpx; line-height: 1.8; }
+.page-state { display: flex; flex-direction: column; align-items: center; gap: 22rpx; padding: 56rpx 28rpx; text-align: center; line-height: 1.8; }
+.page-state .btn-primary, .page-state .btn-secondary { width: 100%; margin-top: 12rpx; }
+.state-cat { width: 170rpx; height: 154rpx; }
+.skeleton-line { width: 70%; height: 36rpx; border-radius: 12rpx; background: var(--soft); }
+.skeleton-number { width: 56%; height: 120rpx; border-radius: 18rpx; background: var(--soft); }

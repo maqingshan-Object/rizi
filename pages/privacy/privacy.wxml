@@ -1,0 +1,50 @@
+<view class="app-page theme-{{theme}} privacy-page">
+  <nav-header title="隐私与数据" back="{{true}}" theme="{{theme}}" />
+  <view class="page-body privacy-body">
+    <view class="privacy-intro">
+      <view class="privacy-mark"><app-icon name="lock" size="{{50}}" color="accent" variant="{{theme}}" /></view>
+      <text class="content-title">你的日子，只属于你</text>
+      <text class="privacy-subtitle muted">把现在能做的、还没接通的，都说清楚。</text>
+    </view>
+
+    <view class="guest-banner privacy-status"><text class="status-title">当前阶段：本机访客记录</text><text class="status-description">真实后端未配置。登录、头像昵称保存、云端备份和订阅消息服务均尚未接通，本说明不代表这些服务已经可用。</text></view>
+
+    <view class="paper legal-paper legal-text">
+      <view class="legal-section">
+        <view class="legal-heading"><text class="section-number">01</text><text>访客记录保存在本机</text></view>
+        <text class="legal-paragraph">你在访客模式创建的日子，包括名称、日期、分类、记录方式、重复设置、备注和提醒偏好，保存在当前小程序的本机存储中。主题偏好也只保存在本机。</text>
+        <text class="legal-paragraph">当前未将这些内容上传到账号或云端。换设备、清理小程序数据或卸载后，记录可能无法找回；本机存储不是云端备份。</text>
+      </view>
+      <view class="legal-section">
+        <view class="legal-heading"><text class="section-number">02</text><text>登录不等于自动获取资料</text></view>
+        <text class="legal-paragraph">现在的登录服务尚未接通。点击尝试登录会展示真实服务错误，不会把临时登录凭证、本机缓存或微信开发者工具中的账号当成已登录用户。</text>
+        <text class="legal-paragraph">只有真实服务确认了身份，页面才会显示头像与昵称表单。访客页面的「日子的收藏家」和猫猫图片是默认展示，不是读取到的微信资料。</text>
+      </view>
+      <view class="legal-section">
+        <view class="legal-heading"><text class="section-number">03</text><text>头像昵称，由你主动选择</text></view>
+        <text class="legal-paragraph">不会自动读取你的微信头像或昵称。身份确认后，你可以点头像按钮主动选择图片，也可以在昵称输入框中输入或主动选择昵称；昵称在点击保存、提交表单时收集。</text>
+        <text class="legal-paragraph">选头像产生的临时图片路径仅用于当前页面预览，不作为已保存的账号资料。保存需要真实资料服务处理；当前资料服务未接通，保存失败不会被显示为成功，也不会在本地伪造账号资料。</text>
+      </view>
+      <view class="legal-section">
+        <view class="legal-heading"><text class="section-number">04</text><text>提醒与备份还在等待接通</text></view>
+        <text class="legal-paragraph">当前不会发送订阅消息，不会自动申请订阅授权，也不提供账号云端备份、跨设备同步或恢复。记录中的提醒偏好仅是记录内容，不表示通知已经生效。</text>
+        <text class="legal-paragraph">如果后续接入真实服务，需要先补充相应的数据处理与授权说明，再由你主动决定是否使用。当前不作服务可用性承诺。</text>
+      </view>
+      <view class="legal-section">
+        <view class="legal-heading"><text class="section-number">05</text><text>你可以管理自己的日子</text></view>
+        <text class="legal-paragraph">可在「我的 → 管理我的日子」进入日子列表，再编辑或删除单条记录。删除记录无法通过当前尚未开通的云端服务恢复，请确认后操作。</text>
+        <text class="legal-paragraph">「移除示例日子」会先弹出确认框，只移除仍标记为示例的记录。你新建或保存过的日子不会随示例一起删除；此操作不清空本机全部数据。</text>
+      </view>
+      <view class="legal-section last-section">
+        <view class="legal-heading"><text class="section-number">06</text><text>关于这份开发阶段说明</text></view>
+        <text class="legal-paragraph">本页说明当前实现的数据边界，不是已上线服务的完整隐私政策。运营主体、正式联系渠道与备案资料尚未提供，本页不编造这些信息。</text>
+        <text class="legal-paragraph">请避免在尚未具备云端备份的本机记录中保存高度敏感内容。正式接入服务前，应完善并核实运营主体、联系方式、数据处理规则及必要的授权说明。</text>
+      </view>
+    </view>
+
+    <view class="privacy-note muted"><image class="privacy-cat" src="/assets/cat.png" mode="aspectFit" /><text>日子可以慢慢记，边界要清清楚楚。</text></view>
+    <button class="btn-primary back-button" bindtap="goBack">我了解了，返回</button>
+    <text class="legal-text return-note muted">返回本页不会自动勾选登录页的同意选项。</text>
+    <view class="safe-bottom"></view>
+  </view>
+</view>

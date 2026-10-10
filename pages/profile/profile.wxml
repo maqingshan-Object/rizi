@@ -1,0 +1,67 @@
+<view class="app-page theme-{{theme}}">
+  <nav-header title="日子绵绵" back="{{false}}" theme="{{theme}}" />
+  <view class="page-body profile-body">
+    <view class="profile-heading">
+      <text class="content-title">我的小日子</text>
+      <button class="about-button" bindtap="showAbout" aria-label="关于日子绵绵">
+        <app-icon name="spark" size="{{38}}" color="accent" variant="{{theme}}" />
+      </button>
+    </view>
+
+    <view class="profile-card">
+      <button class="avatar-button" bindtap="openLogin" aria-label="{{guest ? '前往登录' : '编辑头像昵称'}}">
+        <image class="avatar" src="{{avatar}}" mode="aspectFit" binderror="avatarError" />
+      </button>
+      <view class="profile-info">
+        <text class="profile-name">{{nickname}}</text>
+        <text class="profile-description muted">认真生活的人，自带温柔滤镜。</text>
+        <button class="profile-link" bindtap="openLogin">
+          <app-icon name="{{guest ? 'user' : 'edit'}}" size="{{25}}" color="accent" variant="{{theme}}" />
+          <text>{{guest ? '去登录 · 服务待接通' : '编辑头像与昵称'}}</text>
+        </button>
+      </view>
+    </view>
+
+    <view wx:if="{{guest}}" class="guest-banner profile-guest">
+      <app-icon name="lock" size="{{30}}" color="accent" variant="{{theme}}" />
+      <view><text class="guest-title">正在用访客模式收藏日子</text><text class="guest-note">数据仅在本机，未登录、未上传。</text></view>
+    </view>
+
+    <view class="stats">
+      <button class="stat" bindtap="openDays"><text class="stat-number">{{stats.total}}</text><text class="stat-label muted">珍藏的日子</text></button>
+      <button class="stat" bindtap="openDays"><text class="stat-number">{{stats.birthday}}</text><text class="stat-label muted">生日记录</text></button>
+      <button class="stat" bindtap="openDays"><text class="stat-number">{{stats.growth}}</text><text class="stat-label muted">成长记录</text></button>
+    </view>
+    <view wx:if="{{sampleCount}}" class="stats-help muted">统计含 {{sampleCount}} 个示例日子，可在下方移除。</view>
+    <view wx:if="{{error}}" class="form-error" role="alert">{{error}}<button class="retry-button" bindtap="refresh">重新读取</button></view>
+
+    <view class="paper theme-panel">
+      <view class="panel-heading"><text>给日子换件衣服</text><text class="muted panel-hint">点击即可换主题</text></view>
+      <view class="theme-previews">
+        <button wx:for="{{themes}}" wx:key="id" class="theme-choice {{theme === item.id ? 'selected' : ''}}" data-id="{{item.id}}" bindtap="chooseTheme" aria-label="切换到{{item.name}}" aria-pressed="{{theme === item.id}}">
+          <view class="mini-page" style="background:{{item.bg}};">
+            <view class="mini-header"><view class="mini-title" style="background:{{item.accent}};"></view><image class="mini-cat" src="/assets/cat.png" mode="aspectFit" /></view>
+            <view class="mini-feature" style="background:{{item.soft}};"><view class="mini-line" style="background:{{item.accent}};"></view><text class="mini-count" style="color:{{item.accent}};">12</text><image class="mini-heart-cat" src="/assets/cat-heart.png" mode="aspectFit" /></view>
+            <view class="mini-cards"><view style="background:{{item.soft}};"></view><view style="background:{{item.soft}};"></view></view>
+            <view class="mini-tabs"><view></view><view></view><view style="background:{{item.accent}};"></view></view>
+            <view wx:if="{{theme === item.id}}" class="theme-check" style="background:{{item.accent}};"><app-icon name="check" size="{{22}}" color="white" /></view>
+          </view>
+          <text class="theme-name">{{item.name}}</text>
+          <text class="theme-caption muted">{{item.caption}}</text>
+        </button>
+      </view>
+    </view>
+
+    <view class="settings">
+      <button class="setting-row" bindtap="showReminders"><app-icon name="bell" size="{{36}}" color="accent" variant="{{theme}}" /><text class="setting-title">日子提醒</text><text class="setting-note muted">待订阅服务</text><app-icon name="next" size="{{26}}" color="neutral" /></button>
+      <button class="setting-row" bindtap="showBackup"><app-icon name="cloud" size="{{36}}" color="accent" variant="{{theme}}" /><text class="setting-title">云端备份</text><text class="setting-note muted">尚未接通</text><app-icon name="next" size="{{26}}" color="neutral" /></button>
+      <button class="setting-row" bindtap="openDays"><app-icon name="grid" size="{{36}}" color="accent" variant="{{theme}}" /><text class="setting-title">管理我的日子</text><text class="setting-note muted">{{stats.total}} 个日子</text><app-icon name="next" size="{{26}}" color="neutral" /></button>
+      <button class="setting-row" bindtap="openPrivacy"><app-icon name="lock" size="{{36}}" color="accent" variant="{{theme}}" /><text class="setting-title">隐私与数据</text><app-icon name="next" size="{{26}}" color="neutral" /></button>
+      <button class="setting-row" bindtap="showAbout"><app-icon name="info" size="{{36}}" color="accent" variant="{{theme}}" /><text class="setting-title">关于日子绵绵</text><app-icon name="next" size="{{26}}" color="neutral" /></button>
+    </view>
+    <button wx:if="{{sampleCount}}" class="btn-secondary clear-button" bindtap="clearSamples" disabled="{{clearing}}">{{clearing ? '正在确认' : '移除示例日子，保留我的记录'}}</button>
+    <button wx:if="{{user}}" class="signout-button muted" bindtap="signOut">退出当前账号</button>
+    <view class="profile-footer muted"><text>日子绵绵，岁岁有念</text><text class="footer-small">把平凡的小日子，认真放在心上。</text></view>
+    <view class="safe-bottom"></view>
+  </view>
+</view>

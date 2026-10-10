@@ -1,0 +1,63 @@
+<view class="app-page theme-{{theme}} login-page">
+  <nav-header title="{{user ? '头像与昵称' : '登录日子绵绵'}}" back="{{true}}" theme="{{theme}}" />
+  <view class="page-body login-body">
+    <view class="login-intro">
+      <view class="cat-sticker"><image src="/assets/cat-heart.png" class="login-cat" mode="aspectFit" /></view>
+      <text class="content-title">把日子，慢慢放在心上</text>
+      <text class="intro-note muted">先确认你是你，再选自己的小模样。</text>
+    </view>
+
+    <view wx:if="{{!configured}}" class="guest-banner service-banner" role="status">
+      <app-icon name="info" size="{{36}}" color="accent" variant="{{theme}}" />
+      <view class="service-copy"><text class="service-title">登录服务待接通</text><text class="service-description">真实后端尚未配置。现在尝试登录会返回真实失败，不会创建账号，也不会上传头像、昵称或日子。</text></view>
+    </view>
+
+    <view class="steps">
+      <view class="step {{!user ? 'current' : 'done'}}"><text class="step-number">01</text><text>确认真实身份</text></view>
+      <view class="step-line"></view>
+      <view class="step {{user ? 'current' : ''}}"><text class="step-number">02</text><text>自选头像昵称</text></view>
+    </view>
+
+    <view class="paper login-panel">
+      <view class="agreement">
+        <checkbox-group bindchange="changeAgreement">
+          <label class="agreement-label"><checkbox value="privacy" checked="{{agreed}}" color="{{theme === 'cherry' ? '#a35965' : theme === 'mint' ? '#526f63' : '#876c42'}}" disabled="{{signingIn || saving}}" /><text>我已阅读并同意隐私说明</text></label>
+        </checkbox-group>
+        <button class="privacy-link" bindtap="openPrivacy">查看隐私与数据说明</button>
+      </view>
+
+      <block wx:if="{{!user}}">
+        <text class="panel-title">让身份与资料分开选择</text>
+        <text class="form-help login-help">登录只用于确认身份。头像和昵称由你在登录后主动选择，不会自动读取微信资料；开发者工具登录账号也不会成为本小程序用户。</text>
+        <button class="btn-primary login-button" bindtap="signIn" loading="{{signingIn}}" disabled="{{!agreed || signingIn}}">{{signingIn ? '正在验证身份' : configured ? '登录并验证身份' : '尝试登录（服务待接通）'}}</button>
+        <view wx:if="{{error}}" class="form-error error-box" role="alert"><text>{{error}}</text><text wx:if="{{errorCode}}" class="error-code">错误代码：{{errorCode}}</text></view>
+        <text class="form-help after-note">不想登录也没关系，访客模式可以先记录。</text>
+      </block>
+
+      <block wx:else>
+        <view class="identity-status"><app-icon name="check" size="{{30}}" color="accent" variant="{{theme}}" /><text>已确认真实身份</text></view>
+        <text class="panel-title">选一个喜欢的头像和昵称</text>
+        <form bindsubmit="submitProfile">
+          <view class="form-group avatar-group">
+            <text class="form-label">头像（可选）</text>
+            <button class="choose-avatar" open-type="chooseAvatar" bindchooseavatar="chooseAvatar" disabled="{{saving}}" aria-label="主动选择头像"><image class="chosen-avatar" src="{{avatarPreview}}" mode="aspectFit" binderror="avatarError" /><view class="avatar-edit"><app-icon name="edit" size="{{24}}" color="white" /></view></button>
+            <text class="form-help">点头像主动选择；默认小猫不代表微信头像。临时图片仅用于本页预览，保存时交由真实资料服务处理。</text>
+          </view>
+          <view class="form-group nickname-group">
+            <text class="form-label">昵称</text>
+            <input class="form-input nickname-input" type="nickname" name="nickname" value="{{nickname}}" maxlength="20" placeholder="给自己取一个小名字" disabled="{{saving}}" />
+            <text class="form-help">可输入或主动选择昵称，提交时才收集表单值。</text>
+          </view>
+          <view wx:if="{{profileError}}" class="form-error error-box" role="alert"><text>{{profileError}}</text><text wx:if="{{profileErrorCode}}" class="error-code">错误代码：{{profileErrorCode}}</text></view>
+          <text wx:if="{{profileSaved}}" class="saved-message" role="status">资料已由真实服务保存。</text>
+          <button class="btn-primary login-button" form-type="submit" loading="{{saving}}" disabled="{{saving || !agreed}}">{{saving ? '正在保存资料' : '保存头像与昵称'}}</button>
+          <text class="form-help after-note">只有服务保存成功才会显示完成，失败时不会在本地伪造资料。</text>
+        </form>
+      </block>
+    </view>
+
+    <button class="btn-secondary guest-button" bindtap="continueGuest" disabled="{{signingIn || saving}}">{{user ? '回到我的日子' : '先用访客模式记录'}}</button>
+    <view class="legal-text login-footer muted">{{user ? '头像昵称由你选择，资料保存以真实服务结果为准。' : '访客记录保存在本机，当前不提供账号同步或云端恢复。'}}</view>
+    <view class="safe-bottom"></view>
+  </view>
+</view>

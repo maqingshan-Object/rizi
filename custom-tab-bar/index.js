@@ -1,0 +1,1 @@
+Component({data:{selected:0,theme:'cream',list:[{path:'/pages/days/days',text:'日子',icon:'days'},{path:'/pages/calendar/calendar',text:'日历',icon:'calendar'},{path:'/pages/profile/profile',text:'我的',icon:'user'}]},methods:{switchTab(e){const index=Number(e.currentTarget.dataset.index);if(index===this.data.selected)return;wx.switchTab({url:this.data.list[index].path});}}});
