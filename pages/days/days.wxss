@@ -129,7 +129,15 @@
 .tint-mint { background: var(--days-mint); }
 .tint-yellow { background: var(--days-yellow); }
 .tint-blue { background: var(--days-blue); }
-.event-card-body { padding: 19rpx 23rpx 23rpx; }
+.event-card-body { padding: 19rpx 23rpx 23rpx; position: relative; overflow: hidden; }
+.event-card-body > text, .event-card-body > view { position: relative; z-index: 1; }
+.small-category-art { position: absolute; right: -12rpx; top: 12rpx; width: 130rpx; height: 138rpx; opacity: 0.15; pointer-events: none; }
+.feature-art { position: absolute; right: 26rpx; bottom: 56rpx; width: 180rpx; height: 186rpx; opacity: 0.82; pointer-events: none; }
+.feature-holiday { display: block; position: relative; font-size: 22rpx; margin-top: 18rpx; color: var(--days-accent); }
+.small-holiday { display: block; font-size: 19rpx; margin-bottom: 6rpx; color: var(--days-accent); }
+.sort-note { display: block; font-size: 19rpx; color: var(--days-muted); margin: -9rpx 4rpx 16rpx; }
+.theme-mint .feature-art { opacity: 0.24; }
+.theme-mint .small-category-art { opacity: 0.09; }
 .small-status { display: block; color: var(--days-muted); font-size: 19rpx; margin-bottom: 4rpx; }
 .small-count { display: flex; align-items: baseline; }
 .small-number { font-family: 'Avenir Next', 'Helvetica Neue', sans-serif; font-size: 60rpx; font-weight: 500; letter-spacing: -2rpx; line-height: 1.1; word-break: break-all; }

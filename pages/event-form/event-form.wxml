@@ -30,6 +30,13 @@
         </view>
         <image class="intro-cat" src="/assets/cat-heart.png" mode="aspectFit" />
       </view>
+      <view class="paper category-preview preview-{{category}}">
+        <image class="preview-art" src="{{previewSrc}}" mode="aspectFit" />
+        <view class="preview-copy">
+          <text class="preview-title">{{previewLabel}}</text>
+          <text class="form-help">{{name || '把这个日子，轻轻收藏'}}</text>
+        </view>
+      </view>
       <view class="paper form-paper">
         <view class="form-group">
           <label class="form-label" for="event-name">这个日子叫什么</label>
@@ -44,23 +51,44 @@
         </view>
         <view class="form-group">
           <text class="form-label">历法</text>
-          <picker mode="selector" range="{{calendars}}" range-key="label" value="{{calendarTypeIndex}}" data-field="calendarType" bindchange="onSelect" disabled="{{saving}}">
-            <view class="form-input picker-value"><text>{{calendars[calendarTypeIndex].label}}</text><app-icon name="next" size="{{24}}" /></view>
+          <picker mode="selector" range="{{calendars}}" range-key="label" value="{{calendarTypeIndex}}" data-field="calendarType" bindchange="onSelect" disabled="{{saving || festivalActive}}">
+            <view class="form-input picker-value {{festivalActive ? 'picker-locked' : ''}}"><text>{{festivalActive ? '公历 · 自动跟随节日' : calendars[calendarTypeIndex].label}}</text><app-icon name="next" size="{{24}}" /></view>
           </picker>
-          <text class="form-help">农历仅用于生日，其他日子请选择公历。</text>
+          <text class="form-help">{{festivalActive ? '节日日期自动换算为公历，无需手动设置。' : '农历仅用于生日，其他日子请选择公历。'}}</text>
         </view>
         <view class="form-group">
           <text class="form-label">记录方式</text>
-          <picker mode="selector" range="{{modes}}" range-key="label" value="{{modeIndex}}" data-field="mode" bindchange="onSelect" disabled="{{saving || calendarType === 'lunar'}}">
-            <view class="form-input picker-value {{calendarType === 'lunar' ? 'picker-locked' : ''}}"><text>{{modes[modeIndex].label}}</text><app-icon name="next" size="{{24}}" /></view>
+          <picker mode="selector" range="{{modes}}" range-key="label" value="{{modeIndex}}" data-field="mode" bindchange="onSelect" disabled="{{saving || festivalActive || calendarType === 'lunar'}}">
+            <view class="form-input picker-value {{festivalActive || calendarType === 'lunar' ? 'picker-locked' : ''}}"><text>{{festivalActive ? '倒计时 · 自动跟随节日' : modes[modeIndex].label}}</text><app-icon name="next" size="{{24}}" /></view>
           </picker>
         </view>
-        <view wx:if="{{calendarType === 'solar'}}" class="form-group">
-          <text class="form-label">公历日期</text>
+        <view wx:if="{{festivalActive}}" class="form-group holiday-section">
+          <text class="form-label">选择法定节日</text>
+          <text class="form-help holiday-instruction">七个法定节日，也可以自动等待最近节假日。</text>
+          <view class="holiday-choices">
+            <button wx:for="{{holidayChoices}}" wx:key="value" class="holiday-chip {{holidayKey === item.value ? 'holiday-selected' : ''}}" data-key="{{item.value}}" bindtap="onHolidaySelect" disabled="{{saving || item.unavailable}}" aria-label="{{item.label + '，下次' + item.dateText}}">
+              <text class="holiday-chip-label">{{item.label}}</text>
+              <text class="holiday-chip-date">{{item.dateText}}</text>
+            </button>
+          </view>
+          <view class="holiday-result" aria-role="status">
+            <text class="holiday-follow">自动跟随节日</text>
+            <text wx:if="{{holidayDateText}}" class="converted-date">{{holidayDateText}}</text>
+            <text wx:if="{{holidayHelp}}" class="form-help">{{holidayHelp}}</text>
+            <text class="form-help">{{holidayRangeText}}</text>
+            <text wx:if="{{holidayError}}" class="form-error">{{holidayError}}</text>
+          </view>
+        </view>
+        <view wx:elif="{{calendarType === 'solar'}}" class="form-group">
+          <text class="form-label">{{repeat === 'monthly' ? '公历日期 · 保留每月日数' : '公历日期'}}</text>
           <picker mode="date" value="{{date}}" start="1900-01-01" end="2100-12-31" bindchange="onDateChange" disabled="{{saving}}">
             <view class="form-input picker-value"><text>{{date}}</text><app-icon name="calendar" size="{{28}}" /></view>
           </picker>
           <text class="form-help">支持 1900—2100 年的有效公历日期。</text>
+          <view wx:if="{{legacyHoliday}}" class="legacy-holiday">
+            <text class="form-help">这个节日保留原手动日期与计时方式，不会自动重算。</text>
+            <button class="holiday-enable" bindtap="onEnableHoliday" disabled="{{saving}}">改用法定节日</button>
+          </view>
           <text wx:if="{{dateHint}}" class="form-error">{{dateHint}}</text>
         </view>
         <view wx:else class="lunar-section">
@@ -94,11 +122,14 @@
         </view>
         <view class="form-group">
           <text class="form-label">重复</text>
-          <picker mode="selector" range="{{repeats}}" range-key="label" value="{{repeatIndex}}" data-field="repeat" bindchange="onSelect" disabled="{{saving || calendarType === 'lunar' || mode === 'countup'}}">
-            <view class="form-input picker-value {{calendarType === 'lunar' || mode === 'countup' ? 'picker-locked' : ''}}"><text>{{repeats[repeatIndex].label}}</text><app-icon name="next" size="{{24}}" /></view>
+          <picker mode="selector" range="{{repeats}}" range-key="label" value="{{repeatIndex}}" data-field="repeat" bindchange="onSelect" disabled="{{saving || festivalActive || calendarType === 'lunar' || mode === 'countup'}}">
+            <view class="form-input picker-value {{festivalActive || calendarType === 'lunar' || mode === 'countup' ? 'picker-locked' : ''}}"><text>{{festivalActive ? '自动跟随节日' : repeats[repeatIndex].label}}</text><app-icon name="next" size="{{24}}" /></view>
           </picker>
-          <text wx:if="{{mode === 'countup'}}" class="form-help">正计时记录从开始日期至今天，不重复。</text>
+          <text wx:if="{{festivalActive}}" class="form-help">无需选择每年、每月或不重复，会自动更新下一次节日。</text>
+          <text wx:elif="{{mode === 'countup'}}" class="form-help">正计时记录从开始日期至今天，不重复。</text>
           <text wx:elif="{{calendarType === 'lunar'}}" class="form-help">农历生日固定为每年倒计时，日期保存为本次或下次换算的公历。</text>
+          <text wx:if="{{monthlyHint}}" class="form-help monthly-hint" aria-role="status">{{monthlyHint}}</text>
+          <text wx:if="{{monthlyError}}" class="form-error">{{monthlyError}}</text>
         </view>
       </view>
       <view class="paper form-paper appearance-paper">
@@ -137,7 +168,7 @@
         </view>
       </view>
       <view wx:if="{{error}}" class="form-error submit-error" aria-role="alert">{{error}}</view>
-      <button class="btn-primary save-button" form-type="submit" loading="{{saving}}" disabled="{{saving || lunarError}}">{{saving ? '正在保存…' : '把这个日子记下来'}}</button>
+      <button class="btn-primary save-button" form-type="submit" loading="{{saving}}" disabled="{{saving || lunarError || holidayError || monthlyError}}">{{saving ? '正在保存…' : '把这个日子记下来'}}</button>
       <text class="form-help footer-help">保存在本机，算日子是功能，陪伴是心意。</text>
     </form>
   </view>

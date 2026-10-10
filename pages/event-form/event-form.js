@@ -2,11 +2,11 @@ const { prepare, notify } = require('../../utils/page');
 const events = require('../../services/events');
 const dates = require('../../utils/date');
 const lunar = require('../../utils/lunar');
+const festivals = require('../../utils/festivals');
 
 const categories = [
   { value: 'birthday', label: '生日' },
   { value: 'anniversary', label: '纪念日' },
-  { value: 'growth', label: '成长' },
   { value: 'holiday', label: '节日' },
   { value: 'other', label: '其他' }
 ];
@@ -14,7 +14,11 @@ const modes = [
   { value: 'countdown', label: '倒计时 · 还有多少天' },
   { value: 'countup', label: '正计时 · 已经多少天' }
 ];
-const repeats = [{ value: 'yearly', label: '每年重复' }, { value: 'none', label: '不重复' }];
+const repeats = [
+  { value: 'yearly', label: '每年重复' },
+  { value: 'monthly', label: '每月重复' },
+  { value: 'none', label: '不重复' }
+];
 const calendars = [{ value: 'solar', label: '公历' }, { value: 'lunar', label: '农历生日' }];
 const icons = [
   { value: 'heart', label: '爱心' }, { value: 'cake', label: '蛋糕' },
@@ -31,6 +35,11 @@ const selectors = {
   category: categories, mode: modes, repeat: repeats, calendarType: calendars,
   icon: icons, tint: tints, pin: pins, lunarLeap: leaps
 };
+const holidayLabel = key => key === 'next' ? '最近节假日' : festivals.definition(key).label;
+const categoryArt = {
+  birthday: '/assets/birthday-art.png', holiday: '/assets/holiday-art.png',
+  anniversary: '/assets/anniversary-art.png'
+};
 
 Page({
   data: {
@@ -39,6 +48,10 @@ Page({
     name: '', note: '', date: '', category: 'birthday', mode: 'countdown',
     repeat: 'yearly', calendarType: 'solar', icon: 'heart', tint: 'pink',
     pin: false, reminder: '不提醒', lunarMonth: 1, lunarDay: 1, lunarLeap: false,
+    holidayKey: '', festivalActive: false, legacyHoliday: false, holidayChoices: [],
+    holidayDateText: '', holidayHelp: '', holidayError: '',
+    holidayRangeText: '按节日当天，非放假起始日，2020—2035年',
+    monthlyHint: '', monthlyError: '', previewSrc: '', previewLabel: '',
     categories, modes, repeats, calendars, icons, tints, pins, leaps,
     reminders: ['不提醒'], reminderIndex: 0,
     months: lunar.monthNames.map((name, index) => `${index + 1} 月 · ${name}`),
@@ -53,6 +66,7 @@ Page({
   onLoad(options) {
     this._id = options && Object.prototype.hasOwnProperty.call(options, 'id') ? String(options.id) : null;
     this._submitLocked = false;
+    this._autoHolidayName = '';
     this.loadForm(options || {});
   },
 
@@ -66,16 +80,25 @@ Page({
       if (this._id !== null && (!record || record.id !== this._id)) {
         throw new Error('这个日子已不存在，不能继续编辑。请返回后重新选择。');
       }
+      const newHoliday = !record && options.category === 'holiday';
       const state = record ? Object.assign({}, record) : {
         name: '', date: dates.validDate(options.date) ? options.date : dates.today(),
-        category: 'birthday', mode: 'countdown', repeat: 'yearly',
+        category: newHoliday ? 'holiday' : 'birthday', mode: 'countdown', repeat: 'yearly',
         calendarType: 'solar', icon: 'heart', tint: 'pink', pin: false,
         note: '', reminder: '不提醒', lunarMonth: 1, lunarDay: 1, lunarLeap: false
       };
+      // 旧成长分类先归为其他，避免选择器回退到生日。
+      if (state.category === 'growth') state.category = 'other';
+      if (state.category === 'holiday' && state.holidayKey && !festivals.definition(state.holidayKey)) {
+        throw new Error('节日选项无效，请返回后检查记录；不会自动替换节日或覆盖原日期。');
+      }
+      const active = state.category === 'holiday' && !!state.holidayKey && state.repeat === 'festival';
       Object.keys(selectors).forEach(field => {
+        if (field === 'repeat' && active) return;
         const choices = selectors[field];
         if (!choices.some(item => item.value === state[field])) state[field] = choices[0].value;
       });
+      state.holidayKey = active ? state.holidayKey : '';
       state.name = state.name || '';
       state.note = state.note || '';
       state.reminder = '不提醒';
@@ -84,7 +107,10 @@ Page({
       if (state.lunarMonth < 1 || state.lunarMonth > 12 || state.lunarDay < 1 || state.lunarDay > 30) {
         throw new Error('农历月日无效，请返回后检查记录。');
       }
-      if (state.calendarType === 'lunar') {
+      if (active) {
+        state.calendarType = 'solar'; state.mode = 'countdown';
+        this._autoHolidayName = holidayLabel(state.holidayKey);
+      } else if (state.calendarType === 'lunar') {
         state.category = 'birthday'; state.mode = 'countdown'; state.repeat = 'yearly';
       } else if (state.mode === 'countup') {
         state.repeat = 'none';
@@ -92,29 +118,65 @@ Page({
       // 不将存储记录的 id 或其他未知字段放进可编辑表单状态。
       const fields = {};
       ['name', 'note', 'date', 'category', 'mode', 'repeat', 'calendarType', 'icon', 'tint',
-        'pin', 'reminder', 'lunarMonth', 'lunarDay', 'lunarLeap'].forEach(field => { fields[field] = state[field]; });
+        'pin', 'reminder', 'lunarMonth', 'lunarDay', 'lunarLeap', 'holidayKey'].forEach(field => { fields[field] = state[field]; });
       this._existingRecord = record;
       this.setData(Object.assign(fields, {
         loading: false, loadError: '', title: record ? '编辑这个日子' : '记下一个新日子'
       }));
-      this.updatePresentation();
+      if (newHoliday) this.selectHoliday('next');
+      else this.updatePresentation();
     } catch (error) {
       this.setData({ loading: false, loadError: error.message || '暂时无法读取这个日子。' });
       notify(error);
     }
   },
 
-  onNameInput(event) { this.setData({ name: event.detail.value, error: '' }); },
-  onNoteInput(event) { this.setData({ note: event.detail.value, error: '' }); },
-  onDateChange(event) {
+  onNameInput(event) {
     if (this._submitLocked) return;
+    this.setData({ name: event.detail.value, error: '' });
+  },
+  onNoteInput(event) {
+    if (this._submitLocked) return;
+    this.setData({ note: event.detail.value, error: '' });
+  },
+  onDateChange(event) {
+    if (this._submitLocked || this.isFestivalForm()) return;
     this.setData({ date: event.detail.value, error: '' });
     this.updatePresentation();
   },
 
+  isFestivalForm() {
+    return this.data.category === 'holiday' && this.data.repeat === 'festival' && !!festivals.definition(this.data.holidayKey);
+  },
+
+  onEnableHoliday() {
+    if (this._submitLocked || this.data.loading || this.data.loadError || this.data.category !== 'holiday' || this.isFestivalForm()) return;
+    this.selectHoliday('next');
+  },
+
+  onHolidaySelect(event) {
+    if (this._submitLocked || !this.isFestivalForm()) return;
+    const key = event.currentTarget.dataset.key;
+    if (!festivals.definition(key)) {
+      this.setData({ error: '请选择列表中的法定节日。' });
+      return;
+    }
+    this.selectHoliday(key);
+  },
+
+  selectHoliday(key) {
+    const autoName = holidayLabel(key);
+    const patch = { holidayKey: key, calendarType: 'solar', mode: 'countdown', repeat: 'festival', error: '' };
+    if (!this.data.name.trim() || this.data.name === this._autoHolidayName) patch.name = autoName;
+    this._autoHolidayName = autoName;
+    this.setData(patch);
+    this.updatePresentation();
+  },
+
   onSelect(event) {
-    if (this._submitLocked) return;
+    if (this._submitLocked || this.data.loading || this.data.loadError) return;
     const field = event.currentTarget.dataset.field;
+    if (this.isFestivalForm() && ['calendarType', 'mode', 'repeat', 'lunarMonth', 'lunarDay', 'lunarLeap'].includes(field)) return;
     const index = Number(event.detail.value);
     if (!Number.isInteger(index)) return;
     const patch = { error: '' };
@@ -127,6 +189,7 @@ Page({
       if (!options || !options[index]) return;
       patch[field] = options[index].value;
     }
+    const enteringHoliday = field === 'category' && patch.category === 'holiday' && this.data.category !== 'holiday';
     if (field === 'calendarType' && patch.calendarType === 'lunar') {
       if (this.data.category !== 'birthday') {
         this.setData({ error: '农历仅支持生日，请先将分类改为生日。' });
@@ -134,9 +197,13 @@ Page({
       }
       patch.mode = 'countdown'; patch.repeat = 'yearly';
     }
-    if (field === 'category' && patch.category !== 'birthday' && this.data.calendarType === 'lunar') {
+    if (field === 'category' && patch.category !== 'birthday' && this.data.calendarType === 'lunar' && !enteringHoliday) {
       this.setData({ error: '农历仅支持生日。请先切换为公历，再更改分类。' });
       return;
+    }
+    if (field === 'category' && patch.category !== 'holiday') {
+      patch.holidayKey = '';
+      if (this.data.repeat === 'festival') patch.repeat = 'yearly';
     }
     if (field === 'mode') {
       if (this.data.calendarType === 'lunar' && patch.mode !== 'countdown') return;
@@ -144,34 +211,76 @@ Page({
     }
     if (field === 'repeat' && (this.data.calendarType === 'lunar' || this.data.mode === 'countup')) return;
     this.setData(patch);
-    this.updatePresentation();
+    if (enteringHoliday) this.selectHoliday('next');
+    else this.updatePresentation();
   },
 
   updatePresentation() {
     const patch = {};
+    const base = dates.today();
+    const active = this.isFestivalForm();
     Object.keys(selectors).forEach(field => {
-      patch[`${field}Index`] = selectors[field].findIndex(item => item.value === this.data[field]);
+      patch[`${field}Index`] = Math.max(0, selectors[field].findIndex(item => item.value === this.data[field]));
     });
     patch.lunarMonthIndex = this.data.lunarMonth - 1;
     patch.lunarDayIndex = this.data.lunarDay - 1;
+    patch.previewSrc = categoryArt[this.data.category] || '/assets/cat-heart.png';
+    patch.previewLabel = `${categories[patch.categoryIndex].label} · 卡片艺术预览`;
+    patch.festivalActive = active;
+    patch.legacyHoliday = this.data.category === 'holiday' && !active;
+    patch.holidayChoices = []; patch.holidayDateText = ''; patch.holidayHelp = ''; patch.holidayError = '';
+    patch.monthlyHint = ''; patch.monthlyError = '';
     patch.lunarDateText = ''; patch.lunarError = ''; patch.dateHint = '';
-    if (this.data.calendarType === 'lunar') {
+    if (active) {
+      patch.holidayChoices = festivals.choices.map(choice => {
+        const occurrence = festivals.next(choice.value, base);
+        return {
+          value: choice.value, label: holidayLabel(choice.value),
+          dateText: occurrence ? dates.display(occurrence.date) : '超出支持范围',
+          unavailable: !occurrence
+        };
+      });
       try {
-        const converted = dates.nextDate(this.lunarRecord());
-        if (!dates.validDate(converted) || converted < dates.today()) {
+        const occurrence = festivals.next(this.data.holidayKey, base);
+        const next = dates.nextDate(this.festivalRecord(), base);
+        patch.date = next || '';
+        if (!occurrence || !dates.validDate(next) || next < base) {
+          patch.holidayError = '2020—2035年支持范围内没有下一次节日，不能保存。';
+        } else {
+          patch.holidayDateText = `下次公历：${dates.display(next)} · ${dates.daysBetween(base, next)} 天后`;
+          patch.holidayHelp = this.data.holidayKey === 'next'
+            ? `最近节假日当前为${occurrence.label}；节日当天结束后，自动跟随下一个法定节日。`
+            : `${occurrence.label} · 自动跟随节日，每次按节日当天计算。`;
+        }
+      } catch (error) {
+        patch.holidayError = '节日日期暂时无法计算，不能保存，请稍后重试。';
+      }
+    } else if (this.data.calendarType === 'lunar') {
+      try {
+        const converted = dates.nextDate(this.lunarRecord(), base);
+        if (!dates.validDate(converted) || converted < base) {
           patch.lunarError = '支持范围内没有下一次可换算日期，不能保存。请修改月日或闰月选择。';
         } else {
-          patch.lunarDateText = `本次／下次公历日期：${converted.replace(/-/g, '.')}`;
+          patch.lunarDateText = `本次／下次公历日期：${dates.display(converted)}`;
         }
       } catch (error) {
         patch.lunarError = '农历日期暂时无法换算，不能保存。请检查月日或稍后重试。';
       }
     } else if (dates.validDate(this.data.date)) {
-      if (this.data.mode === 'countup' && this.data.date > dates.today()) {
+      if (this.data.mode === 'countdown' && this.data.repeat === 'monthly') {
+        const next = dates.nextDate({ date: this.data.date, mode: 'countdown', repeat: 'monthly', calendarType: 'solar' }, base);
+        patch.monthlyHint = `每月 ${Number(this.data.date.slice(8))} 日；小月缺少这一天时按月末。`;
+        if (dates.validDate(next) && next >= base) {
+          patch.monthlyHint += `下次公历：${dates.display(next)}，还有 ${dates.daysBetween(base, next)} 天。`;
+        } else {
+          patch.monthlyError = '1900—2100 年支持范围内没有下一次每月日期，不能保存。';
+        }
+      }
+      if (this.data.mode === 'countup' && this.data.date > base) {
         patch.dateHint = '正计时从已经发生的日子开始，日期不能晚于今天。';
-      } else if (this.data.mode === 'countdown' && this.data.repeat === 'none' && this.data.date < dates.today()) {
+      } else if (this.data.mode === 'countdown' && this.data.repeat === 'none' && this.data.date < base) {
         patch.dateHint = this.timingFieldsChanged(this._existingRecord)
-          ? '这一天已经过去，请改为正计时或每年重复后保存。'
+          ? '这一天已经过去，请改为正计时、每月或每年重复后保存。'
           : '这一天已经过去，仍可编辑名称、备注等信息；保持计时设置不变即可保存。';
       }
     }
@@ -180,6 +289,13 @@ Page({
 
   timingFieldsChanged(existing) {
     return !existing || ['date', 'mode', 'repeat', 'calendarType'].some(field => existing[field] !== this.data[field]);
+  },
+
+  festivalRecord() {
+    return {
+      category: 'holiday', calendarType: 'solar', mode: 'countdown', repeat: 'festival',
+      holidayKey: this.data.holidayKey, date: this.data.date
+    };
   },
 
   lunarRecord() {
@@ -211,8 +327,19 @@ Page({
       if (this._id !== null && (!existing || existing.id !== this._id)) {
         this.rejectSubmission('这个日子已被删除，不能重新保存为新记录。'); return;
       }
+      const active = this.isFestivalForm();
       let date = this.data.date;
-      if (this.data.calendarType === 'lunar') {
+      if (this.data.repeat === 'festival' || this.data.holidayKey) {
+        if (!active || this.data.calendarType !== 'solar' || this.data.mode !== 'countdown') {
+          this.rejectSubmission('节日选项无效，请重新选择法定节日；不能保存。'); return;
+        }
+        // 提交时重算，避免页面停留跨日后保存过期的节日公历日期。
+        date = dates.nextDate(this.festivalRecord());
+        if (!dates.validDate(date) || date < dates.today() ||
+            Number(date.slice(0, 4)) < festivals.range.min || Number(date.slice(0, 4)) > festivals.range.max) {
+          this.rejectSubmission('2020—2035年支持范围内没有下一次节日，不能保存。'); return;
+        }
+      } else if (this.data.calendarType === 'lunar') {
         if (this.data.category !== 'birthday' || this.data.mode !== 'countdown' || this.data.repeat !== 'yearly') {
           this.rejectSubmission('农历仅支持每年倒计时生日。'); return;
         }
@@ -224,12 +351,19 @@ Page({
       if (!dates.validDate(date)) {
         this.rejectSubmission('请选择 1900—2100 年之间的有效日期。'); return;
       }
+      if (this.data.mode === 'countdown' && this.data.repeat === 'monthly') {
+        const next = dates.nextDate({ date, mode: 'countdown', repeat: 'monthly', calendarType: 'solar' });
+        if (!dates.validDate(next) || next < dates.today()) {
+          this.rejectSubmission('支持范围内没有下一次每月日期，不能保存。'); return;
+        }
+        // 只校验下一次，保存的仍是原日期锚点，不写回月末截断结果。
+      }
       if (this.data.mode === 'countup' && date > dates.today()) {
         this.rejectSubmission('正计时的开始日期不能晚于今天。'); return;
       }
       if (this.data.mode === 'countdown' && this.data.repeat === 'none' && date < dates.today() &&
           this.timingFieldsChanged(existing)) {
-        this.rejectSubmission('这一天已过去，请选择正计时或每年重复。'); return;
+        this.rejectSubmission('这一天已过去，请选择正计时、每月或每年重复。'); return;
       }
       // 合并完整记录，避免编辑或置顶状态使未展示字段丢失。
       const record = Object.assign({}, existing || {}, {
@@ -239,6 +373,8 @@ Page({
         pin: this.data.pin, reminder: '不提醒'
       });
       if (this._id !== null) record.id = this._id;
+      if (active) record.holidayKey = this.data.holidayKey;
+      else delete record.holidayKey;
       if (record.calendarType === 'lunar') {
         record.lunarMonth = this.data.lunarMonth;
         record.lunarDay = this.data.lunarDay;

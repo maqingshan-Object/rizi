@@ -47,6 +47,7 @@
     </view>
 
     <view wx:else>
+      <text class="sort-note">置顶优先 · 倒计时由近到远</text>
       <button wx:if="{{feature}}" class="feature-event" data-id="{{feature.id}}" bindtap="onEventTap" hover-class="card-pressed" aria-label="{{feature.name}}，{{feature.statusLabel}} {{feature.countText}} {{feature.unitLabel}}，查看详情">
         <view class="feature-border" />
         <view class="event-top">
@@ -56,12 +57,14 @@
           </view>
           <text class="pill feature-pill">{{feature.featureLabel}}</text>
         </view>
+        <text wx:if="{{feature.holidayText}}" class="feature-holiday">{{feature.holidayText}}</text>
         <text class="feature-status">{{feature.statusLabel}}</text>
         <view class="feature-count">
           <text class="feature-number">{{feature.countText}}</text>
           <text class="feature-unit">{{feature.unitLabel}}</text>
         </view>
-        <image class="feature-cat" src="/assets/cat-heart.png" mode="aspectFit" />
+        <image wx:if="{{feature.backgroundSrc}}" class="feature-art" src="{{feature.backgroundSrc}}" mode="aspectFit" aria-hidden="true" />
+        <image wx:elif="{{theme !== 'mint'}}" class="feature-cat" src="/assets/cat-heart.png" mode="aspectFit" />
         <text class="feature-phrase">{{feature.phrase}}</text>
         <view class="event-footer">
           <text>{{feature.displayDate}}{{feature.repeatText}}</text>
@@ -76,6 +79,8 @@
             <text class="small-name">{{item.name}}</text>
           </view>
           <view class="event-card-body">
+            <image wx:if="{{item.backgroundSrc}}" class="small-category-art" src="{{item.backgroundSrc}}" mode="aspectFit" aria-hidden="true" />
+            <text wx:if="{{item.holidayText}}" class="small-holiday">{{item.holidayText}}</text>
             <text class="small-status">{{item.statusLabel}}</text>
             <view class="small-count">
               <text class="small-number">{{item.countText}}</text>

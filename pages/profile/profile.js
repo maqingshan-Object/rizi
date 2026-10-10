@@ -9,7 +9,7 @@ Page({
     guest: true,
     nickname: '日子的收藏家',
     avatar: '/assets/cat.png',
-    stats: { total: 0, birthday: 0, growth: 0 },
+    stats: { total: 0, birthday: 0, countup: 0 },
     sampleCount: 0,
     error: '',
     clearing: false,
@@ -38,7 +38,7 @@ Page({
         stats: {
           total: records.length,
           birthday: records.filter(record => record.category === 'birthday').length,
-          growth: records.filter(record => record.category === 'growth' || record.mode === 'countup').length
+          countup: records.filter(record => record.mode === 'countup').length
         },
         sampleCount: records.filter(record => record.sample === true).length,
         error: ''

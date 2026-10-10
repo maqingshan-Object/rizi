@@ -30,7 +30,7 @@
     <view class="stats">
       <button class="stat" bindtap="openDays"><text class="stat-number">{{stats.total}}</text><text class="stat-label muted">珍藏的日子</text></button>
       <button class="stat" bindtap="openDays"><text class="stat-number">{{stats.birthday}}</text><text class="stat-label muted">生日记录</text></button>
-      <button class="stat" bindtap="openDays"><text class="stat-number">{{stats.growth}}</text><text class="stat-label muted">成长记录</text></button>
+      <button class="stat" bindtap="openDays"><text class="stat-number">{{stats.countup}}</text><text class="stat-label muted">正计时记录</text></button>
     </view>
     <view wx:if="{{sampleCount}}" class="stats-help muted">统计含 {{sampleCount}} 个示例日子，可在下方移除。</view>
     <view wx:if="{{error}}" class="form-error" role="alert">{{error}}<button class="retry-button" bindtap="refresh">重新读取</button></view>

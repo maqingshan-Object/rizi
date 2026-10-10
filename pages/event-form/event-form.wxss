@@ -44,3 +44,25 @@
 .state-cat { width: 164rpx; height: 150rpx; }
 .skeleton-line { width: 90%; height: 46rpx; background: var(--soft); border-radius: 12rpx; }
 .skeleton-line.short { width: 60%; height: 30rpx; }
+.category-preview { display: flex; align-items: center; gap: 24rpx; min-height: 200rpx; padding: 20rpx 28rpx; margin-bottom: 24rpx; overflow: hidden; }
+.preview-art { flex-shrink: 0; width: 184rpx; height: 164rpx; }
+.preview-copy { flex: 1; min-width: 0; }
+.preview-title { display: block; color: var(--accent); font-size: 23rpx; font-weight: 500; line-height: 1.7; }
+.preview-copy .form-help { overflow-wrap: break-word; }
+.holiday-instruction { margin: -4rpx 0 18rpx; }
+.holiday-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14rpx; }
+.holiday-chip { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 6rpx; width: 100%; min-width: 0; min-height: 116rpx; margin: 0; padding: 16rpx 18rpx; background: var(--app); color: var(--ink); border: 1rpx solid #d9ceba88; border-radius: 18rpx; text-align: left; line-height: 1.6; transition: transform 160ms ease; }
+.holiday-chip::after, .holiday-enable::after { border: 0; }
+.holiday-chip:active, .holiday-enable:active { transform: scale(.98); }
+.holiday-chip:focus, .holiday-enable:focus { outline: 3rpx solid var(--accent); outline-offset: 4rpx; }
+.holiday-chip-label { font-size: 25rpx; font-weight: 500; }
+.holiday-chip-date { font-size: 21rpx; color: var(--muted); }
+.holiday-selected { background: var(--soft); border: 2rpx solid var(--accent); color: var(--accent); }
+.holiday-selected .holiday-chip-date { color: var(--accent); }
+.holiday-chip[disabled] { opacity: .6; }
+.holiday-result, .monthly-hint { background: var(--soft); border-radius: 20rpx; padding: 18rpx 20rpx; margin-top: 20rpx; }
+.holiday-follow { display: block; color: var(--accent); font-size: 23rpx; font-weight: 500; }
+.holiday-result .converted-date { margin-top: 8rpx; }
+.legacy-holiday { margin-top: 18rpx; border-top: 1rpx dashed #d9ceba88; padding-top: 4rpx; }
+.holiday-enable { width: 100%; margin: 16rpx 0 0; padding: 14rpx 20rpx; background: var(--soft); color: var(--accent); border-radius: 18rpx; font-size: 24rpx; line-height: 1.7; }
+@media (prefers-reduced-motion: reduce) { .holiday-chip { transition: none; } }

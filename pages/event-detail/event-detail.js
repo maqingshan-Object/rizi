@@ -3,7 +3,7 @@ const events = require('../../services/events');
 const dates = require('../../utils/date');
 const lunar = require('../../utils/lunar');
 
-const categoryNames = { birthday: '生日', anniversary: '纪念日', growth: '成长', holiday: '节日', other: '其他' };
+const categoryNames = { birthday: '生日', anniversary: '纪念日', holiday: '节日', other: '其他' };
 const iconNames = ['heart', 'cake', 'leaf', 'lantern', 'flower'];
 const tintNames = ['pink', 'mint', 'yellow', 'blue'];
 
@@ -46,7 +46,8 @@ Page({
         id: record.id, name: record.name, note: record.note || '',
         categoryText: categoryNames[record.category] || '其他',
         modeText: record.mode === 'countup' ? '正计时' : '倒计时',
-        repeatText: record.repeat === 'yearly' ? '每年重复' : '不重复',
+        repeatText: ({yearly:'每年重复',monthly:'每月重复',festival:record.holidayKey === 'next' ? '自动跟随最近节日' : '自动跟随节日'})[record.repeat] || '不重复',
+        monthlyHelp: record.repeat === 'monthly' ? `每月 ${Number(record.date.slice(8))} 日，小月份按当月最后一天；下月恢复原设定日号。` : '',
         calendarText: record.calendarType === 'lunar' ? '农历' : '公历',
         icon: iconNames.includes(record.icon) ? record.icon : 'heart',
         tint: tintNames.includes(record.tint) ? record.tint : 'pink',
@@ -54,7 +55,7 @@ Page({
         statusText: status, unitText: count === null ? '' : '天',
         targetDateText: available ? target.replace(/-/g, '.') : '无可换算日期',
         originalDateText: dates.validDate(record.date) ? record.date.replace(/-/g, '.') : '日期无效',
-        dateLabel: record.mode === 'countup' ? '开始日期' : record.repeat === 'yearly' ? '本次／下次日期' : '记录日期',
+        dateLabel: record.mode === 'countup' ? '开始日期' : record.repeat !== 'none' ? '本次／下次日期' : '记录日期',
         lunarText: '', lunarHelp: '', unavailable: !available,
         phrase: record.category === 'birthday' ? '爱要记得，也要说出口。' : '每一天，都值得被认真记住。'
       });

@@ -11,7 +11,7 @@ const WEEKDAYS = [
   { key: 'sat', label: '六', className: 'week-label weekend-label' },
   { key: 'sun', label: '日', className: 'week-label weekend-label' }
 ];
-const CATEGORY_TINTS = { birthday: 'pink', anniversary: 'pink', growth: 'mint', holiday: 'yellow' };
+const CATEGORY_TINTS = { birthday: 'pink', anniversary: 'pink', other: 'mint', holiday: 'yellow' };
 
 function dateString(year, month, day) {
   return year + '-' + ('0' + month).slice(-2) + '-' + ('0' + day).slice(-2);
@@ -53,13 +53,14 @@ function scheduleView(event, currentDate) {
   const delta = dateUtils.daysBetween(currentDate, event.occurrence);
   const parts = event.occurrence.split('-');
   return Object.assign({}, event, {
-    rowKey: event.id + '-' + event.occurrence,
+    rowKey: event.id + '-' + event.occurrence + (event.occurrenceHolidayKey ? '-' + event.occurrenceHolidayKey : ''),
     dayText: Number(parts[2]),
     monthText: Number(parts[1]) + '月',
     icon: event.icon || 'days',
     tintClass: tintClass(event.tint),
     occurrenceDisplay: dateUtils.display(event.occurrence),
-    repeatText: event.repeat === 'yearly' ? ' · 每年重复' : '',
+    name: event.repeat === 'festival' && event.resolvedHolidayLabel ? event.name + ' · ' + event.resolvedHolidayLabel : event.name,
+    repeatText: ({yearly:' · 每年重复',monthly:' · 每月重复',festival:' · 自动节日'})[event.repeat] || '',
     whenText: delta === 0 ? '就是今天' : delta > 0 ? delta + ' 天后' : '已过 ' + Math.abs(delta) + ' 天',
     whenClass: delta === 0 ? 'schedule-tail is-current' : 'schedule-tail'
   });

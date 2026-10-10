@@ -30,6 +30,7 @@
     </view>
     <view wx:elif="{{event}}">
       <view class="paper detail-hero">
+        <image wx:if="{{event.backgroundSrc}}" class="detail-category-art" src="{{event.backgroundSrc}}" mode="aspectFit" aria-hidden="true" />
         <view class="hero-top">
           <view class="detail-icon tint-{{event.tint}}"><app-icon name="{{event.icon}}" size="{{42}}" /></view>
           <text class="pill">{{event.pin ? '特别的日子 · 已置顶' : event.categoryText}}</text>
@@ -46,10 +47,10 @@
             <text class="hero-repeat">{{event.repeatText}} · {{event.modeText}}</text>
             <text class="hero-phrase">{{event.phrase}}</text>
           </view>
-          <image class="hero-cat" src="/assets/cat-heart.png" mode="aspectFit" />
+          <image wx:if="{{!event.backgroundSrc && theme !== 'mint'}}" class="hero-cat" src="/assets/cat-heart.png" mode="aspectFit" />
         </view>
       </view>
-      <view wx:if="{{event.unavailable}}" class="form-error date-warning" aria-role="alert">当前没有下一次可换算日期。请编辑农历月日或闰月选项，支持范围内无有效日期时不能保存。</view>
+      <view wx:if="{{event.unavailable}}" class="form-error date-warning" aria-role="alert">当前没有下一次可换算日期。请检查所选日期或节日；换算超出支持范围时不能保存。</view>
       <view class="paper information-paper">
         <view class="detail-line"><text class="muted">日子分类</text><text class="detail-value">{{event.categoryText}}</text></view>
         <view class="detail-line"><text class="muted">记录方式</text><text class="detail-value">{{event.modeText}}</text></view>
@@ -57,11 +58,14 @@
         <view class="detail-line"><text class="muted">日期历法</text><text class="detail-value">{{event.calendarText}}</text></view>
         <view wx:if="{{event.lunarText}}" class="detail-line"><text class="muted">农历生日</text><text class="detail-value">{{event.lunarText}}</text></view>
         <view class="detail-line"><text class="muted">{{event.dateLabel}}</text><text class="detail-value">{{event.targetDateText}}</text></view>
-        <view wx:if="{{event.repeat === 'yearly' && event.calendarType !== 'lunar'}}" class="detail-line"><text class="muted">最初记录日期</text><text class="detail-value">{{event.originalDateText}}</text></view>
+        <view wx:if="{{(event.repeat === 'yearly' || event.repeat === 'monthly') && event.calendarType !== 'lunar'}}" class="detail-line"><text class="muted">最初记录日期</text><text class="detail-value">{{event.originalDateText}}</text></view>
         <view class="detail-line"><text class="muted">置顶首页</text><text class="detail-value">{{event.pin ? '已置顶' : '未置顶'}}</text></view>
         <view class="detail-line reminder-line"><text class="muted">日子提醒</text><text class="detail-value">不提醒 · 暂未支持</text></view>
         <text class="form-help reminder-help">暂不支持真实订阅提醒，不会发送通知。</text>
+        <view wx:if="{{event.resolvedHolidayLabel}}" class="detail-line"><text class="muted">本次节日</text><text class="detail-value">{{event.resolvedHolidayLabel}}</text></view>
         <text wx:if="{{event.lunarHelp}}" class="form-help lunar-help">{{event.lunarHelp}}</text>
+        <text wx:if="{{event.monthlyHelp}}" class="form-help lunar-help">{{event.monthlyHelp}}</text>
+        <text wx:if="{{event.festivalHelp}}" class="form-help lunar-help">{{event.festivalHelp}}</text>
       </view>
       <view class="paper note-paper">
         <view class="note-heading"><app-icon name="heart" size="{{28}}" /><text>留在心上的话</text></view>

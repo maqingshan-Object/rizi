@@ -6,11 +6,11 @@ const CATEGORIES = [
   { key: 'all', label: '全部' },
   { key: 'birthday', label: '生日' },
   { key: 'anniversary', label: '纪念日' },
-  { key: 'growth', label: '成长' },
-  { key: 'holiday', label: '节日' }
+  { key: 'holiday', label: '节日' },
+  { key: 'other', label: '其他' }
 ];
 const CATEGORY_LABELS = {
-  birthday: '生日', anniversary: '纪念日', growth: '成长', holiday: '节日', other: '日子'
+  birthday: '生日', anniversary: '纪念日', holiday: '节日', other: '其他'
 };
 
 function cardView(event) {
@@ -24,7 +24,8 @@ function cardView(event) {
     displayDate: annotated.displayDate || dateUtils.display(
       annotated.mode === 'countup' ? annotated.date : annotated.nextDate || annotated.date
     ),
-    repeatText: annotated.repeat === 'yearly' ? ' · 每年重复' : '',
+    repeatText: ({yearly:' · 每年',monthly:' · 每月',festival:' · 自动节日'})[annotated.repeat] || '',
+    holidayText: annotated.resolvedHolidayLabel ? '下一站 · ' + annotated.resolvedHolidayLabel : '',
     featureLabel: annotated.pin ? '特别的日子 · 置顶' : CATEGORY_LABELS[annotated.category] || '珍藏的日子',
     phrase: annotated.category === 'birthday' ? '爱要记得，也要说出口' : '每一天，都值得被记住'
   });
@@ -47,7 +48,7 @@ Page({
     life: null,
     visibleCount: 0,
     emptyTitle: '还没有珍藏的日子',
-    emptyDescription: '记下生日、相爱或成长，把小小的期待放在心上。'
+    emptyDescription: '记下生日、相爱和生活，把小小的期待放在心上。'
   },
 
   onShow() {
@@ -68,7 +69,7 @@ Page({
       prepare(this, 0);
       this.setData({ guest: eventsService.isGuest(), todayLabel: dateUtils.formatToday() });
       // 首次示例由事件服务初始化；空列表代表用户真实的空记录，不重新填入示例。
-      this._events = eventsService.list().map(cardView);
+      this._events = dateUtils.sortEvents(eventsService.list()).map(cardView);
       this.applyCategory(this.data.category);
       this.setData({ loading: false });
     } catch (error) {
@@ -86,12 +87,9 @@ Page({
 
   applyCategory(category) {
     const visible = (this._events || []).filter(event => category === 'all' || event.category === category);
-    const life = visible.find(event => event.id === 'life'
-      || (event.category === 'growth' && event.mode === 'countup' && event.icon === 'flower'));
-    const feature = visible.find(event => event.pin)
-      || visible.find(event => !life || event.id !== life.id) || null;
-    const cards = visible.filter(event => (!feature || event.id !== feature.id)
-      && (!life || event.id !== life.id));
+    // 排序覆盖整列表，再选首张大卡；不再把某种日子抽出打乱顺序。
+    const feature = visible[0] || null;
+    const cards = visible.slice(feature ? 1 : 0);
     const label = CATEGORY_LABELS[category];
     this.setData({
       category,
@@ -100,11 +98,11 @@ Page({
       })),
       feature,
       cards,
-      life: life && (!feature || life.id !== feature.id) ? life : null,
+      life: null,
       visibleCount: visible.length,
       emptyTitle: category === 'all' ? '还没有珍藏的日子' : '还没有' + label + '记录',
       emptyDescription: category === 'all'
-        ? '记下生日、相爱或成长，把小小的期待放在心上。'
+        ? '记下生日、相爱和生活，把小小的期待放在心上。'
         : '给' + label + '留一个位置，记下你的第一个小期待。'
     });
   },
@@ -119,7 +117,7 @@ Page({
   },
 
   onAddTap() {
-    wx.navigateTo({ url: '/pages/event-form/event-form' });
+    wx.navigateTo({ url: '/pages/event-form/event-form' + (this.data.category === 'holiday' ? '?category=holiday' : '') });
   },
 
   onRetryTap() {
