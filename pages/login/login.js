@@ -80,8 +80,17 @@ Page({
       } catch (migrationError) {
         migrationFailed = true;
       }
+      let restored = 0;
+      try {
+        if (typeof events.listRemote === 'function' && events.remoteReady()) {
+          const remoteRecords = await events.listRemote();
+          restored = events.mergeRemote(remoteRecords);
+        }
+      } catch (restoreError) {
+        migrationFailed = true;
+      }
       this.syncIdentity(true);
-      if (migrated) wx.showToast({ title: `已同步 ${migrated} 个日子`, icon: 'none' });
+      if (migrated || restored) wx.showToast({ title: `已同步 ${restored || migrated} 个日子`, icon: 'none' });
       else if (migrationFailed) wx.showToast({ title: '已登录，日子云端同步稍后重试', icon: 'none' });
     } catch (error) {
       this.syncIdentity(false);

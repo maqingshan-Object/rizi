@@ -77,9 +77,22 @@ function saveRemote(record){
   if(!record) return Promise.reject(new Error('缺少事件记录，无法同步云端。'));
   return syncRemote([record]).then(result=>Array.isArray(result)?result[0]:result);
 }
+function mergeRemote(records){
+  const incoming = Array.isArray(records) ? records : [];
+  const all = list();
+  incoming.forEach(remote => {
+    if (!remote || !remote.id) return;
+    const local = Object.assign({}, remote, { sample: false });
+    const index = all.findIndex(item => item.id === remote.id);
+    if (index >= 0) all[index] = local;
+    else all.push(local);
+  });
+  wx.setStorageSync(KEY, { events: all });
+  return incoming.length;
+}
 function removeRemote(id){
   assertRemoteReady();
   if(!id) return Promise.reject(new Error('缺少事件编号，无法删除云端记录。'));
   return http.request ? http.request('DELETE', `/api/events/${encodeURIComponent(id)}`) : Promise.reject(new Error('网络服务不支持删除请求。'));
 }
-module.exports={initializeGuest,isGuest,list,get,save,remove,togglePin,clearSamples,remoteReady,listRemote,syncRemote,saveRemote,removeRemote};
+module.exports={initializeGuest,isGuest,list,get,save,remove,togglePin,clearSamples,remoteReady,listRemote,syncRemote,saveRemote,mergeRemote,removeRemote};
