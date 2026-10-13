@@ -88,6 +88,38 @@ Page({
     this.setData({ avatarPath, avatarPreview: avatarPath, profileSaved: false, profileError: '', profileErrorCode: '' });
   },
 
+  getWechatProfile() {
+    if (this.data.saving || !auth.currentUser()) {
+      this.setData({ profileError: '请先完成真实身份登录，再获取微信头像和昵称。', profileErrorCode: '' });
+      return;
+    }
+    if (typeof wx.getUserProfile !== 'function') {
+      this.setData({ profileError: '当前基础库不支持获取微信资料，请手动填写昵称。', profileErrorCode: 'WECHAT_PROFILE_UNSUPPORTED' });
+      return;
+    }
+    wx.getUserProfile({
+      desc: '用于完善日子绵绵账号资料',
+      lang: 'zh_CN',
+      success: result => {
+        const userInfo = result && result.userInfo ? result.userInfo : {};
+        const nickname = String(userInfo.nickName || '').trim();
+        const avatarUrl = String(userInfo.avatarUrl || '').trim();
+        this.setData({
+          nickname: nickname || this.data.nickname,
+          avatarPath: avatarUrl,
+          avatarPreview: avatarUrl || this.data.avatarPreview,
+          profileSaved: false,
+          profileError: '',
+          profileErrorCode: ''
+        });
+      },
+      fail: error => {
+        const code = error && error.errMsg && error.errMsg.indexOf('deny') >= 0 ? 'WECHAT_PROFILE_DENIED' : 'WECHAT_PROFILE_FAILED';
+        this.setData({ profileError: code === 'WECHAT_PROFILE_DENIED' ? '你拒绝了微信资料授权，仍可以手动填写昵称。' : '获取微信头像和昵称失败，请稍后重试。', profileErrorCode: code, profileSaved: false });
+      }
+    });
+  },
+
   avatarError() {
     this.setData({ avatarPreview: '/assets/cat.png', avatarPath: '', profileSaved: false });
   },
@@ -110,7 +142,7 @@ Page({
     }
     this.setData({ saving: true, nickname, profileError: '', profileErrorCode: '', profileSaved: false });
     try {
-      await auth.updateProfile({ nickname, avatarPath: this.data.avatarPath || undefined });
+      await auth.updateProfile({ nickname, avatarUrl: this.data.avatarPath || undefined });
       if (!auth.currentUser()) throw new Error('登录身份已失效，无法确认资料保存，请重新登录。');
       this.syncIdentity(false);
       this.setData({ profileSaved: true, avatarPath: '' });

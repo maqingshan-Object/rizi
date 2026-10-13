@@ -40,8 +40,8 @@
         <form bindsubmit="submitProfile">
           <view class="form-group avatar-group">
             <text class="form-label">头像（可选）</text>
-            <button class="choose-avatar" open-type="chooseAvatar" bindchooseavatar="chooseAvatar" disabled="{{saving}}" aria-label="主动选择头像"><image class="chosen-avatar" src="{{avatarPreview}}" mode="aspectFit" binderror="avatarError" /><view class="avatar-edit"><app-icon name="edit" size="{{24}}" color="white" /></view></button>
-            <text class="form-help">点头像主动选择；默认小猫不代表微信头像。临时图片仅用于本页预览，保存时交由真实资料服务处理。</text>
+            <button class="choose-avatar" bindtap="getWechatProfile" disabled="{{saving}}" aria-label="获取微信头像和昵称"><image class="chosen-avatar" src="{{avatarPreview}}" mode="aspectFit" binderror="avatarError" /><view class="avatar-edit"><app-icon name="edit" size="{{24}}" color="white" /></view></button>
+            <text class="form-help">点击头像后由微信弹窗授权获取头像和昵称；也可以只手动填写昵称。拒绝授权不会影响账号登录。</text>
           </view>
           <view class="form-group nickname-group">
             <text class="form-label">昵称</text>

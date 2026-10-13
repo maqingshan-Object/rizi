@@ -15,6 +15,7 @@ miniprogram_npm/
 coverage/
 dist/
 build/
+target/
 *.log
 *.tmp
 *.swp

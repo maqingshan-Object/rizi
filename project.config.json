@@ -10,16 +10,51 @@
     "postcss": true,
     "minified": true,
     "minifyWXSS": true,
-    "minifyWXML": true
+    "minifyWXML": true,
+    "compileWorklet": false,
+    "uglifyFileName": false,
+    "uploadWithSourceMap": true,
+    "packNpmManually": false,
+    "packNpmRelationList": [],
+    "localPlugins": false,
+    "disableUseStrict": false,
+    "useCompilerPlugins": false,
+    "condition": false,
+    "babelSetting": {
+      "ignore": [],
+      "disablePlugins": [],
+      "outputPath": ""
+    }
   },
   "packOptions": {
     "ignore": [
-      {"type": "folder", "value": "tests"},
-      {"type": "folder", "value": ".workbuddy-ai"},
-      {"type": "folder", "value": ".git"},
-      {"type": "folder", "value": ".versioning"},
-      {"type": "file", "value": ".gitignore"}
+      {
+        "value": "tests",
+        "type": "folder"
+      },
+      {
+        "value": ".workbuddy-ai",
+        "type": "folder"
+      },
+      {
+        "value": "backend",
+        "type": "folder"
+      },
+      {
+        "value": ".git",
+        "type": "folder"
+      },
+      {
+        "value": ".versioning",
+        "type": "folder"
+      },
+      {
+        "value": ".gitignore",
+        "type": "file"
+      }
     ],
     "include": []
-  }
+  },
+  "simulatorPluginLibVersion": {},
+  "editorSetting": {}
 }
