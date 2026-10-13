@@ -45,6 +45,10 @@
         "type": "folder"
       },
       {
+        "value": "flyway-smoke-test",
+        "type": "folder"
+      },
+      {
         "value": ".git",
         "type": "folder"
       },
