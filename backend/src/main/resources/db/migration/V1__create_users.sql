@@ -1,4 +1,4 @@
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     id VARCHAR(36) NOT NULL,
     openid VARCHAR(64) NOT NULL,
     unionid VARCHAR(64) NULL,

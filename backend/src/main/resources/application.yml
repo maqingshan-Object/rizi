@@ -29,6 +29,10 @@ spring:
     baseline-on-migrate: true
     # 基线版本设为 0，保证 V1/V2/V3 在“库非空”时仍然全部执行，不会被当成已应用而跳过
     baseline-version: 0
+    # 云托管滚动发布时可能有多个容器同时启动，放宽锁等待与连接重试
+    lock-retry-count: 120
+    connect-retries: 10
+    connect-retries-interval: 5
 
 management:
   endpoints:

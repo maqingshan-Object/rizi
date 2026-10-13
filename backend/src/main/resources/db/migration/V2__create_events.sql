@@ -1,4 +1,4 @@
-CREATE TABLE events (
+CREATE TABLE IF NOT EXISTS events (
     id VARCHAR(36) NOT NULL,
     user_id VARCHAR(36) NOT NULL,
     name VARCHAR(120) NOT NULL,

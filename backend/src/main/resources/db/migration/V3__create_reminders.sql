@@ -1,4 +1,4 @@
-CREATE TABLE reminder_tasks (
+CREATE TABLE IF NOT EXISTS reminder_tasks (
     id VARCHAR(36) NOT NULL,
     user_id VARCHAR(36) NOT NULL,
     event_id VARCHAR(36) NOT NULL,
