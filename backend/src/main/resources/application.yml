@@ -24,9 +24,11 @@ spring:
           time_zone: UTC
   flyway:
     enabled: true
+    # 使用独立的历史表名，避免被其他项目/测试写入的历史记录干扰校验
+    table: days_schema_history
     baseline-on-migrate: true
-    # 正式项目的迁移历史表，不要被测试项目复用
-    table: flyway_schema_history
+    # 基线版本设为 0，保证 V1/V2/V3 在“库非空”时仍然全部执行，不会被当成已应用而跳过
+    baseline-version: 0
 
 management:
   endpoints:

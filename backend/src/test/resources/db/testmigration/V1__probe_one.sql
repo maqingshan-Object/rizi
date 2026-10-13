@@ -1,0 +1,1 @@
+CREATE TABLE probe_one (id INT NOT NULL PRIMARY KEY);
