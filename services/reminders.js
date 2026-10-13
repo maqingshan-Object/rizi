@@ -38,6 +38,9 @@ function requestSubscription() {
   if (typeof wx.requestSubscribeMessage !== 'function') {
     return Promise.resolve(result(false, 'API_UNAVAILABLE', '当前微信环境不支持订阅授权，请在正式小程序环境重试。'));
   }
+  // ⚠️ wx.requestSubscribeMessage 只能由「用户点击手势」同步触发：
+  //    调用前不能出现任何 await（哪怕已 resolve），否则微信直接 fail
+  //    "can only be invoked by user TAP gesture"，表现为"授权未完成"。
   return new Promise(resolve => {
     wx.requestSubscribeMessage({
       tmplIds: [config.subscribeTemplateId],
@@ -51,10 +54,14 @@ function requestSubscription() {
           resolve(result(false, 'REJECTED', '你拒绝了提醒授权；日子已保存，请重新授权后才会继续处理提醒。', response));
           return;
         }
-        resolve(result(false, 'REJECTED', '提醒授权未完成；日子已保存，请重新授权后再试。', response));
+        // ban = 模板被后台封禁；filter = 模板标题同名被后台过滤；其余为未知返回。
+        console.warn('[reminders] requestSubscribeMessage 返回非 accept/reject 状态：', status, response);
+        resolve(result(false, 'ABNORMAL', `提醒授权未完成（微信返回：${status || '未知'}）；日子已保存，请稍后重试。`, response));
       },
       fail(error) {
-        resolve(result(false, 'REJECTED', '提醒授权未完成；日子已保存，请重新授权后再试。', error));
+        // 最常见原因是调用前出现了 await，导致点击手势失效。
+        console.warn('[reminders] requestSubscribeMessage 调用失败：', error && error.errMsg, error);
+        resolve(result(false, 'FAILED', '提醒授权未完成；日子已保存，请重新授权后再试。', error));
       }
     });
   });
@@ -108,14 +115,17 @@ function statusForEvent(eventId) {
 async function subscribeForEvent(eventId) {
   if (!auth.currentUser()) return loginRequired();
   if (!isBackendReady()) return backendRequired();
+  // ★ 顺序很关键：授权必须放在所有网络请求之前。
+  //   之前这里先 await list() 再授权，await 会让「用户点击手势」失效，
+  //   微信因此拒绝弹窗并直接 fail，用户看到的就是"提醒授权未完成"。
+  const subscription = await requestSubscription();
+  if (!subscription.ok) return subscription;
   const listed = await list();
   if (!listed.ok) return listed;
   const tasks = listed.data.filter(item => item && item.eventId === eventId);
   if (!tasks.length) {
     return result(false, 'NO_TASK', '云端还没有这个日子的提醒任务，请先完成事件云端同步；本机记录仍然保留。');
   }
-  const subscription = await requestSubscription();
-  if (!subscription.ok) return subscription;
   const authorized = await authorize(tasks.map(item => item.id).filter(Boolean));
   if (authorized.ok) authorized.message = '已提交这个日子的提醒授权状态；实际发送以服务端状态为准，不代表消息已经送达。';
   return authorized;
