@@ -140,7 +140,12 @@ async function subscribeForEvent(eventId) {
     return result(false, 'NO_TASK', '云端还没有这个日子的提醒任务，请先完成事件云端同步；本机记录仍然保留。');
   }
   const authorized = await authorize(tasks.map(item => item.id).filter(Boolean));
-  if (authorized.ok) authorized.message = '已提交这个日子的提醒授权状态；实际发送以服务端状态为准，不代表消息已经送达。';
+  if (authorized.ok) {
+    // 能走到这里，说明微信侧已返回 accept（否则上面 if (!subscription.ok) 就返回了）。
+    // ⚠️ 如果用户此前勾选过「总是保持以上选择」，微信不会再弹授权窗，而是静默返回成功 ——
+    //    这是正常行为，且每次调用都会为该模板累加一次可发送条数，不是"没生效"。
+    authorized.message = '微信订阅授权已获得，并已同步到云端。到期后由服务端自动发送，实际送达以微信为准。';
+  }
   return authorized;
 }
 

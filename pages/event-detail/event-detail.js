@@ -64,7 +64,7 @@ Page({
         reminderStatus: record.reminder === '提前3天提醒'
           ? (auth.currentUser() ? '正在读取云端提醒状态…' : '请先登录，提醒偏好目前仅保存在本机。')
           : '未选择提醒；如需提醒请编辑这个日子。',
-        reminderActionText: '开启／重新授权提醒',
+        reminderActionText: '开启提醒',
         phrase: record.category === 'birthday' ? '爱要记得，也要说出口。' : '每一天，都值得被认真记住。'
       });
       if (record.calendarType === 'lunar') {
@@ -90,7 +90,13 @@ Page({
       // 刚授权成功时，如果后端还是旧版本（不返回 authorized），pending 无法区分
       // "未授权"和"已授权待发送"，此时保留成功提示，别用"等待订阅授权"盖掉。
       if (options && options.keepSuccessOnAmbiguous && response && response.ambiguous) return;
-      this.setData({ 'event.reminderStatus': response.message || '提醒状态暂时无法确认。' });
+      const patch = { 'event.reminderStatus': response.message || '提醒状态暂时无法确认。' };
+      const task = response && response.data;
+      // 按钮文案跟着真实状态走：已授权 → 只用于再攒额度；未授权 → 引导开启。
+      if (task && typeof task.authorized === 'boolean') {
+        patch['event.reminderActionText'] = task.authorized ? '重新授权提醒' : '开启提醒';
+      }
+      this.setData(patch);
     });
   },
 
@@ -108,14 +114,17 @@ Page({
     this.setData({ reminderBusy: true });
     remindersService.subscribeForEvent(this._id).then(response => {
       wx.showModal({
-        title: response.ok ? '授权状态已提交' : '提醒尚未开启',
+        title: response.ok ? '提醒已开启' : '提醒尚未开启',
         content: response.message,
         showCancel: false,
         confirmText: '知道了'
       });
       if (response.ok) {
         // 授权已成功，先把状态显示成"已开启"，再拉一次服务端权威状态。
-        this.setData({ 'event.reminderStatus': '已开启提醒：到期后由服务端自动发送，实际送达以微信为准。' });
+        this.setData({
+          'event.reminderStatus': '已开启提醒：到期后由服务端自动发送，实际送达以微信为准。',
+          'event.reminderActionText': '重新授权提醒'
+        });
         this.loadReminderStatus(this._id, { keepSuccessOnAmbiguous: true });
       }
     }).catch(error => {

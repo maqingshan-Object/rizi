@@ -5,6 +5,8 @@ import cn.rizimianmian.backend.auth.UserRepository;
 import cn.rizimianmian.backend.events.EventEntity;
 import cn.rizimianmian.backend.events.EventRepository;
 import cn.rizimianmian.backend.events.EventOccurrenceCalculator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +17,8 @@ import java.util.List;
 
 @Service
 public class ReminderTaskService {
+    private static final Logger log = LoggerFactory.getLogger(ReminderTaskService.class);
+
     private final ReminderTaskRepository tasks;
     private final EventRepository events;
     private final UserRepository users;
@@ -61,19 +65,38 @@ public class ReminderTaskService {
 
     @Transactional
     public List<ReminderDtos.ReminderView> authorize(String userId, ReminderDtos.TaskIdsRequest request) {
-        return markAuthorized(userId, request, List.of(ReminderStatus.needs_authorization, ReminderStatus.pending));
+        List<ReminderDtos.ReminderView> authorized = markAuthorized(userId, request,
+                List.of(ReminderStatus.needs_authorization, ReminderStatus.pending));
+        // 这条日志用来证明"用户点了授权，且请求真的到了后端"。
+        log.info("REMINDER_AUTHORIZE user={} tasks={}", userId, authorized.size());
+        return authorized;
     }
 
     @Transactional
     public List<ReminderDtos.ReminderView> retry(String userId, ReminderDtos.TaskIdsRequest request) {
-        return markAuthorized(userId, request, List.of(ReminderStatus.failed, ReminderStatus.needs_authorization));
+        List<ReminderDtos.ReminderView> retried = markAuthorized(userId, request,
+                List.of(ReminderStatus.failed, ReminderStatus.needs_authorization));
+        log.info("REMINDER_RETRY user={} tasks={}", userId, retried.size());
+        return retried;
     }
 
     @Transactional
     public void dispatchDueTasks(LocalDate today) {
-        tasks.findByStatusAndAuthorizedTrue(ReminderStatus.pending).stream()
-                .filter(task -> task.isDue(today))
-                .forEach(task -> attempt(task, task.getUserId()));
+        int due = 0;
+        for (ReminderTaskEntity task : tasks.findByStatusAndAuthorizedTrue(ReminderStatus.pending)) {
+            if (!task.isDue(today)) {
+                continue;
+            }
+            due++;
+            ReminderTaskEntity attempted = attempt(task, task.getUserId());
+            // 每个命中任务都留一行结果：SENT / FAILED / NEEDS_AUTHORIZATION，失败时带原因。
+            log.info("REMINDER_DISPATCH taskId={} eventId={} occurrence={} result={} error={}",
+                    attempted.getId(), attempted.getEventId(), attempted.getOccurrence(),
+                    attempted.getStatus(), attempted.getLastError());
+        }
+        if (due > 0) {
+            log.info("REMINDER_DISPATCH_DONE date={} due={}", today, due);
+        }
     }
 
     @Transactional
