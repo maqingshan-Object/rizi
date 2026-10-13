@@ -18,3 +18,5 @@ spring:
     enabled: true
     baseline-on-migrate: true
     locations: classpath:db/migration
+    # 测试项目使用独立的迁移历史表，绝不写入正式项目的 flyway_schema_history
+    table: flyway_smoke_history

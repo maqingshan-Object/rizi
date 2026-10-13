@@ -25,6 +25,8 @@ spring:
   flyway:
     enabled: true
     baseline-on-migrate: true
+    # 正式项目的迁移历史表，不要被测试项目复用
+    table: flyway_schema_history
 
 management:
   endpoints:

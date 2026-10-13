@@ -1,0 +1,9 @@
+# 预编译版本：本地已经执行 mvn package 生成可执行 JAR，
+# 云托管构建时不再访问 Maven Central，避免 429 限流导致构建失败。
+# 打包时把本文件作为 Dockerfile，与本目录的 app.jar 一起放入压缩包根目录。
+FROM eclipse-temurin:21-jre
+WORKDIR /app
+ENV LANG=C.UTF-8
+COPY app.jar app.jar
+EXPOSE 8080
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75", "-Dfile.encoding=UTF-8", "-jar", "/app/app.jar"]
