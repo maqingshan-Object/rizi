@@ -84,9 +84,12 @@ Page({
 
   onRetry() { if (!this.data.deleted) this.refresh(); },
 
-  loadReminderStatus(eventId) {
+  loadReminderStatus(eventId, options) {
     remindersService.statusForEvent(eventId).then(response => {
       if (!this.data.event || this.data.event.id !== eventId) return;
+      // 刚授权成功时，如果后端还是旧版本（不返回 authorized），pending 无法区分
+      // "未授权"和"已授权待发送"，此时保留成功提示，别用"等待订阅授权"盖掉。
+      if (options && options.keepSuccessOnAmbiguous && response && response.ambiguous) return;
       this.setData({ 'event.reminderStatus': response.message || '提醒状态暂时无法确认。' });
     });
   },
@@ -110,7 +113,11 @@ Page({
         showCancel: false,
         confirmText: '知道了'
       });
-      if (response.ok) this.loadReminderStatus(this._id);
+      if (response.ok) {
+        // 授权已成功，先把状态显示成"已开启"，再拉一次服务端权威状态。
+        this.setData({ 'event.reminderStatus': '已开启提醒：到期后由服务端自动发送，实际送达以微信为准。' });
+        this.loadReminderStatus(this._id, { keepSuccessOnAmbiguous: true });
+      }
     }).catch(error => {
       notify(error);
     }).finally(() => {

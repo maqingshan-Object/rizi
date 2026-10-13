@@ -102,12 +102,25 @@ function statusForEvent(eventId) {
     }
     const task = tasks[0];
     const labels = {
-      pending: '等待订阅授权，尚未确认开启',
       needs_authorization: '需要重新授权提醒',
-      sent: '服务端已处理，实际送达以微信为准',
+      sent: '服务端已发送，实际送达以微信为准',
       failed: '服务端处理失败，可重新授权',
       cancelled: '提醒任务已取消'
     };
+    // ⚠️ 后端的 status=pending 有两种完全不同的含义：
+    //    ① 刚创建、用户还没授权  ② 用户已授权、等待到期自动发送
+    //    必须靠 authorized 字段区分。之前只看 status，导致授权成功后仍显示
+    //    "等待订阅授权，尚未确认开启"，看起来像失败（实际已经开启）。
+    if (task.status === 'pending') {
+      if (task.authorized === true) {
+        return result(true, 'AUTHORIZED', '已开启提醒：到期后由服务端自动发送，实际送达以微信为准。', task);
+      }
+      const pending = result(true, 'PENDING', '等待订阅授权，尚未确认开启', task);
+      // 旧版后端不返回 authorized 字段，无法区分上面两种含义；标记出来，
+      // 让调用方在"刚授权成功"时不要用这条模糊文案覆盖成功提示。
+      pending.ambiguous = typeof task.authorized !== 'boolean';
+      return pending;
+    }
     return result(true, 'TASK', labels[task.status] || '云端已有提醒任务，请以服务端状态为准。', task);
   });
 }
