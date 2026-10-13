@@ -20,8 +20,8 @@ CREATE TABLE IF NOT EXISTS events (
     reminder_days_before INT NOT NULL DEFAULT 3,
     reminder_time TIME NULL,
     sample BOOLEAN NOT NULL DEFAULT FALSE,
-    created_at TIMESTAMP(6) NOT NULL,
-    updated_at TIMESTAMP(6) NOT NULL,
+    created_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    updated_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     version BIGINT NOT NULL DEFAULT 0,
     PRIMARY KEY (id),
     KEY idx_events_user_date (user_id, date)

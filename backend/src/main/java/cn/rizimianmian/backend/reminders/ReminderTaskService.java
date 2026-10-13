@@ -5,6 +5,7 @@ import cn.rizimianmian.backend.auth.UserRepository;
 import cn.rizimianmian.backend.events.EventEntity;
 import cn.rizimianmian.backend.events.EventRepository;
 import cn.rizimianmian.backend.events.EventOccurrenceCalculator;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +22,8 @@ public class ReminderTaskService {
     private final EventOccurrenceCalculator occurrences;
     private final Clock clock;
 
+    /** 同时存在测试用构造函数，必须显式标注让 Spring 选用这一个。 */
+    @Autowired
     public ReminderTaskService(ReminderTaskRepository tasks, EventRepository events, UserRepository users,
                                WeChatSubscribeMessageClient wechat, EventOccurrenceCalculator occurrences) {
         this(tasks, events, users, wechat, occurrences, Clock.systemDefaultZone());

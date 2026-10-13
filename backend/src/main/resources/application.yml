@@ -17,7 +17,9 @@ spring:
   jpa:
     open-in-view: false
     hibernate:
-      ddl-auto: validate
+      # 表结构由 Flyway 管理；MySQL 5.7 与 Hibernate 对 timestamp/datetime 的类型名判定不一致，
+      # 这里不再做启动期结构校验，避免误拦启动。
+      ddl-auto: none
     properties:
       hibernate:
         jdbc:
@@ -25,7 +27,7 @@ spring:
   flyway:
     enabled: true
     # 使用独立的历史表名，避免被其他项目/测试写入的历史记录干扰校验
-    table: rizi1_schema_history
+    table: rizi1_flyway_history
     baseline-on-migrate: true
     # 基线版本设为 0，保证 V1/V2/V3 在“库非空”时仍然全部执行，不会被当成已应用而跳过
     baseline-version: 0

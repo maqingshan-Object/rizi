@@ -3,6 +3,7 @@ package cn.rizimianmian.backend.reminders;
 import cn.rizimianmian.backend.events.EventEntity;
 import cn.rizimianmian.backend.events.EventOccurrenceCalculator;
 import cn.rizimianmian.backend.events.EventRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -16,6 +17,8 @@ public class ReminderScheduler {
     private final EventOccurrenceCalculator occurrences;
     private final Clock clock;
 
+    /** 同时存在测试用构造函数，必须显式标注让 Spring 选用这一个。 */
+    @Autowired
     public ReminderScheduler(EventRepository events, ReminderTaskService tasks,
                              EventOccurrenceCalculator occurrences) {
         this(events, tasks, occurrences, Clock.systemDefaultZone());
