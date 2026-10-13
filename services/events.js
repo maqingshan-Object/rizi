@@ -1,4 +1,5 @@
 const auth = require('./auth');
+const http = require('./http');
 const dates = require('../utils/date');
 const KEY = 'days_guest_events_v1';
 function initializeGuest() {
@@ -26,4 +27,59 @@ function save(record){const all=list();if(record.pin)all.forEach(e=>e.pin=false)
 function remove(id){wx.setStorageSync(KEY,{events:list().filter(e=>e.id!==id)});}
 function togglePin(id){const all=list();const e=all.find(e=>e.id===id);if(!e)return;const pin=!e.pin;all.forEach(e=>e.pin=false);e.pin=pin;wx.setStorageSync(KEY,{events:all});return pin;}
 function clearSamples(){wx.setStorageSync(KEY,{events:list().filter(e=>!e.sample)});}
-module.exports={initializeGuest,isGuest,list,get,save,remove,togglePin,clearSamples};
+function remoteReady(){return !!auth.currentUser() && auth.isConfigured();}
+function remotePayload(record){
+  return {
+    id: record.id,
+    name: record.name,
+    note: record.note || '',
+    date: record.date,
+    category: record.category,
+    mode: record.mode,
+    repeat: record.repeat,
+    calendarType: record.calendarType,
+    holidayKey: record.holidayKey,
+    lunarMonth: record.lunarMonth,
+    lunarDay: record.lunarDay,
+    lunarLeap: record.lunarLeap,
+    icon: record.icon,
+    tint: record.tint,
+    pin: !!record.pin,
+    reminder: record.reminder || '不提醒',
+    reminderEnabled: record.reminder === '提前3天提醒',
+    reminderDaysBefore: record.reminder === '提前3天提醒' ? 3 : 0,
+    reminderTime: '09:00:00',
+    sample: !!record.sample
+  };
+}
+function assertRemoteReady(){
+  if(!auth.currentUser()){
+    const error=new Error('请先登录，再同步云端事件。');
+    error.code='UNAUTHORIZED';
+    throw error;
+  }
+  if(!auth.isConfigured()){
+    const error=new Error('后端服务尚未配置，事件仍只保存在本机。');
+    error.code='BACKEND_NOT_CONFIGURED';
+    throw error;
+  }
+}
+function listRemote(){
+  assertRemoteReady();
+  return http.get('/api/events');
+}
+function syncRemote(records){
+  assertRemoteReady();
+  const items=Array.isArray(records)?records:[];
+  return http.post('/api/events/sync',items.map(remotePayload));
+}
+function saveRemote(record){
+  if(!record) return Promise.reject(new Error('缺少事件记录，无法同步云端。'));
+  return syncRemote([record]).then(result=>Array.isArray(result)?result[0]:result);
+}
+function removeRemote(id){
+  assertRemoteReady();
+  if(!id) return Promise.reject(new Error('缺少事件编号，无法删除云端记录。'));
+  return http.request ? http.request('DELETE', `/api/events/${encodeURIComponent(id)}`) : Promise.reject(new Error('网络服务不支持删除请求。'));
+}
+module.exports={initializeGuest,isGuest,list,get,save,remove,togglePin,clearSamples,remoteReady,listRemote,syncRemote,saveRemote,removeRemote};

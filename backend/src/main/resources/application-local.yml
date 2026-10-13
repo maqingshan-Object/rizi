@@ -13,6 +13,9 @@ app:
   wechat:
     app-id: ${WECHAT_APP_ID:wxf63db4d43a9d71ca}
     app-secret: ${WECHAT_APP_SECRET:local-only-not-a-real-secret}
+    template-name-field: ${WECHAT_TEMPLATE_NAME_FIELD:thing1}
+    template-date-field: ${WECHAT_TEMPLATE_DATE_FIELD:date2}
+    template-note-field: ${WECHAT_TEMPLATE_NOTE_FIELD:thing3}
     session-url: ${WECHAT_SESSION_URL:https://api.weixin.qq.com/sns/jscode2session}
   jwt:
     secret: ${JWT_SECRET:local-only-jwt-secret-must-be-at-least-32-bytes}

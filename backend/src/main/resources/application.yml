@@ -7,7 +7,7 @@ spring:
   application:
     name: days-backend
   datasource:
-    url: ${DB_URL:jdbc:mysql://127.0.0.1:3306/days?useUnicode=true&characterEncoding=utf8&connectionCollation=utf8mb4_unicode_ci&serverTimezone=Asia/Shanghai}
+    url: ${DB_URL:jdbc:mysql://127.0.0.1:3306/days?useUnicode=true&characterEncoding=utf8mb4&connectionCollation=utf8mb4_unicode_ci&serverTimezone=Asia/Shanghai}
     username: ${DB_USERNAME:days}
     password: ${DB_PASSWORD}
     hikari:
@@ -36,6 +36,15 @@ app:
     app-id: ${WECHAT_APP_ID:wxf63db4d43a9d71ca}
     app-secret: ${WECHAT_APP_SECRET:}
     session-url: ${WECHAT_SESSION_URL:https://api.weixin.qq.com/sns/jscode2session}
+    access-token-url: ${WECHAT_ACCESS_TOKEN_URL:https://api.weixin.qq.com/cgi-bin/token}
+    subscribe-message-url: ${WECHAT_SUBSCRIBE_MESSAGE_URL:https://api.weixin.qq.com/cgi-bin/message/subscribe}
+    subscribe-template-id: ${WECHAT_SUBSCRIBE_TEMPLATE_ID:}
+    access-token: ${WECHAT_ACCESS_TOKEN:}
+    template-name-field: ${WECHAT_TEMPLATE_NAME_FIELD:thing1}
+    template-date-field: ${WECHAT_TEMPLATE_DATE_FIELD:date2}
+    template-note-field: ${WECHAT_TEMPLATE_NOTE_FIELD:thing3}
+  reminder:
+    cron: ${REMINDER_CRON:0 0 2 * * *}
   jwt:
     secret: ${JWT_SECRET}
     access-token-minutes: ${JWT_ACCESS_TOKEN_MINUTES:120}

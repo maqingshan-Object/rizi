@@ -30,6 +30,7 @@ const tints = [
   { value: 'yellow', label: '奶油黄' }, { value: 'blue', label: '雾蓝' }
 ];
 const pins = [{ value: false, label: '不置顶' }, { value: true, label: '置顶首页' }];
+const reminders = ['不提醒', '提前3天提醒'];
 const leaps = [{ value: false, label: '普通月' }, { value: true, label: '闰月' }];
 const selectors = {
   category: categories, mode: modes, repeat: repeats, calendarType: calendars,
@@ -53,7 +54,7 @@ Page({
     holidayRangeText: '按节日当天，非放假起始日，2020—2035年',
     monthlyHint: '', monthlyError: '', previewSrc: '', previewLabel: '',
     categories, modes, repeats, calendars, icons, tints, pins, leaps,
-    reminders: ['不提醒'], reminderIndex: 0,
+    reminders, reminderIndex: 0,
     months: lunar.monthNames.map((name, index) => `${index + 1} 月 · ${name}`),
     days: lunar.dayNames.map((name, index) => `${index + 1} 日 · ${name}`),
     categoryIndex: 0, modeIndex: 0, repeatIndex: 0, calendarTypeIndex: 0,
@@ -101,7 +102,7 @@ Page({
       state.holidayKey = active ? state.holidayKey : '';
       state.name = state.name || '';
       state.note = state.note || '';
-      state.reminder = '不提醒';
+      if (!reminders.includes(state.reminder)) state.reminder = '不提醒';
       state.lunarMonth = Number(state.lunarMonth) || 1;
       state.lunarDay = Number(state.lunarDay) || 1;
       if (state.lunarMonth < 1 || state.lunarMonth > 12 || state.lunarDay < 1 || state.lunarDay > 30) {
@@ -143,6 +144,13 @@ Page({
     if (this._submitLocked || this.isFestivalForm()) return;
     this.setData({ date: event.detail.value, error: '' });
     this.updatePresentation();
+  },
+
+  onReminderChange(event) {
+    if (this._submitLocked || this.data.saving) return;
+    const index = Number(event.detail.value);
+    if (!Number.isInteger(index) || !reminders[index]) return;
+    this.setData({ reminder: reminders[index], reminderIndex: index, error: '' });
   },
 
   isFestivalForm() {
@@ -222,6 +230,7 @@ Page({
     Object.keys(selectors).forEach(field => {
       patch[`${field}Index`] = Math.max(0, selectors[field].findIndex(item => item.value === this.data[field]));
     });
+    patch.reminderIndex = Math.max(0, reminders.indexOf(this.data.reminder));
     patch.lunarMonthIndex = this.data.lunarMonth - 1;
     patch.lunarDayIndex = this.data.lunarDay - 1;
     patch.previewSrc = categoryArt[this.data.category] || '/assets/cat-heart.png';
@@ -370,7 +379,7 @@ Page({
         name, note, date, category: this.data.category, mode: this.data.mode,
         repeat: this.data.mode === 'countup' ? 'none' : this.data.repeat,
         calendarType: this.data.calendarType, icon: this.data.icon, tint: this.data.tint,
-        pin: this.data.pin, reminder: '不提醒'
+        pin: this.data.pin, reminder: this.data.reminder
       });
       if (this._id !== null) record.id = this._id;
       if (active) record.holidayKey = this.data.holidayKey;
@@ -382,7 +391,8 @@ Page({
       } else {
         delete record.lunarMonth; delete record.lunarDay; delete record.lunarLeap;
       }
-      events.save(record);
+      const savedRecord = events.save(record);
+      this.scheduleAfterSave(savedRecord);
     } catch (error) {
       this.rejectSubmission(error.message || '保存失败，请重试。');
       notify(error);
@@ -390,6 +400,44 @@ Page({
     }
     this.setData({ saving: false, saved: true });
     this.onSavedBack();
+  },
+
+  showPostSaveNotice(title, content) {
+    try {
+      wx.showModal({ title, content, showCancel: false, confirmText: '知道了' });
+    } catch (error) { notify(error); }
+  },
+
+  scheduleAfterSave(record) {
+    if (typeof events.remoteReady !== 'function') return;
+    const remindersService = require('../../services/reminders');
+    const shouldSync = events.remoteReady();
+    const remoteSync = shouldSync
+      ? events.saveRemote(record).then(() => true).catch(() => {
+        try { wx.showToast({ title: '已保存本机，云端同步未完成', icon: 'none' }); } catch (ignored) {}
+        return false;
+      })
+      : Promise.resolve(false);
+    if (record.reminder !== '提前3天提醒' || !remindersService.canRequestSubscription()) return;
+    remindersService.requestSubscription().then(subscription => {
+      if (!subscription.ok) {
+        if (subscription.status === 'REJECTED') {
+          this.showPostSaveNotice('需要重新授权', '日子已保存，但你拒绝了微信订阅授权；重新授权后才会继续处理提醒。');
+        }
+        return;
+      }
+      remoteSync.then(remoteSynced => remindersService.authorizeForEvent(record.id).then(authorized => {
+        if (!authorized.ok) {
+          this.showPostSaveNotice('提醒尚未接通', authorized.message);
+          return;
+        }
+        this.showPostSaveNotice('授权状态已提交', remoteSynced
+          ? '已提交云端提醒授权状态；实际发送以服务端状态为准，不代表消息已经送达。'
+          : '微信授权已完成，但事件尚未完成云端同步，本机不会声称提醒已开启。');
+      }));
+    }).catch(() => {
+      this.showPostSaveNotice('提醒尚未接通', '日子已保存，但提醒授权流程未完成，请稍后重新授权。');
+    });
   },
 
   onSavedBack() {

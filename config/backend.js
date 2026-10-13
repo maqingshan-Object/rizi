@@ -2,5 +2,7 @@
 module.exports = {
   configured: false,
   baseUrl: '',
-  timeout: 10000
+  timeout: 10000,
+  subscribeTemplateId: '',
+  subscribeEnabled: false
 };

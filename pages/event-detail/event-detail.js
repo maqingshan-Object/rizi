@@ -1,5 +1,7 @@
 const { prepare, notify } = require('../../utils/page');
 const events = require('../../services/events');
+const auth = require('../../services/auth');
+const remindersService = require('../../services/reminders');
 const dates = require('../../utils/date');
 const lunar = require('../../utils/lunar');
 
@@ -10,7 +12,7 @@ const tintNames = ['pink', 'mint', 'yellow', 'blue'];
 Page({
   data: {
     theme: 'cream', guest: true, loading: true, error: '', missing: false,
-    event: null, busy: false, deleted: false
+    event: null, busy: false, reminderBusy: false, deleted: false
   },
 
   onLoad(options) {
@@ -57,6 +59,12 @@ Page({
         originalDateText: dates.validDate(record.date) ? record.date.replace(/-/g, '.') : '日期无效',
         dateLabel: record.mode === 'countup' ? '开始日期' : record.repeat !== 'none' ? '本次／下次日期' : '记录日期',
         lunarText: '', lunarHelp: '', unavailable: !available,
+        reminder: record.reminder || '不提醒',
+        reminderText: record.reminder === '提前3天提醒' ? '提前3天提醒' : '不提醒',
+        reminderStatus: record.reminder === '提前3天提醒'
+          ? (auth.currentUser() ? '正在读取云端提醒状态…' : '请先登录，提醒偏好目前仅保存在本机。')
+          : '未选择提醒；如需提醒请编辑这个日子。',
+        reminderActionText: '开启／重新授权提醒',
         phrase: record.category === 'birthday' ? '爱要记得，也要说出口。' : '每一天，都值得被认真记住。'
       });
       if (record.calendarType === 'lunar') {
@@ -67,6 +75,7 @@ Page({
         detail.lunarHelp = `支持 ${lunar.range.min}—${lunar.range.max} 农历年。闰月无对应年时跳到下一个有对应闰月且日期有效的年份，不替换为普通月；无有效日期的年份也会跳过。`;
       }
       this.setData({ event: detail, loading: false });
+      if (detail.reminder === '提前3天提醒' && auth.currentUser()) this.loadReminderStatus(detail.id);
     } catch (error) {
       this.setData({ loading: false, event: null, error: error.message || '这个日子暂时无法读取。' });
       notify(error);
@@ -74,6 +83,40 @@ Page({
   },
 
   onRetry() { if (!this.data.deleted) this.refresh(); },
+
+  loadReminderStatus(eventId) {
+    remindersService.statusForEvent(eventId).then(response => {
+      if (!this.data.event || this.data.event.id !== eventId) return;
+      this.setData({ 'event.reminderStatus': response.message || '提醒状态暂时无法确认。' });
+    });
+  },
+
+  onSubscribeReminder() {
+    if (this.data.reminderBusy || !this.data.event || this.data.deleted) return;
+    if (!auth.currentUser()) {
+      wx.showModal({
+        title: '请先登录',
+        content: '访客记录只保存在本机，登录后才能申请微信订阅授权并查看云端提醒状态。',
+        showCancel: false,
+        confirmText: '知道了'
+      });
+      return;
+    }
+    this.setData({ reminderBusy: true });
+    remindersService.subscribeForEvent(this._id).then(response => {
+      wx.showModal({
+        title: response.ok ? '授权状态已提交' : '提醒尚未开启',
+        content: response.message,
+        showCancel: false,
+        confirmText: '知道了'
+      });
+      if (response.ok) this.loadReminderStatus(this._id);
+    }).catch(error => {
+      notify(error);
+    }).finally(() => {
+      this.setData({ reminderBusy: false });
+    });
+  },
 
   onEdit() {
     if (this._actionLocked || this._editLocked || !this.data.event || this.data.deleted) return;
@@ -96,7 +139,10 @@ Page({
       if (!record || record.id !== this._id) throw new Error('这个日子已被删除，无法置顶。');
       // 仅通过专用 API 改变置顶，不用不完整的展示记录调用 save。
       const pinned = events.togglePin(this._id);
-      this.refresh();
+      const remote = events.remoteReady() ? events.saveRemote(events.get(this._id)).catch(() => {
+        wx.showToast({ title: '已改本机，云端同步未完成', icon: 'none' });
+      }) : Promise.resolve();
+      remote.finally(() => this.refresh());
       if (typeof pinned === 'boolean') {
         wx.showToast({ title: pinned ? '已置顶这个日子' : '已取消置顶', icon: 'none' });
       }
@@ -122,6 +168,9 @@ Page({
             const current = events.get(id);
             if (!current || current.id !== id) throw new Error('这个日子已不存在，没有删除其他记录。');
             events.remove(id);
+            if (events.remoteReady()) {
+              events.removeRemote(id).catch(() => wx.showToast({ title: '本机已删除，云端删除未完成', icon: 'none' }));
+            }
             this.setData({ deleted: true, event: null, missing: false, busy: false });
           } catch (error) { unlock(); notify(error); this.refresh(); return; }
           this.onBack();

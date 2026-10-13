@@ -1,5 +1,6 @@
 const auth = require('../../services/auth');
 const events = require('../../services/events');
+const remindersService = require('../../services/reminders');
 const { prepare, notify, login } = require('../../utils/page');
 
 Page({
@@ -11,6 +12,8 @@ Page({
     avatar: '/assets/cat.png',
     stats: { total: 0, birthday: 0, countup: 0 },
     sampleCount: 0,
+    reminderNote: '待接通',
+    pendingReminderCount: 0,
     error: '',
     clearing: false,
     themes: [
@@ -32,6 +35,7 @@ Page({
       nickname: user ? (user.nickname || '尚未设置昵称') : '日子的收藏家',
       avatar: user && user.avatarUrl ? user.avatarUrl : '/assets/cat.png'
     });
+    this.loadReminderSummary();
     try {
       const records = events.list();
       this.setData({
@@ -76,12 +80,49 @@ Page({
     this.setData({ avatar: '/assets/cat.png' });
   },
 
+  loadReminderSummary() {
+    this.setData({ reminderNote: this.data.guest ? '请先登录' : '读取中…', pendingReminderCount: 0 });
+    remindersService.list().then(response => {
+      if (!response.ok) {
+        this.setData({
+          reminderNote: response.status === 'BACKEND_NOT_CONFIGURED' || response.status === 'MISSING_TEMPLATE'
+            ? '待接通' : response.status === 'UNAUTHORIZED' ? '请先登录' : '读取失败',
+          pendingReminderCount: 0
+        });
+        return;
+      }
+      const pending = response.data.filter(item => item && ['pending', 'needs_authorization'].includes(item.status)).length;
+      this.setData({
+        pendingReminderCount: pending,
+        reminderNote: pending ? `${pending} 条待授权` : response.data.length ? `${response.data.length} 条云端任务` : '暂无任务'
+      });
+    });
+  },
+
   showReminders() {
-    wx.showModal({
-      title: '提醒待接通',
-      content: '订阅消息服务尚未接通，目前不会发送日子提醒，也不会申请订阅授权。记录中的提醒偏好不代表通知已开启。',
-      showCancel: false,
-      confirmText: '知道了'
+    remindersService.list().then(response => {
+      if (!response.ok) {
+        wx.showModal({
+          title: response.status === 'UNAUTHORIZED' ? '请先登录' : '提醒服务待接通',
+          content: response.message,
+          showCancel: false,
+          confirmText: '知道了'
+        });
+        return;
+      }
+      const labels = {
+        pending: '等待授权', needs_authorization: '需要重新授权', sent: '服务端已处理',
+        failed: '处理失败', cancelled: '已取消'
+      };
+      const items = response.data.slice(0, 5);
+      const lines = items.map((item, index) => `${index + 1}. ${item.occurrence || '日期待定'} · ${labels[item.status] || '状态待确认'}`);
+      const extra = response.data.length > 5 ? `\n还有 ${response.data.length - 5} 条未展开。` : '';
+      wx.showModal({
+        title: '提醒状态',
+        content: lines.length ? lines.join('\n') + extra : '暂无云端提醒任务。本机记录中的提醒偏好不代表通知已开启。',
+        showCancel: false,
+        confirmText: '知道了'
+      });
     });
   },
 
@@ -120,7 +161,7 @@ Page({
   showAbout() {
     wx.showModal({
       title: '日子绵绵',
-      content: '把重要的日子，慢慢放在心上。当前为开发中的原生小程序，支持本机访客记录与主题切换；登录、资料上传、云端备份和订阅提醒尚未接通。',
+      content: '把重要的日子，慢慢放在心上。当前为开发中的原生小程序，支持本机访客记录与主题切换；事件云端同步与订阅提醒受后端配置、微信授权和服务端状态限制。',
       showCancel: false,
       confirmText: '慢慢记录'
     });

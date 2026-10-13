@@ -17,7 +17,14 @@ public record AppProperties(
     public record Wechat(
             @NotBlank String appId,
             @NotBlank String appSecret,
-            @NotBlank String sessionUrl
+            @NotBlank String sessionUrl,
+            @NotBlank String accessTokenUrl,
+            @NotBlank String subscribeMessageUrl,
+            String subscribeTemplateId,
+            String accessToken,
+            String templateNameField,
+            String templateDateField,
+            String templateNoteField
     ) {}
 
     public record Jwt(

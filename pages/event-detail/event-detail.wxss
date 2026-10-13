@@ -31,6 +31,7 @@
 .reminder-line { border-bottom: 0; padding-bottom: 8rpx; }
 .form-help { display: block; color: var(--muted); font-size: 21rpx; line-height: 1.8; }
 .reminder-help { margin-top: 8rpx; }
+.reminder-button { width: 100%; margin-top: 18rpx; }
 .lunar-help { margin-top: 20rpx; padding: 20rpx; background: var(--soft); color: var(--accent); border-radius: 18rpx; }
 .form-error { display: block; font-size: 23rpx; color: #a45151; line-height: 1.8; overflow-wrap: break-word; }
 .date-warning { padding: 24rpx; margin-bottom: 24rpx; background: var(--paper); border-radius: 22rpx; border: 1rpx solid #d5a6a666; }

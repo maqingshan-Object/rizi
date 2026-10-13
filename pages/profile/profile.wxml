@@ -53,7 +53,7 @@
     </view>
 
     <view class="settings">
-      <button class="setting-row" bindtap="showReminders"><app-icon name="bell" size="{{36}}" color="accent" variant="{{theme}}" /><text class="setting-title">日子提醒</text><text class="setting-note muted">待订阅服务</text><app-icon name="next" size="{{26}}" color="neutral" /></button>
+      <button class="setting-row" bindtap="showReminders"><app-icon name="bell" size="{{36}}" color="accent" variant="{{theme}}" /><text class="setting-title">日子提醒</text><text class="setting-note muted">{{reminderNote}}</text><app-icon name="next" size="{{26}}" color="neutral" /></button>
       <button class="setting-row" bindtap="showBackup"><app-icon name="cloud" size="{{36}}" color="accent" variant="{{theme}}" /><text class="setting-title">云端备份</text><text class="setting-note muted">尚未接通</text><app-icon name="next" size="{{26}}" color="neutral" /></button>
       <button class="setting-row" bindtap="openDays"><app-icon name="grid" size="{{36}}" color="accent" variant="{{theme}}" /><text class="setting-title">管理我的日子</text><text class="setting-note muted">{{stats.total}} 个日子</text><app-icon name="next" size="{{26}}" color="neutral" /></button>
       <button class="setting-row" bindtap="openPrivacy"><app-icon name="lock" size="{{36}}" color="accent" variant="{{theme}}" /><text class="setting-title">隐私与数据</text><app-icon name="next" size="{{26}}" color="neutral" /></button>

@@ -3,7 +3,7 @@
   <view class="page-body detail-body">
     <view class="local-banner">
       <app-icon name="lock" size="{{28}}" />
-      <text>{{guest ? '访客模式 · 这些日子仅保存在本机，不会云端同步。' : '当前日子仅保存在本机，不会云端同步。'}}</text>
+      <text>{{guest ? '访客模式 · 这些日子与提醒偏好仅保存在本机，不会云端同步。' : '已登录 · 当前以本机记录为准，云端事件与提醒状态需单独确认。'}}</text>
     </view>
     <view wx:if="{{loading}}" class="paper page-state" aria-role="status">
       <view class="skeleton-line" />
@@ -60,8 +60,10 @@
         <view class="detail-line"><text class="muted">{{event.dateLabel}}</text><text class="detail-value">{{event.targetDateText}}</text></view>
         <view wx:if="{{(event.repeat === 'yearly' || event.repeat === 'monthly') && event.calendarType !== 'lunar'}}" class="detail-line"><text class="muted">最初记录日期</text><text class="detail-value">{{event.originalDateText}}</text></view>
         <view class="detail-line"><text class="muted">置顶首页</text><text class="detail-value">{{event.pin ? '已置顶' : '未置顶'}}</text></view>
-        <view class="detail-line reminder-line"><text class="muted">日子提醒</text><text class="detail-value">不提醒 · 暂未支持</text></view>
-        <text class="form-help reminder-help">暂不支持真实订阅提醒，不会发送通知。</text>
+        <view class="detail-line reminder-line"><text class="muted">日子提醒</text><text class="detail-value">{{event.reminderText}}</text></view>
+        <text class="form-help reminder-help">{{event.reminderStatus}}</text>
+        <button wx:if="{{event.reminder !== '不提醒'}}" class="btn-secondary reminder-button" bindtap="onSubscribeReminder" disabled="{{busy || reminderBusy}}">{{reminderBusy ? '正在申请授权…' : event.reminderActionText}}</button>
+        <text wx:if="{{event.reminder === '不提醒'}}" class="form-help reminder-help">选择提前3天提醒后，登录并完成配置才会申请微信订阅授权。</text>
         <view wx:if="{{event.resolvedHolidayLabel}}" class="detail-line"><text class="muted">本次节日</text><text class="detail-value">{{event.resolvedHolidayLabel}}</text></view>
         <text wx:if="{{event.lunarHelp}}" class="form-help lunar-help">{{event.lunarHelp}}</text>
         <text wx:if="{{event.monthlyHelp}}" class="form-help lunar-help">{{event.monthlyHelp}}</text>

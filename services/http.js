@@ -35,4 +35,10 @@ function request(method, path, data) {
   });
 }
 
-module.exports = { get: path => request('GET', path), post: (path, data) => request('POST', path, data) };
+module.exports = {
+  request,
+  get: path => request('GET', path),
+  post: (path, data) => request('POST', path, data),
+  put: (path, data) => request('PUT', path, data),
+  delete: path => request('DELETE', path)
+};

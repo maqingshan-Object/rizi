@@ -1,4 +1,5 @@
 const auth = require('../../services/auth');
+const events = require('../../services/events');
 const { prepare, notify } = require('../../utils/page');
 
 Page({
@@ -66,7 +67,22 @@ Page({
       await auth.signIn();
       // 只认可服务验证后的身份，不使用登录返回值或开发者工具账号伪造用户。
       if (!auth.currentUser()) throw new Error('登录未建立有效身份，仍处于访客模式。');
+      let migrated = 0;
+      let migrationFailed = false;
+      try {
+        if (typeof events.remoteReady === 'function' && events.remoteReady()) {
+          const localRecords = events.list().filter(record => !record.sample);
+          if (localRecords.length) {
+            await events.syncRemote(localRecords);
+            migrated = localRecords.length;
+          }
+        }
+      } catch (migrationError) {
+        migrationFailed = true;
+      }
       this.syncIdentity(true);
+      if (migrated) wx.showToast({ title: `已同步 ${migrated} 个日子`, icon: 'none' });
+      else if (migrationFailed) wx.showToast({ title: '已登录，日子云端同步稍后重试', icon: 'none' });
     } catch (error) {
       this.syncIdentity(false);
       this.setData({ error: error.message || '登录失败，未建立有效身份。', errorCode: error.code || '' });
