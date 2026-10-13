@@ -51,9 +51,11 @@ app:
     subscribe-message-url: ${WECHAT_SUBSCRIBE_MESSAGE_URL:https://api.weixin.qq.com/cgi-bin/message/subscribe}
     subscribe-template-id: ${WECHAT_SUBSCRIBE_TEMPLATE_ID:}
     access-token: ${WECHAT_ACCESS_TOKEN:}
+    # 模板字段名必须与公众平台模板里的 {{xxx.DATA}} 完全一致，否则微信返回 47003 参数不合法。
+    # 当前模板「记念日提醒」(编号 24904)：thing1=名称 / time2=日期 / number5=剩余天数
     template-name-field: ${WECHAT_TEMPLATE_NAME_FIELD:thing1}
-    template-date-field: ${WECHAT_TEMPLATE_DATE_FIELD:date2}
-    template-note-field: ${WECHAT_TEMPLATE_NOTE_FIELD:thing3}
+    template-date-field: ${WECHAT_TEMPLATE_DATE_FIELD:time2}
+    template-days-field: ${WECHAT_TEMPLATE_DAYS_FIELD:number5}
   reminder:
     cron: ${REMINDER_CRON:0 0 2 * * *}
   jwt:

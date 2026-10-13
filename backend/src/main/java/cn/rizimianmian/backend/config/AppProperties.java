@@ -24,7 +24,7 @@ public record AppProperties(
             String accessToken,
             String templateNameField,
             String templateDateField,
-            String templateNoteField
+            String templateDaysField
     ) {}
 
     public record Jwt(

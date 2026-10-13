@@ -9,7 +9,7 @@ function currentUser() {
 }
 
 function isConfigured() {
-  return config.configured === true && !!config.baseUrl;
+  return http.isBackendReady();
 }
 
 function setSession(response) {
@@ -30,6 +30,12 @@ async function signIn() {
     error.code = 'BACKEND_NOT_CONFIGURED';
     throw error;
   }
+
+  // 微信云托管内网调用会自动带上 X-WX-OPENID，后端无需再用 code 换 openid。
+  if (http.containerReady()) {
+    return setSession(await http.post('/api/auth/cloudrun/login', {}));
+  }
+
   const login = await new Promise((resolve, reject) => {
     wx.login({ success: resolve, fail: reject });
   });

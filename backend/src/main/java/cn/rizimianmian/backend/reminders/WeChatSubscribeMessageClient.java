@@ -9,11 +9,25 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 @Component
 public class WeChatSubscribeMessageClient {
+    /**
+     * time 类型字段只接受带时间的格式（纯日期会触发 47003），
+     * 提醒只关心"哪一天"，这里补一个固定时刻用于展示，可按需调整。
+     */
+    private static final DateTimeFormatter DISPLAY_DATE_TIME =
+            DateTimeFormatter.ofPattern("yyyy年M月d日 HH:mm");
+    private static final LocalTime DISPLAY_TIME = LocalTime.of(9, 0);
+
+    /** 点击服务通知卡片后跳转的日子详情页；路径不存在会返回 41030。 */
+    private static final String DETAIL_PAGE = "pages/event-detail/event-detail?id=";
+
     private final RestClient restClient;
     private final AppProperties properties;
 
@@ -51,13 +65,18 @@ public class WeChatSubscribeMessageClient {
         }
 
         try {
+            // thing：20 个字符以内；time：必须带时间部分；number：只能纯数字。
             Map<String, Map<String, String>> data = new LinkedHashMap<>();
+            LocalTime displayTime = event.getReminderTime() == null ? DISPLAY_TIME : event.getReminderTime();
             data.put(properties.wechat().templateNameField(), Map.of("value", shorten(event.getName(), 20)));
-            data.put(properties.wechat().templateDateField(), Map.of("value", occurrence.toString()));
-            data.put(properties.wechat().templateNoteField(), Map.of("value", shorten(event.getNote() == null ? "还有 3 天" : event.getNote(), 20)));
+            data.put(properties.wechat().templateDateField(),
+                    Map.of("value", occurrence.atTime(displayTime).format(DISPLAY_DATE_TIME)));
+            data.put(properties.wechat().templateDaysField(),
+                    Map.of("value", String.valueOf(daysRemaining(occurrence))));
             Map<String, Object> body = new LinkedHashMap<>();
             body.put("touser", openId);
             body.put("template_id", templateId);
+            body.put("page", DETAIL_PAGE + event.getId());
             body.put("data", data);
             WechatMessageResponse response = restClient.post()
                     .uri(UriComponentsBuilder.fromUriString(properties.wechat().subscribeMessageUrl())
@@ -76,6 +95,11 @@ public class WeChatSubscribeMessageClient {
         } catch (RestClientException exception) {
             return SendResult.failed("微信订阅消息请求失败：" + exception.getMessage());
         }
+    }
+
+    /** number 类型只接受纯数字，负数会被判为不合法，这里统一兜底为 0。 */
+    private long daysRemaining(LocalDate occurrence) {
+        return Math.max(0L, ChronoUnit.DAYS.between(LocalDate.now(), occurrence));
     }
 
     private String shorten(String value, int maxLength) {

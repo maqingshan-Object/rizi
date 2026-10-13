@@ -7,7 +7,10 @@ function result(ok, status, message, data) {
 }
 
 function isBackendReady() {
-  return config.configured === true && !!config.baseUrl;
+  // 复用 http 模块的统一判定：云托管内网调用（container）或 HTTPS 域名调用（request）任选其一。
+  // 之前这里用 config.configured / config.baseUrl 判断，属于 request 模式的条件，
+  // 云托管模式下二者恒为空，会让提醒功能永远返回 BACKEND_NOT_CONFIGURED。
+  return http.isBackendReady();
 }
 
 function canRequestSubscription() {

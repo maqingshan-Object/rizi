@@ -24,8 +24,24 @@ public class AuthService {
     @Transactional
     public AuthDtos.LoginResponse login(String code) {
         WechatSessionClient.WechatSession session = wechat.exchangeCode(code);
-        UserEntity user = users.findByOpenId(session.openid())
-                .orElseGet(() -> users.save(new UserEntity(UUID.randomUUID().toString(), session.openid(), session.unionid())));
+        return issueFor(session.openid(), session.unionid());
+    }
+
+    /**
+     * 微信云托管 callContainer 内网调用时，微信链路已把 OpenID 放在请求头里，
+     * 后端可直接使用，无需再用 code 调用 jscode2session。
+     */
+    @Transactional
+    public AuthDtos.LoginResponse loginWithOpenId(String openId, String unionId) {
+        if (openId == null || openId.isBlank()) {
+            throw new IllegalArgumentException("未获取到微信 OpenID，请确认通过微信云托管 callContainer 调用。");
+        }
+        return issueFor(openId.trim(), unionId == null || unionId.isBlank() ? null : unionId.trim());
+    }
+
+    private AuthDtos.LoginResponse issueFor(String openId, String unionId) {
+        UserEntity user = users.findByOpenId(openId)
+                .orElseGet(() -> users.save(new UserEntity(UUID.randomUUID().toString(), openId, unionId)));
         return new AuthDtos.LoginResponse(
                 jwt.issue(user.getId()),
                 properties.jwt().accessTokenMinutes() * 60,

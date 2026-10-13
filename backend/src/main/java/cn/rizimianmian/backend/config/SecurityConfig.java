@@ -33,7 +33,8 @@ public class SecurityConfig {
                 .cors(cors -> {})
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/actuator/health", "/api/health", "/api/auth/wechat/login").permitAll()
+                        .requestMatchers("/actuator/health", "/api/health",
+                                "/api/auth/wechat/login", "/api/auth/cloudrun/login").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
