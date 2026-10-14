@@ -36,7 +36,9 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/actuator/health", "/api/health",
-                                "/api/auth/wechat/login", "/api/auth/cloudrun/login").permitAll()
+                                "/api/auth/wechat/login", "/api/auth/cloudrun/login",
+                                // 虚拟支付发货回调由微信服务器直接调用，没有我们的登录态，必须放行
+                                "/api/pay/notify").permitAll()
                         .anyRequest().authenticated())
                 // 未带 token / token 过期时，返回 401 + 可读 JSON。
                 // Spring Security 默认是"403 + 空 body"，小程序拿不到 message 只能显示
