@@ -1,10 +1,13 @@
 .share-body { padding-top: 20rpx; }
 
 /* 画布内部坐标系固定 600×900 逻辑像素，靠外层 transform 缩放到屏幕宽度，
-   这样"导出图片的清晰度"和"预览的大小"互不干扰 */
-.poster-stage { width: 100%; overflow: hidden; }
-.poster-scaler { width: 600px; margin: 0 auto; transform-origin: top center; }
-.poster-canvas { display: block; width: 600px; height: 900px; border-radius: 34px; }
+   这样"导出图片的清晰度"和"预览的大小"互不干扰。
+   注意：舞台宽度必须写成缩放后的实际宽度并 margin auto 居中 —— 用一个比父容器
+   宽的盒子 + margin auto 是居不中的（auto 会算成 0），右边会被 overflow 裁掉。 */
+.poster-stage { position: relative; margin: 0 auto; overflow: hidden; }
+.poster-scaler { width: 600px; height: 900px; transform-origin: top left; }
+.poster-canvas { display: block; width: 600px; height: 900px; }
+.poster-preview { position: absolute; left: 0; top: 0; display: block; width: 100%; border-radius: 17px; }
 
 .poster-hint { display: block; text-align: center; font-size: 24rpx; margin-top: 20rpx; }
 .error-hint { color: #a35965; }

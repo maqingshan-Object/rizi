@@ -8,10 +8,12 @@
     </view>
 
     <block wx:else>
-      <view class="poster-stage" style="height: {{displayHeight}}px;">
+      <view class="poster-stage" style="width: {{displayWidth}}px; height: {{displayHeight}}px;">
         <view class="poster-scaler" style="transform: scale({{displayScale}});">
           <canvas type="2d" id="poster" class="poster-canvas" aria-hidden="true" />
         </view>
+        <!-- 预览直接用导出的那张图：不会被裁，而且长按能保存/转发（canvas 不支持长按菜单） -->
+        <image wx:if="{{posterPath}}" class="poster-preview" src="{{posterPath}}" mode="widthFix" show-menu-by-longpress="{{true}}" bindtap="onPreview" aria-label="分享卡片，长按可保存或转发，点一下看大图" />
       </view>
 
       <view wx:if="{{rendering}}" class="poster-hint muted">正在画这张卡片…</view>
@@ -21,7 +23,7 @@
         <button class="btn-primary" bindtap="onSave" disabled="{{rendering || !posterPath}}">{{saved ? '再存一次' : '保存到相册'}}</button>
         <button class="btn-secondary" open-type="share" disabled="{{rendering}}">转发给好友</button>
       </view>
-      <text class="form-help share-help">长按上面的卡片也能保存或转发。把它发到朋友圈，朋友点开或扫码就能看到这个日子。</text>
+      <text class="form-help share-help">点一下卡片可以看大图，长按可直接保存或转发；发到朋友圈，朋友点开或扫码就能看到这个日子。</text>
       <button wx:if="{{error}}" class="btn-secondary retry-button" bindtap="onRedraw">重新生成</button>
       <text class="detail-footer muted">日子绵绵，岁岁有念。</text>
     </block>

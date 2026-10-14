@@ -63,6 +63,7 @@ Page({
     error: '',
     saved: false,
     displayScale: 1,
+    displayWidth: POSTER_W,
     displayHeight: POSTER_H
   },
 
@@ -86,6 +87,8 @@ Page({
     this.setData({
       event,
       displayScale: scale,
+      // 舞台按缩放后的实际尺寸写死并居中：盒子比父容器宽时 margin auto 是居不中的
+      displayWidth: Math.round(POSTER_W * scale),
       displayHeight: Math.round(POSTER_H * scale),
       rendering: !!event
     });
@@ -107,6 +110,12 @@ Page({
   onRedraw() {
     if (this.data.rendering) return;
     this.draw();
+  },
+
+  /** 点一下看大图：全屏预览里长按同样能保存或转发。 */
+  onPreview() {
+    if (!this.data.posterPath) return;
+    wx.previewImage({ urls: [this.data.posterPath], current: this.data.posterPath });
   },
 
   draw() {
