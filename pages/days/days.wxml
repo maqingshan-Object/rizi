@@ -64,7 +64,7 @@
           <view class="event-heading">
             <app-icon name="{{feature.icon}}" size="36" />
             <text class="event-name">{{feature.name}}</text>
-            <app-icon wx:if="{{feature.reminderOn}}" name="bell" size="26" class="reminder-bell" />
+            <app-icon wx:if="{{feature.reminderOn}}" name="bell" size="24" color="white" class="reminder-bell" />
           </view>
           <text class="pill feature-pill">{{feature.featureLabel}}</text>
         </view>
@@ -88,7 +88,7 @@
           <view class="event-band {{item.tintClass}}">
             <app-icon name="{{item.icon}}" size="30" />
             <text class="small-name">{{item.name}}</text>
-            <app-icon wx:if="{{item.reminderOn}}" name="bell" size="24" class="reminder-bell band-bell" />
+            <app-icon wx:if="{{item.reminderOn}}" name="bell" size="22" color="white" class="reminder-bell band-bell" />
           </view>
           <view class="event-card-body">
             <image wx:if="{{item.backgroundSrc}}" class="small-category-art" src="{{item.backgroundSrc}}" mode="aspectFit" aria-hidden="true" />
@@ -109,7 +109,7 @@
           <text class="life-title">{{life.name}}</text>
           <text class="life-subtitle">又是值得好好生活的一天</text>
         </view>
-        <app-icon wx:if="{{life.reminderOn}}" name="bell" size="26" class="reminder-bell life-bell" />
+        <app-icon wx:if="{{life.reminderOn}}" name="bell" size="22" color="white" class="reminder-bell life-bell" />
         <view class="life-count">
           <text class="life-number">{{life.countText}}</text>
           <text class="life-unit">{{life.unitLabel}}</text>

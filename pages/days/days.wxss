@@ -220,8 +220,17 @@
   background: var(--days-accent);
 }
 
-/* 已开启提醒的日子：卡片上带一个小铃铛，一眼看出哪些日子会提醒 */
-.reminder-bell { flex-shrink: 0; margin-left: 10rpx; opacity: .75; }
+/* 已开启提醒：卡片上的铃铛徽标 —— 实心底色 + 白色铃铛，保证一眼可见 */
+.reminder-bell {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 10rpx;
+  padding: 5rpx;
+  border-radius: 12rpx;
+  background: var(--days-accent);
+}
 .band-bell { margin-left: auto; }
 .life-bell { margin-left: 0; margin-right: 14rpx; }
 
