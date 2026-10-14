@@ -1,4 +1,4 @@
-const { prepare, notify } = require('../../utils/page');
+const { prepare, notify, refreshDaysReminderNotice } = require('../../utils/page');
 const events = require('../../services/events');
 const dates = require('../../utils/date');
 const lunar = require('../../utils/lunar');
@@ -439,6 +439,9 @@ Page({
         this.showPostSaveNotice('提醒已开启', remoteSynced
           ? '微信订阅授权已获得，并已同步到云端。到期后由服务端自动发送，实际送达以微信为准。'
           : '微信授权已完成，但事件尚未完成云端同步，本机不会声称提醒已开启。');
+        // 首页那条「还没开启提醒」是授权完成之前渲染的，这里让它重新读一次；
+        // 否则会出现"弹窗说已开启、首页还说没开启"的矛盾，看起来像被要求开了两次。
+        refreshDaysReminderNotice();
       }));
     }).catch(() => {
       this.showPostSaveNotice('提醒没开成功', '日子已保存，但提醒授权流程未完成，请稍后重新授权。');
