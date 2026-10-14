@@ -143,7 +143,7 @@ Page({
     if (this.data.saving) return;
     if (!auth.currentUser()) {
       this.syncIdentity(false);
-      this.setData({ error: '尚未登录，不能保存账号资料。', errorCode: '' });
+      this.setData({ error: '还没登录，登录后才能保存资料。', errorCode: '' });
       return;
     }
     if (!this.data.agreed) {

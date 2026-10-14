@@ -26,7 +26,7 @@ function backendRequired() {
 }
 
 function subscriptionUnavailable() {
-  return result(false, 'MISSING_TEMPLATE', '提醒订阅开关或模板尚未配置，当前不会调用微信订阅授权；请稍后重新授权。');
+  return result(false, 'MISSING_TEMPLATE', '提醒服务还在准备中，稍后再点一次「开启提醒」试试。');
 }
 
 function requestSubscription() {
@@ -80,8 +80,8 @@ function authorize(taskIds) {
   if (!isBackendReady()) return Promise.resolve(backendRequired());
   const body = Array.isArray(taskIds) && taskIds.length ? { taskIds } : undefined;
   return http.post('/api/reminders/authorize', body)
-    .then(data => result(true, 'AUTHORIZED', '已提交云端提醒授权状态；实际发送以服务端状态为准，不代表消息已经送达。', Array.isArray(data) ? data : []))
-    .catch(error => result(false, error.code || 'AUTHORIZE_FAILED', error.message || '云端提醒授权状态提交失败。'));
+    .then(data => result(true, 'AUTHORIZED', '授权记下了，到时候会按安排发给你。', Array.isArray(data) ? data : []))
+    .catch(error => result(false, error.code || 'AUTHORIZE_FAILED', error.message || '授权没记上，稍后再试一次。'));
 }
 
 async function authorizeForEvent(eventId) {
@@ -98,15 +98,15 @@ function statusForEvent(eventId) {
     if (!response.ok) return response;
     const tasks = response.data.filter(item => item && item.eventId === eventId);
     if (!tasks.length) {
-      return result(true, 'NO_TASK', '云端还没有这个日子的提醒任务；本机偏好不代表提醒已开启。', null);
+      return result(true, 'NO_TASK', '这个日子还没排上提醒，回头再点一次「开启提醒」试试。', null);
     }
     // 一个日子可能同时有两条任务：「本次已发出」+「为下一次预建、尚未授权」。
     // 优先展示还没授权的那条 —— 那才是用户接下来要处理的；没有就取最近的一条。
     const task = tasks.find(item => item.authorized !== true) || tasks[tasks.length - 1];
     const labels = {
       needs_authorization: '需要重新授权提醒',
-      sent: '服务端已发送，实际送达以微信为准',
-      failed: '服务端处理失败，可重新授权',
+      sent: '已经发出，留意微信通知',
+      failed: '这次没能发出，可以重新开启',
       cancelled: '提醒任务已取消'
     };
     // ⚠️ 后端的 status=pending 有两种完全不同的含义：
@@ -115,15 +115,15 @@ function statusForEvent(eventId) {
     //    "等待订阅授权，尚未确认开启"，看起来像失败（实际已经开启）。
     if (task.status === 'pending') {
       if (task.authorized === true) {
-        return result(true, 'AUTHORIZED', '已开启提醒：到期后由服务端自动发送，实际送达以微信为准。', task);
+        return result(true, 'AUTHORIZED', '提醒已开启，到时候会给你发一条服务通知。', task);
       }
-      const pending = result(true, 'PENDING', '等待订阅授权，尚未确认开启', task);
+      const pending = result(true, 'PENDING', '还没确认开启，点一下「开启提醒」就好', task);
       // 旧版后端不返回 authorized 字段，无法区分上面两种含义；标记出来，
       // 让调用方在"刚授权成功"时不要用这条模糊文案覆盖成功提示。
       pending.ambiguous = typeof task.authorized !== 'boolean';
       return pending;
     }
-    return result(true, 'TASK', labels[task.status] || '云端已有提醒任务，请以服务端状态为准。', task);
+    return result(true, 'TASK', labels[task.status] || '已经有一条提醒安排了', task);
   });
 }
 
@@ -171,7 +171,7 @@ async function subscribeForEvent(eventId) {
     // 能走到这里，说明微信侧已返回 accept（否则上面 if (!subscription.ok) 就返回了）。
     // ⚠️ 如果用户此前勾选过「总是保持以上选择」，微信不会再弹授权窗，而是静默返回成功 ——
     //    这是正常行为，且每次调用都会为该模板累加一次可发送条数，不是"没生效"。
-    authorized.message = '微信订阅授权已获得，并已同步到云端。到期后由服务端自动发送，实际送达以微信为准。';
+    authorized.message = '提醒开好了，日子也存进云端了。到那天会给你发一条服务通知。';
   }
   return authorized;
 }

@@ -115,7 +115,7 @@ Page({
     this.setData({ reminderBusy: true });
     remindersService.subscribeForEvent(this._id).then(response => {
       wx.showModal({
-        title: response.ok ? '提醒已开启' : '提醒尚未开启',
+        title: response.ok ? '提醒已开启' : '提醒还没开启',
         content: response.message,
         showCancel: false,
         confirmText: '知道了'
@@ -123,7 +123,7 @@ Page({
       if (response.ok) {
         // 授权已成功，先把状态显示成"已开启"，再拉一次服务端权威状态。
         this.setData({
-          'event.reminderStatus': '已开启提醒：到期后由服务端自动发送，实际送达以微信为准。',
+          'event.reminderStatus': '提醒已开启，到时候会给你发一条服务通知。',
           'event.reminderActionText': '重新授权提醒'
         });
         this.loadReminderStatus(this._id, { keepSuccessOnAmbiguous: true });

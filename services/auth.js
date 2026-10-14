@@ -23,7 +23,7 @@ function setSession(response) {
 
 async function signIn() {
   if (!isConfigured()) {
-    const error = new Error('登录服务尚未配置，当前只能使用访客记录。');
+    const error = new Error('登录服务还没接通，先用访客模式记录吧。');
     error.code = 'BACKEND_NOT_CONFIGURED';
     throw error;
   }
@@ -46,7 +46,7 @@ async function signIn() {
 
 async function updateProfile({ nickname, avatarUrl }) {
   if (!currentUser()) {
-    const error = new Error('尚未登录，不能保存账号资料。');
+    const error = new Error('还没登录，登录后才能保存资料。');
     error.code = 'UNAUTHORIZED';
     throw error;
   }

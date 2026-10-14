@@ -173,9 +173,9 @@ Page({
           count,
           title: '提醒还没开启',
           desc: count === 1
-            ? `「${first.event.name}」还没完成微信订阅授权`
-            : `「${first.event.name}」等 ${count} 个日子还没完成微信订阅授权`,
-          timeText: first.remaining === 0 ? '提醒日就是今天' : `提醒将在 ${first.remaining} 天后发出`,
+            ? `「${first.event.name}」的提醒还没开启`
+            : `「${first.event.name}」等 ${count} 个日子的提醒还没开启`,
+          timeText: first.remaining === 0 ? '今天就是提醒的日子' : `还有 ${first.remaining} 天就会提醒你`,
           action: '去开启'
         }
       });

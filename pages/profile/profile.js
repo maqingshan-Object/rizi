@@ -38,7 +38,7 @@ Page({
   refresh() {
     prepare(this, 2);
     const user = auth.currentUser();
-    const nickname = user ? (user.nickname || '尚未设置昵称') : '日子的收藏家';
+    const nickname = user ? (user.nickname || '还没有昵称') : '日子的收藏家';
     // 头像按优先级排队：云端地址 → 本机保存的副本 → 内置默认图；
     // 前面的加载失败会自动试下一个，最后用昵称首字兜底，不会出现灰色空头像。
     const candidates = [];
@@ -130,7 +130,7 @@ Page({
       const pending = (response.data || []).filter(item => item && item.task && item.event).length;
       this.setData({
         pendingReminderCount: pending,
-        reminderNote: pending ? `${pending} 个日子待开启提醒` : '没有待开启的提醒'
+        reminderNote: pending ? `${pending} 个日子等你开启` : '都安排好了'
       });
     });
   },
@@ -147,15 +147,15 @@ Page({
         return;
       }
       const labels = {
-        pending: '等待授权', needs_authorization: '需要重新授权', sent: '服务端已处理',
-        failed: '处理失败', cancelled: '已取消'
+        pending: '等你开启', needs_authorization: '需要重新开启', sent: '已经发出',
+        failed: '这次没能发出', cancelled: '已取消'
       };
       const items = response.data.slice(0, 5);
       const lines = items.map((item, index) => `${index + 1}. ${item.occurrence || '日期待定'} · ${labels[item.status] || '状态待确认'}`);
       const extra = response.data.length > 5 ? `\n还有 ${response.data.length - 5} 条未展开。` : '';
       wx.showModal({
-        title: '提醒状态',
-        content: lines.length ? lines.join('\n') + extra : '暂无云端提醒任务。本机记录中的提醒偏好不代表通知已开启。',
+        title: '提醒安排',
+        content: lines.length ? lines.join('\n') + extra : '还没有云端提醒。日子里的提醒偏好，要开启授权后才会真的发出来。',
         showCancel: false,
         confirmText: '知道了'
       });
@@ -166,7 +166,7 @@ Page({
     if (this.data.guest) {
       wx.showModal({
         title: '云端备份需要先登录',
-        content: '登录后，日子会按你的微信身份同步到云端；换设备重新登录同一个微信即可恢复。当前是访客模式，记录只保存在本机。',
+        content: '登录一下，日子就不只留在这台手机上了。\n\n现在还是访客模式，记录只存在这台设备里；登录后会自动同步，换手机也能原样找回来。',
         showCancel: false,
         confirmText: '知道了'
       });
@@ -174,7 +174,7 @@ Page({
     }
     wx.showModal({
       title: '云端备份已开启',
-      content: '新增、修改、删除都会同步到云端账号；换设备登录同一个微信即可恢复。未登录时记录只在本机，请勿把它当作云端备份。',
+      content: '你的日子已经跟着微信走了。\n\n加一条、改一改、删掉，云端都会跟着更新；\n换手机或重新安装后，登录同一个微信就能全部找回来。',
       showCancel: false,
       confirmText: '知道了'
     });
@@ -206,7 +206,7 @@ Page({
   showAbout() {
     wx.showModal({
       title: '日子绵绵',
-      content: '把重要的日子，慢慢放在心上。支持本机访客记录、微信登录后的云端同步，以及经你授权后的订阅消息提醒（提前 1／3／7 天）。提醒是微信一次性订阅：每授权一次对应一条通知，到期发送，错过当天不补发。',
+      content: '把重要的日子，慢慢放在心上。\n\n登录后，日子会跟着你的微信走，换手机也不怕丢。\n选了提醒的日子，会按你定的提前天数（1、3、7 天）收到一条服务通知。\n微信的提醒一次只能约一条，下一条到时首页会提醒你续上。',
       showCancel: false,
       confirmText: '慢慢记录'
     });

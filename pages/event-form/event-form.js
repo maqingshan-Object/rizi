@@ -436,9 +436,12 @@ Page({
           this.showPostSaveNotice('提醒没开成功', authorized.message);
           return;
         }
-        this.showPostSaveNotice('提醒已开启', remoteSynced
-          ? '微信订阅授权已获得，并已同步到云端。到期后由服务端自动发送，实际送达以微信为准。'
-          : '微信授权已完成，但事件尚未完成云端同步，本机不会声称提醒已开启。');
+        if (remoteSynced) {
+          this.showPostSaveNotice('提醒已开启', '提醒开好了，日子也存进云端了。\n到那天会给你发一条服务通知，记得留意微信。');
+        } else {
+          // 标题必须和内容一致：云端没同步成功就别说"已开启"。
+          this.showPostSaveNotice('还差一步', '微信授权拿到了，但日子还没同步到云端，这次提醒还没真正开起来。\n回头联网了，再点一次「开启提醒」就好。');
+        }
         // 首页那条「还没开启提醒」是授权完成之前渲染的，这里让它重新读一次；
         // 否则会出现"弹窗说已开启、首页还说没开启"的矛盾，看起来像被要求开了两次。
         refreshDaysReminderNotice();
