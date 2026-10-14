@@ -58,7 +58,6 @@ Page({
     reminderNotice: null,
     feature: null,
     cards: [],
-    life: null,
     visibleCount: 0,
     emptyTitle: '还没有珍藏的日子',
     emptyDescription: '记下生日、相爱和生活，把小小的期待放在心上。'
@@ -92,7 +91,6 @@ Page({
         error: '暂时没能读到本机记录，请重试。你的记录不会因此被清空。',
         feature: null,
         cards: [],
-        life: null,
         visibleCount: 0
       });
     }
@@ -113,7 +111,6 @@ Page({
       })),
       feature,
       cards,
-      life: null,
       visibleCount: visible.length,
       emptyTitle: category === 'all' ? '还没有珍藏的日子' : '还没有' + label + '记录',
       emptyDescription: category === 'all'

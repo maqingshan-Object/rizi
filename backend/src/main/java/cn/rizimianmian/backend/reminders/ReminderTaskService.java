@@ -80,14 +80,6 @@ public class ReminderTaskService {
         return authorized;
     }
 
-    @Transactional
-    public List<ReminderDtos.ReminderView> retry(String userId, ReminderDtos.TaskIdsRequest request) {
-        List<ReminderDtos.ReminderView> retried = markAuthorized(userId, request,
-                List.of(ReminderStatus.failed, ReminderStatus.needs_authorization));
-        log.info("REMINDER_RETRY user={} tasks={}", userId, retried.size());
-        return retried;
-    }
-
     /**
      * 派发今天到期的任务，返回**发送成功**的任务 id（供 {@link #preScheduleNextOccurrences} 预建下一次）。
      */

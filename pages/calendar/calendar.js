@@ -77,7 +77,6 @@ Page({
     weekdays: WEEKDAYS,
     selectedDate: '',
     selectedLabel: '',
-    selectedMeta: '',
     selectedCount: 0,
     selectedEvents: [],
     monthEvents: [],
@@ -129,12 +128,7 @@ Page({
       const monthEvents = result.occurrences.map(event => scheduleView(event, currentDate))
         .sort((a, b) => a.occurrence.localeCompare(b.occurrence));
       const selectedEvents = monthEvents.filter(event => event.occurrence === selectedDate);
-      const selectedCell = cells.find(cell => cell.date === selectedDate);
       const parts = selectedDate.split('-').map(Number);
-      const meta = [];
-      if (selectedDate === currentDate) meta.push('今天');
-      if (selectedCell && selectedCell.lunarLabel) meta.push(selectedCell.lunarLabel);
-      if (selectedCell && selectedCell.holidayName) meta.push(selectedCell.holidayName);
       this.setData({
         cells,
         monthEvents,
@@ -142,7 +136,6 @@ Page({
         selectedEvents,
         selectedCount: selectedEvents.length,
         selectedLabel: parts[1] + ' 月 ' + parts[2] + ' 日',
-        selectedMeta: meta.join(' · ') || '平常的一天，也值得认真过',
         loading: false,
         error: ''
       });

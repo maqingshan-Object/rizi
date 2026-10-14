@@ -103,18 +103,6 @@
         </button>
       </view>
 
-      <button wx:if="{{life}}" class="life-card paper" data-id="{{life.id}}" bindtap="onEventTap" hover-class="card-pressed" aria-label="{{life.name}}，{{life.countText}} {{life.unitLabel}}，{{life.reminderOn ? '已开启提醒，' : ''}}查看详情">
-        <view class="life-icon"><app-icon name="{{life.icon}}" size="38" /></view>
-        <view class="life-info">
-          <text class="life-title">{{life.name}}</text>
-          <text class="life-subtitle">又是值得好好生活的一天</text>
-        </view>
-        <app-icon wx:if="{{life.reminderOn}}" name="bell" size="22" color="white" class="reminder-bell life-bell" />
-        <view class="life-count">
-          <text class="life-number">{{life.countText}}</text>
-          <text class="life-unit">{{life.unitLabel}}</text>
-        </view>
-      </button>
       <text class="home-quote">那些看似普通的日子，都藏着小小的幸福。</text>
     </view>
   </view>

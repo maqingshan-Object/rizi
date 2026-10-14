@@ -28,10 +28,4 @@ public class ReminderController {
                                                       @RequestBody(required = false) ReminderDtos.TaskIdsRequest request) {
         return service.authorize(authentication.getName(), request);
     }
-
-    @PostMapping("/retry")
-    public List<ReminderDtos.ReminderView> retry(Authentication authentication,
-                                                  @RequestBody(required = false) ReminderDtos.TaskIdsRequest request) {
-        return service.retry(authentication.getName(), request);
-    }
 }
