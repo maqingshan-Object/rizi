@@ -6,6 +6,13 @@ const eventView = require('../../utils/event-view');
 const POSTER_W = 600;
 const POSTER_H = 900;
 /**
+ * 转发封面单独一张，固定 5:4 —— 微信转发卡片只按 5:4 显示，
+ * 把 2:3 的海报直接当封面，天数会被从中间切掉。
+ * 所以横版重排一次：左边圆形插画、右边名称 + 天数 + 日期。
+ */
+const COVER_W = 600;
+const COVER_H = 480;
+/**
  * 小程序码：从公众平台「小程序码」下载后放到这个路径，海报会自动印上。
  * 文件不存在时自动退化为「微信搜一搜」文字，不会画出半个空框。
  */
@@ -75,6 +82,7 @@ Page({
     guest: true,
     event: null,
     posterPath: '',
+    coverPath: '',
     rendering: true,
     error: '',
     saved: false,
@@ -137,7 +145,7 @@ Page({
   draw() {
     const event = this.data.event;
     if (!event) return;
-    this.setData({ rendering: true, error: '', saved: false, posterPath: '' });
+    this.setData({ rendering: true, error: '', saved: false, posterPath: '', coverPath: '' });
     wx.createSelectorQuery().in(this).select('#poster').fields({ node: true }).exec(result => {
       const canvas = result && result[0] && result[0].node;
       if (!canvas) {
@@ -152,6 +160,8 @@ Page({
       ctx.scale(dpr, dpr);
       this.paint(ctx, canvas, event)
         .then(() => this.exportPoster(canvas, dpr))
+        // 海报导出后再画一张 5:4 的转发封面（失败也不影响海报使用）
+        .then(() => this.drawCover(event, dpr))
         .catch(() => this.setData({ rendering: false, error: '海报没画出来，可以点下面的「重新生成」。' }));
     });
   },
@@ -267,6 +277,90 @@ Page({
     }, this);
   },
 
+  /** 画转发封面（5:4 横版）：左边圆形插画，右边名称 + 天数 + 日期。 */
+  drawCover(event, dpr) {
+    return new Promise(resolve => {
+      wx.createSelectorQuery().in(this).select('#cover').fields({ node: true }).exec(result => {
+        const canvas = result && result[0] && result[0].node;
+        if (!canvas) {
+          resolve();
+          return;
+        }
+        canvas.width = Math.round(COVER_W * dpr);
+        canvas.height = Math.round(COVER_H * dpr);
+        const ctx = canvas.getContext('2d');
+        ctx.scale(dpr, dpr);
+        this.paintCover(ctx, canvas, event)
+          .then(() => {
+            wx.canvasToTempFilePath({
+              canvas,
+              x: 0,
+              y: 0,
+              width: COVER_W,
+              height: COVER_H,
+              destWidth: Math.round(COVER_W * dpr),
+              destHeight: Math.round(COVER_H * dpr),
+              fileType: 'jpg',
+              quality: 0.94,
+              success: result2 => { this.setData({ coverPath: result2.tempFilePath }); resolve(); },
+              fail: () => resolve()
+            }, this);
+          })
+          .catch(() => resolve());
+      });
+    });
+  },
+
+  async paintCover(ctx, canvas, event) {
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    roundRect(ctx, 0, 0, COVER_W, COVER_H, 28);
+    ctx.fillStyle = COLORS.paper;
+    ctx.fill();
+
+    // 左：圆形浅底 + 分类插画
+    const cx = 152;
+    const cy = COVER_H / 2;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 86, 0, Math.PI * 2);
+    ctx.fillStyle = COLORS.soft;
+    ctx.fill();
+    if (event.backgroundSrc) {
+      try {
+        const art = await loadImage(canvas, event.backgroundSrc);
+        ctx.drawImage(art, cx - 65, cy - 65, 130, 130);
+      } catch (ignored) {}
+    }
+
+    // 右：文字统一左对齐，天数依然是主角
+    const left = 268;
+    ctx.textAlign = 'left';
+    const name = fitText(ctx, event.name, COVER_W - left - 40, 36, 24, 600);
+    ctx.fillStyle = COLORS.ink;
+    ctx.font = `600 ${name.size}px sans-serif`;
+    ctx.fillText(name.text, left, 148);
+
+    ctx.fillStyle = COLORS.muted;
+    ctx.font = '22px sans-serif';
+    ctx.fillText(posterStatus(event), left, 194);
+
+    const number = fitText(ctx, event.countText || '—', COVER_W - left - 90, 104, 70, 700);
+    ctx.font = `700 ${number.size}px sans-serif`;
+    const numberWidth = ctx.measureText(number.text).width;
+    const unitSize = Math.round(number.size * 0.42);
+    ctx.fillStyle = COLORS.accent;
+    ctx.font = `700 ${number.size}px sans-serif`;
+    ctx.fillText(number.text, left, 274);
+    if (event.unitText) {
+      ctx.font = `500 ${unitSize}px sans-serif`;
+      ctx.fillText(event.unitText, left + numberWidth + 10, 274 + number.size * 0.22);
+    }
+
+    ctx.fillStyle = COLORS.muted;
+    ctx.font = '24px sans-serif';
+    ctx.fillText(event.targetDateText, left, 356);
+  },
+
   onSave() {
     if (this._saving || !this.data.posterPath) return;
     this._saving = true;
@@ -301,8 +395,8 @@ Page({
     return {
       title: eventView.shareTitle(event),
       path: `/pages/event-detail/event-detail?id=${event.id}`,
-      // 转发出去的封面直接用刚生成的海报
-      imageUrl: this.data.posterPath || undefined
+      // 用专门的 5:4 封面：微信转发卡片按 5:4 显示，直接给竖版海报会把天数切掉
+      imageUrl: this.data.coverPath || undefined
     };
   },
 

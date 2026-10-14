@@ -11,6 +11,8 @@
       <view class="poster-stage" style="width: {{displayWidth}}px; height: {{displayHeight}}px;">
         <view class="poster-scaler" style="transform: scale({{displayScale}});">
           <canvas type="2d" id="poster" class="poster-canvas" aria-hidden="true" />
+          <!-- 5:4 转发封面用另一块画布，平时被预览图盖住、不参与显示 -->
+          <canvas type="2d" id="cover" class="cover-canvas" aria-hidden="true" />
         </view>
         <!-- 预览直接用导出的那张图：不会被裁，而且长按能保存/转发（canvas 不支持长按菜单） -->
         <image wx:if="{{posterPath}}" class="poster-preview" src="{{posterPath}}" mode="widthFix" show-menu-by-longpress="{{true}}" bindtap="onPreview" aria-label="分享卡片，长按可保存或转发，点一下看大图" />
