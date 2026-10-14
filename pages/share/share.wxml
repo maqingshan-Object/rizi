@@ -1,0 +1,30 @@
+<view class="app-page theme-{{theme}} share-page">
+  <nav-header title="分享卡片" back="{{true}}" theme="{{theme}}" />
+  <view class="page-body share-body">
+    <view wx:if="{{!event}}" class="paper page-state">
+      <text class="state-title">没有找到这个日子</text>
+      <text class="state-description muted">它可能已经被删除了。</text>
+      <button class="btn-secondary" bindtap="onBack">返回上一页</button>
+    </view>
+
+    <block wx:else>
+      <view class="poster-stage" style="height: {{displayHeight}}px;">
+        <view class="poster-scaler" style="transform: scale({{displayScale}});">
+          <canvas type="2d" id="poster" class="poster-canvas" aria-hidden="true" />
+        </view>
+      </view>
+
+      <view wx:if="{{rendering}}" class="poster-hint muted">正在画这张卡片…</view>
+      <view wx:elif="{{error}}" class="poster-hint error-hint">{{error}}</view>
+
+      <view class="share-actions">
+        <button class="btn-primary" bindtap="onSave" disabled="{{rendering || !posterPath}}">{{saved ? '再存一次' : '保存到相册'}}</button>
+        <button class="btn-secondary" open-type="share" disabled="{{rendering}}">转发给好友</button>
+      </view>
+      <text class="form-help share-help">长按上面的卡片也能保存或转发。把它发到朋友圈，朋友点开或扫码就能看到这个日子。</text>
+      <button wx:if="{{error}}" class="btn-secondary retry-button" bindtap="onRedraw">重新生成</button>
+      <text class="detail-footer muted">日子绵绵，岁岁有念。</text>
+    </block>
+    <view class="safe-bottom"></view>
+  </view>
+</view>

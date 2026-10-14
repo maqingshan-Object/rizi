@@ -28,6 +28,7 @@
         <view class="legal-heading"><text class="section-number">03</text><text>头像昵称，由你主动选择</text></view>
         <text class="legal-paragraph">不会自动读取你的微信头像或昵称。身份确认后，你可以用微信头像选择器主动挑选图片，也可以输入或选择昵称；只有你点击保存时才会提交这些内容。</text>
         <text class="legal-paragraph">选中的头像会先保存在本机；登录状态下会尝试上传到云存储，以便换设备后仍能显示。上传失败不影响使用，头像仍会在本机正常显示。</text>
+        <text class="legal-paragraph">把日子做成分享卡片时，只有你主动点「保存到相册」才会申请相册写入权限，图片只保存在你自己的手机里。</text>
       </view>
       <view class="legal-section">
         <view class="legal-heading"><text class="section-number">04</text><text>云端同步与订阅提醒</text></view>

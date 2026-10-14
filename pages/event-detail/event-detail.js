@@ -2,13 +2,9 @@ const { prepare, notify } = require('../../utils/page');
 const events = require('../../services/events');
 const auth = require('../../services/auth');
 const remindersService = require('../../services/reminders');
-const dates = require('../../utils/date');
-const lunar = require('../../utils/lunar');
 const reminderOptions = require('../../utils/reminder');
-
-const categoryNames = { birthday: '生日', anniversary: '纪念日', holiday: '节日', other: '其他' };
-const iconNames = ['heart', 'cake', 'leaf', 'lantern', 'flower'];
-const tintNames = ['pink', 'mint', 'yellow', 'blue'];
+// 详情页与分享海报共用同一套计算，避免"页面显示的天数"和"海报印的天数"对不上。
+const eventView = require('../../utils/event-view');
 
 Page({
   data: {
@@ -24,6 +20,8 @@ Page({
 
   onShow() {
     try { prepare(this, -1); } catch (error) { notify(error); }
+    // 显式打开「转发」和「分享到朋友圈」入口（朋友圈需要页面定义 onShareTimeline 才会出现）
+    wx.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage', 'shareTimeline'] });
     if (!this.data.deleted) this.refresh();
   },
 
@@ -35,46 +33,7 @@ Page({
         this.setData({ loading: false, missing: true, event: null });
         return;
       }
-      const annotated = dates.annotate(record);
-      const target = dates.nextDate(record);
-      const available = dates.validDate(target);
-      const base = dates.today();
-      const count = available ? (record.mode === 'countup' ? dates.daysBetween(record.date, base) : dates.daysBetween(base, target)) : null;
-      const past = count !== null && count < 0;
-      let status = '日期换算超出支持范围';
-      if (count !== null) {
-        status = count === 0 ? '就在今天' : past ? '这一天已经过去' : record.mode === 'countup' ? '已经一起走过' : '距离这一天还有';
-      }
-      const detail = Object.assign({}, annotated, {
-        id: record.id, name: record.name, note: record.note || '',
-        categoryText: categoryNames[record.category] || '其他',
-        modeText: record.mode === 'countup' ? '正计时' : '倒计时',
-        repeatText: ({yearly:'每年重复',monthly:'每月重复',festival:record.holidayKey === 'next' ? '自动跟随最近节日' : '自动跟随节日'})[record.repeat] || '不重复',
-        monthlyHelp: record.repeat === 'monthly' ? `每月 ${Number(record.date.slice(8))} 日，小月份按当月最后一天；下月恢复原设定日号。` : '',
-        calendarText: record.calendarType === 'lunar' ? '农历' : '公历',
-        icon: iconNames.includes(record.icon) ? record.icon : 'heart',
-        tint: tintNames.includes(record.tint) ? record.tint : 'pink',
-        pin: !!record.pin, countText: count === null ? '—' : String(Math.abs(count)).replace(/\B(?=(\d{3})+(?!\d))/g, ','),
-        statusText: status, unitText: count === null ? '' : '天',
-        targetDateText: available ? target.replace(/-/g, '.') : '无可换算日期',
-        originalDateText: dates.validDate(record.date) ? record.date.replace(/-/g, '.') : '日期无效',
-        dateLabel: record.mode === 'countup' ? '开始日期' : record.repeat !== 'none' ? '本次／下次日期' : '记录日期',
-        lunarText: '', lunarHelp: '', unavailable: !available,
-        reminder: record.reminder || '不提醒',
-        reminderText: reminderOptions.isKnown(record.reminder) ? record.reminder : '不提醒',
-        reminderStatus: reminderOptions.enabledFor(record.reminder)
-          ? (auth.currentUser() ? '正在读取云端提醒状态…' : '请先登录，提醒偏好目前仅保存在本机。')
-          : '未选择提醒；如需提醒请编辑这个日子。',
-        reminderActionText: '开启提醒',
-        phrase: record.category === 'birthday' ? '爱要记得，也要说出口。' : '每一天，都值得被认真记住。'
-      });
-      if (record.calendarType === 'lunar') {
-        const month = Number(record.lunarMonth), day = Number(record.lunarDay);
-        detail.lunarText = month >= 1 && month <= 12 && day >= 1 && day <= 30
-          ? `${record.lunarLeap ? '闰' : ''}${lunar.monthNames[month - 1]}${lunar.dayNames[day - 1]}`
-          : '农历月日无效';
-        detail.lunarHelp = `支持 ${lunar.range.min}—${lunar.range.max} 农历年。闰月无对应年时跳到下一个有对应闰月且日期有效的年份，不替换为普通月；无有效日期的年份也会跳过。`;
-      }
+      const detail = eventView.build(record);
       this.setData({ event: detail, loading: false });
       if (reminderOptions.enabledFor(detail.reminder) && auth.currentUser()) this.loadReminderStatus(detail.id);
     } catch (error) {
@@ -84,6 +43,41 @@ Page({
   },
 
   onRetry() { if (!this.data.deleted) this.refresh(); },
+
+  /**
+   * 转发文案统一由 utils/event-view 提供，分享海报页用的是同一份，
+   * 保持"详情页转发"和"海报页转发"的说法一致。
+   */
+  shareTitle() {
+    return eventView.shareTitle(this.data.event);
+  },
+
+  onShareAppMessage() {
+    const event = this.data.event;
+    if (!event) {
+      return { title: '日子绵绵 · 把重要的日子慢慢放在心上', path: '/pages/days/days' };
+    }
+    return {
+      title: this.shareTitle(),
+      // 好友点开直接落到这个日子，不用自己再找
+      path: `/pages/event-detail/event-detail?id=${event.id}`,
+      imageUrl: this.data.shareImage || undefined
+    };
+  },
+
+  onShareTimeline() {
+    const event = this.data.event;
+    if (!event) return { title: '日子绵绵 · 把重要的日子慢慢放在心上' };
+    return { title: this.shareTitle(), query: `id=${event.id}` };
+  },
+
+  onSharePoster() {
+    if (this._actionLocked || !this.data.event) return;
+    wx.navigateTo({
+      url: `/pages/share/share?id=${this.data.event.id}`,
+      fail: () => notify(new Error('打不开海报页，请稍后再试。'))
+    });
+  },
 
   loadReminderStatus(eventId, options) {
     remindersService.statusForEvent(eventId).then(response => {

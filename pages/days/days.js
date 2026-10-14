@@ -64,7 +64,21 @@ Page({
   },
 
   onShow() {
+    // 转发 + 分享到朋友圈：朋友圈入口需要本页定义 onShareTimeline 才会出现
+    wx.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage', 'shareTimeline'] });
     this.refresh();
+  },
+
+  /** 首页转发：说的是"这个工具能帮你记日子"，而不是念产品名。 */
+  onShareAppMessage() {
+    return {
+      title: '把重要的日子，慢慢放在心上 · 日子绵绵',
+      path: '/pages/days/days'
+    };
+  },
+
+  onShareTimeline() {
+    return { title: '把重要的日子，慢慢放在心上 · 日子绵绵' };
   },
 
   onPullDownRefresh() {

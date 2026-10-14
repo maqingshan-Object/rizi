@@ -87,7 +87,19 @@ Page({
   },
 
   onShow() {
+    wx.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage', 'shareTimeline'] });
     this.refresh();
+  },
+
+  onShareAppMessage() {
+    return {
+      title: '日子都记在这张日历上 · 日子绵绵',
+      path: '/pages/calendar/calendar'
+    };
+  },
+
+  onShareTimeline() {
+    return { title: '日子都记在这张日历上 · 日子绵绵' };
   },
 
   onPullDownRefresh() {

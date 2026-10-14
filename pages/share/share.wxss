@@ -1,0 +1,22 @@
+.share-body { padding-top: 20rpx; }
+
+/* 画布内部坐标系固定 600×900 逻辑像素，靠外层 transform 缩放到屏幕宽度，
+   这样"导出图片的清晰度"和"预览的大小"互不干扰 */
+.poster-stage { width: 100%; overflow: hidden; }
+.poster-scaler { width: 600px; margin: 0 auto; transform-origin: top center; }
+.poster-canvas { display: block; width: 600px; height: 900px; border-radius: 34px; }
+
+.poster-hint { display: block; text-align: center; font-size: 24rpx; margin-top: 20rpx; }
+.error-hint { color: #a35965; }
+
+.share-actions { display: flex; flex-direction: column; gap: 18rpx; margin-top: 30rpx; }
+.share-actions button { width: 100%; }
+.share-help { text-align: center; margin-top: 18rpx; }
+.retry-button { width: 100%; margin-top: 20rpx; }
+
+.detail-footer { display: block; text-align: center; margin-top: 36rpx; }
+.safe-bottom { height: calc(30rpx + env(safe-area-inset-bottom)); }
+
+.page-state { text-align: center; border-radius: 34rpx; padding: 55rpx 32rpx; }
+.state-title { display: block; font-size: 28rpx; font-weight: 500; }
+.state-description { display: block; font-size: 23rpx; line-height: 1.9; margin: 14rpx 0 26rpx; }
