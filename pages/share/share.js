@@ -318,47 +318,54 @@ Page({
     ctx.fillStyle = COLORS.paper;
     ctx.fill();
 
-    // 左：圆形浅底 + 分类插画
-    const cx = 152;
-    const cy = COVER_H / 2;
+    // 与海报同一套语言：全部居中、靠留白与字号拉层级。
+    // 横版"左圆右字"会把内容挤在中间、右边留一大片空，视觉没有重心，所以改成居中。
+    const circleY = 120;
     ctx.beginPath();
-    ctx.arc(cx, cy, 86, 0, Math.PI * 2);
+    ctx.arc(COVER_W / 2, circleY, 80, 0, Math.PI * 2);
     ctx.fillStyle = COLORS.soft;
     ctx.fill();
     if (event.backgroundSrc) {
       try {
         const art = await loadImage(canvas, event.backgroundSrc);
-        ctx.drawImage(art, cx - 65, cy - 65, 130, 130);
+        ctx.drawImage(art, (COVER_W - 124) / 2, circleY - 62, 124, 124);
       } catch (ignored) {}
     }
 
-    // 右：文字统一左对齐，天数依然是主角
-    const left = 268;
-    ctx.textAlign = 'left';
-    const name = fitText(ctx, event.name, COVER_W - left - 40, 36, 24, 600);
+    // 名字
+    const name = fitText(ctx, event.name, COVER_W - 120, 34, 24, 600);
     ctx.fillStyle = COLORS.ink;
     ctx.font = `600 ${name.size}px sans-serif`;
-    ctx.fillText(name.text, left, 148);
+    ctx.fillText(name.text, COVER_W / 2, 230);
 
+    // 状态（短词）
     ctx.fillStyle = COLORS.muted;
-    ctx.font = '22px sans-serif';
-    ctx.fillText(posterStatus(event), left, 194);
+    ctx.font = '20px sans-serif';
+    ctx.fillText(posterStatus(event), COVER_W / 2, 276);
 
-    const number = fitText(ctx, event.countText || '—', COVER_W - left - 90, 104, 70, 700);
+    // 天数：卡片主角，数字与单位作为整体居中
+    const number = fitText(ctx, event.countText || '—', COVER_W - 180, 92, 60, 700);
     ctx.font = `700 ${number.size}px sans-serif`;
     const numberWidth = ctx.measureText(number.text).width;
     const unitSize = Math.round(number.size * 0.42);
+    const unitGap = 10;
+    ctx.font = `500 ${unitSize}px sans-serif`;
+    const unitWidth = event.unitText ? ctx.measureText(event.unitText).width + unitGap : 0;
+    const startX = (COVER_W - numberWidth - unitWidth) / 2;
+    ctx.textAlign = 'left';
     ctx.fillStyle = COLORS.accent;
     ctx.font = `700 ${number.size}px sans-serif`;
-    ctx.fillText(number.text, left, 274);
+    ctx.fillText(number.text, startX, 356);
     if (event.unitText) {
       ctx.font = `500 ${unitSize}px sans-serif`;
-      ctx.fillText(event.unitText, left + numberWidth + 10, 274 + number.size * 0.22);
+      ctx.fillText(event.unitText, startX + numberWidth + unitGap, 356 + number.size * 0.22);
     }
+    ctx.textAlign = 'center';
 
+    // 日期
     ctx.fillStyle = COLORS.muted;
-    ctx.font = '24px sans-serif';
-    ctx.fillText(event.targetDateText, left, 356);
+    ctx.font = '22px sans-serif';
+    ctx.fillText(event.targetDateText, COVER_W / 2, 434);
   },
 
   onSave() {
