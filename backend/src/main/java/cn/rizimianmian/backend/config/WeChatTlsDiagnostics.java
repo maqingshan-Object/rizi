@@ -58,6 +58,9 @@ public class WeChatTlsDiagnostics implements ApplicationRunner {
                 wechat.templateNameField(), wechat.templateDateField(), wechat.templateDaysField(),
                 wechat.subscribeMessageUrl());
         log.info("WECHAT_DIAGNOSTIC jwtAccessTokenMinutes={}", properties.jwt().accessTokenMinutes());
+        log.info("WECHAT_DIAGNOSTIC cloudCall cert={} certPresent={} envFlag={}",
+                TrustStoreSupport.CLOUD_CALL_CERT, TrustStoreSupport.cloudCallCertPresent(),
+                System.getenv("WECHAT_CLOUD_CALL_ENABLED"));
 
         probe(wechat.accessTokenUrl());
     }

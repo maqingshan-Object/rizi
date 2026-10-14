@@ -12,8 +12,10 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.security.KeyStore;
 import java.security.MessageDigest;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -47,6 +49,13 @@ public final class TrustStoreSupport {
     private static final String DEFAULT_PASSWORD = "changeit";
     /** 临时放行"服务端实际出示的证书链"的开关；默认关闭。 */
     private static final String TRUST_SERVED_CHAIN_KEY = "WECHAT_TLS_TRUST_SERVED_CHAIN";
+    /**
+     * 微信云托管「云调用 / 开放接口服务」在容器内安装的自签名证书路径。
+     * 官方说明：该证书由云调用在容器内一次性生成，用于容器内以 HTTPS 免鉴权调用微信开放接口。
+     * 它是官方机制的一部分，把它加入信任库是官方推荐做法（见微信云托管文档「开放接口服务」）。
+     */
+    public static final String CLOUD_CALL_CERT = "/app/cert/certificate.crt";
+    public static final String CLOUD_CALL_CERT_DIR = "/app/cert";
 
     private static volatile SSLContext cached;
 
@@ -54,6 +63,11 @@ public final class TrustStoreSupport {
     private static final Set<String> LOGGED_CHAIN_FINGERPRINTS = ConcurrentHashMap.newKeySet();
 
     private TrustStoreSupport() {}
+
+    /** 容器内是否存在云调用证书（存在即说明云调用的开放接口服务已旁加载到本容器）。 */
+    public static boolean cloudCallCertPresent() {
+        return new File(CLOUD_CALL_CERT).exists();
+    }
 
     /** 优先取 -Djavax.net.ssl.trustStore 指定的文件，否则用 JVM 自带 cacerts。 */
     public static File trustStoreFile() {
@@ -116,6 +130,7 @@ public final class TrustStoreSupport {
             try (InputStream in = new FileInputStream(file)) {
                 store.load(in, password().toCharArray());
             }
+            int cloudCallCerts = loadCloudCallCerts(store);
             TrustManagerFactory factory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
             factory.init(store);
             TrustManager[] managers = factory.getTrustManagers();
@@ -126,8 +141,8 @@ public final class TrustStoreSupport {
             }
             SSLContext context = SSLContext.getInstance("TLS");
             context.init(null, managers, null);
-            log.info("TRUSTSTORE_ACTIVE path={} entries={} servedChainTrust={} （已显式绑定到出网 HTTPS 客户端）",
-                    file.getAbsolutePath(), countEntries(file), trustServedChainEnabled());
+            log.info("TRUSTSTORE_ACTIVE path={} entries={} cloudCallCerts={} servedChainTrust={} （已显式绑定到出网 HTTPS 客户端）",
+                    file.getAbsolutePath(), countEntries(file), cloudCallCerts, trustServedChainEnabled());
             return context;
         } catch (Exception exception) {
             log.warn("TRUSTSTORE_BIND_FAILED path={} error={} —— 回退到 JVM 默认信任库",
@@ -138,6 +153,40 @@ public final class TrustStoreSupport {
                 throw new IllegalStateException("无法初始化 SSLContext", fatal);
             }
         }
+    }
+
+    /**
+     * 把微信云托管「云调用」旁加载服务安装在容器内的证书加入信任库。
+     * 这是官方推荐做法：云调用会用自己签发的证书终止 HTTPS，把它导入信任库后，
+     * 容器内即可用 HTTPS 免鉴权调用微信开放接口（无需 access_token）。
+     */
+    private static int loadCloudCallCerts(KeyStore store) {
+        File directory = new File(CLOUD_CALL_CERT_DIR);
+        File[] files = directory.listFiles((dir, name) -> name.endsWith(".crt") || name.endsWith(".pem"));
+        if (files == null || files.length == 0) {
+            log.info("TRUSTSTORE_CLOUD_CALL_CERT loaded=0 dir={} （未发现云调用证书；如需容器内免鉴权调用微信接口，"
+                    + "请在云托管控制台开启「云调用-开放接口服务」）", CLOUD_CALL_CERT_DIR);
+            return 0;
+        }
+        int loaded = 0;
+        try {
+            CertificateFactory factory = CertificateFactory.getInstance("X.509");
+            for (File file : files) {
+                try (InputStream in = new FileInputStream(file)) {
+                    for (Certificate certificate : factory.generateCertificates(in)) {
+                        store.setCertificateEntry("cloudcall-" + file.getName() + "-" + loaded, certificate);
+                        loaded++;
+                    }
+                } catch (Exception exception) {
+                    log.warn("TRUSTSTORE_CLOUD_CALL_CERT_FAILED file={} error={}",
+                            file.getName(), exception.getMessage());
+                }
+            }
+        } catch (Exception exception) {
+            log.warn("TRUSTSTORE_CLOUD_CALL_CERT_FAILED error={}", exception.getMessage());
+        }
+        log.info("TRUSTSTORE_CLOUD_CALL_CERT loaded={} dir={}", loaded, CLOUD_CALL_CERT_DIR);
+        return loaded;
     }
 
     private static TrustManager[] wrapWithChainRecorder(TrustManager[] originals) {

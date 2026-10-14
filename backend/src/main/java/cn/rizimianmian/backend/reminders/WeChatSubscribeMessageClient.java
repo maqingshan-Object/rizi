@@ -3,7 +3,10 @@ package cn.rizimianmian.backend.reminders;
 import cn.rizimianmian.backend.config.AppProperties;
 import cn.rizimianmian.backend.config.TrustStoreSupport;
 import cn.rizimianmian.backend.events.EventEntity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
@@ -22,6 +25,10 @@ import java.util.Map;
 
 @Component
 public class WeChatSubscribeMessageClient {
+    private static final Logger log = LoggerFactory.getLogger(WeChatSubscribeMessageClient.class);
+
+    /** 云调用链路标识响应头：出现它表示请求确实走了微信云托管的开放接口服务。 */
+    private static final String OPENAPI_SEQ_ID_HEADER = "x-openapi-seqid";
     /**
      * time 类型字段只接受带时间的格式（纯日期会触发 47003），
      * 提醒只关心"哪一天"，这里补一个固定时刻用于展示，可按需调整。
@@ -52,31 +59,51 @@ public class WeChatSubscribeMessageClient {
         return factory;
     }
 
+    /**
+     * 是否走微信云托管的「云调用」（容器内免鉴权调用微信开放接口）。
+     * 判定：容器内存在云调用证书，或显式设置 WECHAT_CLOUD_CALL_ENABLED=true/false。
+     * 云调用下不需要 access_token —— 鉴权由云托管的开放接口服务完成；
+     * 反过来，如果接口没有配置在「云调用-微信令牌权限配置」里，开放接口服务会拦截并返回
+     * 一个 "Copyright … WeChat CloudRun" 的纯文本页（这正是之前发送失败的原因）。
+     */
+    private static boolean cloudCallEnabled() {
+        String flag = System.getenv("WECHAT_CLOUD_CALL_ENABLED");
+        if (flag != null && !flag.isBlank()) {
+            return "true".equalsIgnoreCase(flag.trim()) || "1".equals(flag.trim());
+        }
+        return TrustStoreSupport.cloudCallCertPresent();
+    }
+
     public SendResult send(String openId, EventEntity event, LocalDate occurrence) {
         String templateId = properties.wechat().subscribeTemplateId();
         if (templateId == null || templateId.isBlank()) {
             return SendResult.needsAuthorization("未配置 WECHAT_SUBSCRIBE_TEMPLATE_ID");
         }
 
-        String accessToken = properties.wechat().accessToken();
-        if (accessToken == null || accessToken.isBlank()) {
-            if (properties.wechat().appId().isBlank() || properties.wechat().appSecret().isBlank()) {
-                return SendResult.needsAuthorization("未配置微信 access token，且 WECHAT_APP_ID/WECHAT_APP_SECRET 不完整");
-            }
-            try {
-                AccessTokenResponse token = restClient.get()
-                        .uri(UriComponentsBuilder.fromUriString(properties.wechat().accessTokenUrl())
-                                .queryParam("grant_type", "client_credential")
-                                .queryParam("appid", properties.wechat().appId())
-                                .queryParam("secret", properties.wechat().appSecret())
-                                .build(true).toUriString())
-                        .retrieve().body(AccessTokenResponse.class);
-                if (token == null || token.accessToken() == null || token.accessToken().isBlank()) {
-                    return SendResult.failed(token == null ? "微信 access token 响应为空" : token.errmsg());
+        boolean cloudCall = cloudCallEnabled();
+        // 云调用免鉴权：不需要 access_token，也不要去调 cgi-bin/token。
+        String accessToken = null;
+        if (!cloudCall) {
+            accessToken = properties.wechat().accessToken();
+            if (accessToken == null || accessToken.isBlank()) {
+                if (properties.wechat().appId().isBlank() || properties.wechat().appSecret().isBlank()) {
+                    return SendResult.needsAuthorization("未配置微信 access token，且 WECHAT_APP_ID/WECHAT_APP_SECRET 不完整");
                 }
-                accessToken = token.accessToken();
-            } catch (RestClientException exception) {
-                return SendResult.failed("获取微信 access token 失败：" + exception.getMessage());
+                try {
+                    AccessTokenResponse token = restClient.get()
+                            .uri(UriComponentsBuilder.fromUriString(properties.wechat().accessTokenUrl())
+                                    .queryParam("grant_type", "client_credential")
+                                    .queryParam("appid", properties.wechat().appId())
+                                    .queryParam("secret", properties.wechat().appSecret())
+                                    .build(true).toUriString())
+                            .retrieve().body(AccessTokenResponse.class);
+                    if (token == null || token.accessToken() == null || token.accessToken().isBlank()) {
+                        return SendResult.failed(token == null ? "微信 access token 响应为空" : token.errmsg());
+                    }
+                    accessToken = token.accessToken();
+                } catch (RestClientException exception) {
+                    return SendResult.failed("获取微信 access token 失败：" + exception.getMessage());
+                }
             }
         }
 
@@ -94,22 +121,40 @@ public class WeChatSubscribeMessageClient {
             body.put("template_id", templateId);
             body.put("page", DETAIL_PAGE + event.getId());
             body.put("data", data);
-            WechatMessageResponse response = restClient.post()
-                    .uri(UriComponentsBuilder.fromUriString(properties.wechat().subscribeMessageUrl())
-                            .queryParam("access_token", accessToken).build(true).toUriString())
+
+            UriComponentsBuilder uri = UriComponentsBuilder.fromUriString(properties.wechat().subscribeMessageUrl());
+            if (!cloudCall) {
+                uri.queryParam("access_token", accessToken);
+            }
+            ResponseEntity<WechatMessageResponse> entity = restClient.post()
+                    .uri(uri.build(true).toUriString())
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(body)
                     .retrieve()
-                    .body(WechatMessageResponse.class);
+                    .toEntity(WechatMessageResponse.class);
+
+            String openApiSeqId = entity.getHeaders().getFirst(OPENAPI_SEQ_ID_HEADER);
+            WechatMessageResponse response = entity.getBody();
+            log.info("WECHAT_SUBSCRIBE_SEND cloudCall={} openApiSeqId={} errcode={}",
+                    cloudCall, openApiSeqId, response == null ? null : response.errcode());
+
             if (response == null || response.errcode() == null) {
                 return SendResult.failed("微信订阅消息响应缺少 errcode，未确认发送成功");
             }
             if (response.errcode() != 0) {
-                return SendResult.failed("微信订阅消息发送失败：" + response.errmsg());
+                String hint = cloudCall && openApiSeqId == null
+                        ? "（响应头没有 x-openapi-seqid，说明本次没有走云调用链路）" : "";
+                return SendResult.failed("微信订阅消息发送失败：" + response.errmsg() + hint);
             }
             return SendResult.sent();
         } catch (RestClientException exception) {
-            return SendResult.failed("微信订阅消息请求失败：" + exception.getMessage());
+            String message = String.valueOf(exception.getMessage());
+            if (message.contains("no suitable HttpMessageConverter")) {
+                return SendResult.failed("微信接口返回了非 JSON 的纯文本响应，这是微信云托管「云调用」在拦截接口："
+                        + "请到控制台「服务管理 → 云调用 → 微信令牌权限配置」中加入 cgi-bin/message/subscribe/send"
+                        + "（建议同时加入 cgi-bin/token），打开「开放接口服务」开关，并重新构建版本使其生效。");
+            }
+            return SendResult.failed("微信订阅消息请求失败：" + message);
         }
     }
 
