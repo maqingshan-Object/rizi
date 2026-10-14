@@ -322,6 +322,21 @@ Page({
     // 只留三个信息，靠留白撑开，不靠插画和线条。
     const pad = 56;
 
+    // 右上角放一张淡淡的分类插画当装饰（像信纸上的小图章）。
+    // 先按卡片圆角裁一下，插画才可以自然"探"出角外而不露在卡片形状之外。
+    if (event.backgroundSrc) {
+      try {
+        const art = await loadImage(canvas, event.backgroundSrc);
+        ctx.save();
+        roundRect(ctx, 0, 0, COVER_W, COVER_H, 28);
+        ctx.clip();
+        ctx.globalAlpha = 0.55;
+        const artSize = 200;
+        ctx.drawImage(art, COVER_W - artSize + 10, -20, artSize, artSize);
+        ctx.restore();
+      } catch (ignored) {}
+    }
+
     const name = fitText(ctx, event.name, COVER_W - pad * 2, 36, 24, 600);
     ctx.fillStyle = COLORS.ink;
     ctx.font = `600 ${name.size}px sans-serif`;
