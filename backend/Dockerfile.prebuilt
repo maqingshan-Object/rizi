@@ -1,7 +1,12 @@
 # 预编译版本：本地已经执行 mvn package 生成可执行 JAR，
 # 云托管构建时不再访问 Maven Central，避免 429 限流导致构建失败。
 # 打包时把本文件作为 Dockerfile，与本目录的 app.jar、cacerts 一起放入压缩包根目录。
-FROM eclipse-temurin:21-jre
+#
+# ⚠️ 基础镜像用带发行版后缀的 tag（-jammy），不要用浮动的 "21-jre"：
+#    浮动 tag 的指向会变，而云托管侧镜像仓库里的层可能已被回收，
+#    表现为构建日志里 "error from registry: blob unknown to registry - sha256:..."，
+#    此时重试无效，只有换 tag（逼出一套新的层）才能恢复。
+FROM eclipse-temurin:21-jre-jammy
 WORKDIR /app
 ENV LANG=C.UTF-8
 
