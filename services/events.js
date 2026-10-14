@@ -1,6 +1,7 @@
 const auth = require('./auth');
 const http = require('./http');
 const dates = require('../utils/date');
+const reminderOptions = require('../utils/reminder');
 const KEY = 'days_guest_events_v1';
 function initializeGuest() {
   const raw=wx.getStorageSync(KEY);
@@ -46,8 +47,8 @@ function remotePayload(record){
     tint: record.tint,
     pin: !!record.pin,
     reminder: record.reminder || '不提醒',
-    reminderEnabled: record.reminder === '提前3天提醒',
-    reminderDaysBefore: record.reminder === '提前3天提醒' ? 3 : 0,
+    reminderEnabled: reminderOptions.enabledFor(record.reminder),
+    reminderDaysBefore: reminderOptions.daysFor(record.reminder),
     reminderTime: '09:00:00',
     sample: !!record.sample
   };

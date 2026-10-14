@@ -63,7 +63,7 @@
         <view class="detail-line reminder-line"><text class="muted">日子提醒</text><text class="detail-value">{{event.reminderText}}</text></view>
         <text class="form-help reminder-help">{{event.reminderStatus}}</text>
         <button wx:if="{{event.reminder !== '不提醒'}}" class="btn-secondary reminder-button" bindtap="onSubscribeReminder" disabled="{{busy || reminderBusy}}">{{reminderBusy ? '正在申请授权…' : event.reminderActionText}}</button>
-        <text wx:if="{{event.reminder === '不提醒'}}" class="form-help reminder-help">选择提前3天提醒后，登录并完成配置才会申请微信订阅授权。</text>
+        <text wx:if="{{event.reminder === '不提醒'}}" class="form-help reminder-help">选择提前提醒（1／3／7 天）后，登录并完成配置才会申请微信订阅授权。</text>
         <view wx:if="{{event.resolvedHolidayLabel}}" class="detail-line"><text class="muted">本次节日</text><text class="detail-value">{{event.resolvedHolidayLabel}}</text></view>
         <text wx:if="{{event.lunarHelp}}" class="form-help lunar-help">{{event.lunarHelp}}</text>
         <text wx:if="{{event.monthlyHelp}}" class="form-help lunar-help">{{event.monthlyHelp}}</text>

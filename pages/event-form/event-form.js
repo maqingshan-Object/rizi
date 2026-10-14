@@ -3,6 +3,7 @@ const events = require('../../services/events');
 const dates = require('../../utils/date');
 const lunar = require('../../utils/lunar');
 const festivals = require('../../utils/festivals');
+const reminderOptions = require('../../utils/reminder');
 
 const categories = [
   { value: 'birthday', label: '生日' },
@@ -30,7 +31,6 @@ const tints = [
   { value: 'yellow', label: '奶油黄' }, { value: 'blue', label: '雾蓝' }
 ];
 const pins = [{ value: false, label: '不置顶' }, { value: true, label: '置顶首页' }];
-const reminders = ['不提醒', '提前3天提醒'];
 const leaps = [{ value: false, label: '普通月' }, { value: true, label: '闰月' }];
 const selectors = {
   category: categories, mode: modes, repeat: repeats, calendarType: calendars,
@@ -54,7 +54,7 @@ Page({
     holidayRangeText: '按节日当天，非放假起始日，2020—2035年',
     monthlyHint: '', monthlyError: '', previewSrc: '', previewLabel: '',
     categories, modes, repeats, calendars, icons, tints, pins, leaps,
-    reminders, reminderIndex: 0,
+    reminders: reminderOptions.LABELS, reminderIndex: 0,
     months: lunar.monthNames.map((name, index) => `${index + 1} 月 · ${name}`),
     days: lunar.dayNames.map((name, index) => `${index + 1} 日 · ${name}`),
     categoryIndex: 0, modeIndex: 0, repeatIndex: 0, calendarTypeIndex: 0,
@@ -102,7 +102,7 @@ Page({
       state.holidayKey = active ? state.holidayKey : '';
       state.name = state.name || '';
       state.note = state.note || '';
-      if (!reminders.includes(state.reminder)) state.reminder = '不提醒';
+      if (!reminderOptions.isKnown(state.reminder)) state.reminder = '不提醒';
       state.lunarMonth = Number(state.lunarMonth) || 1;
       state.lunarDay = Number(state.lunarDay) || 1;
       if (state.lunarMonth < 1 || state.lunarMonth > 12 || state.lunarDay < 1 || state.lunarDay > 30) {
@@ -149,8 +149,8 @@ Page({
   onReminderChange(event) {
     if (this._submitLocked || this.data.saving) return;
     const index = Number(event.detail.value);
-    if (!Number.isInteger(index) || !reminders[index]) return;
-    this.setData({ reminder: reminders[index], reminderIndex: index, error: '' });
+    if (!Number.isInteger(index) || !reminderOptions.LABELS[index]) return;
+    this.setData({ reminder: reminderOptions.LABELS[index], reminderIndex: index, error: '' });
   },
 
   isFestivalForm() {
@@ -230,7 +230,7 @@ Page({
     Object.keys(selectors).forEach(field => {
       patch[`${field}Index`] = Math.max(0, selectors[field].findIndex(item => item.value === this.data[field]));
     });
-    patch.reminderIndex = Math.max(0, reminders.indexOf(this.data.reminder));
+    patch.reminderIndex = Math.max(0, reminderOptions.LABELS.indexOf(this.data.reminder));
     patch.lunarMonthIndex = this.data.lunarMonth - 1;
     patch.lunarDayIndex = this.data.lunarDay - 1;
     patch.previewSrc = categoryArt[this.data.category] || '/assets/cat-heart.png';
@@ -418,7 +418,7 @@ Page({
         return false;
       })
       : Promise.resolve(false);
-    if (record.reminder !== '提前3天提醒' || !remindersService.canRequestSubscription()) return;
+    if (!reminderOptions.enabledFor(record.reminder) || !remindersService.canRequestSubscription()) return;
     remindersService.requestSubscription().then(subscription => {
       if (!subscription.ok) {
         if (subscription.status === 'REJECTED') {

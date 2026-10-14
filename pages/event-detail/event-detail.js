@@ -4,6 +4,7 @@ const auth = require('../../services/auth');
 const remindersService = require('../../services/reminders');
 const dates = require('../../utils/date');
 const lunar = require('../../utils/lunar');
+const reminderOptions = require('../../utils/reminder');
 
 const categoryNames = { birthday: '生日', anniversary: '纪念日', holiday: '节日', other: '其他' };
 const iconNames = ['heart', 'cake', 'leaf', 'lantern', 'flower'];
@@ -60,8 +61,8 @@ Page({
         dateLabel: record.mode === 'countup' ? '开始日期' : record.repeat !== 'none' ? '本次／下次日期' : '记录日期',
         lunarText: '', lunarHelp: '', unavailable: !available,
         reminder: record.reminder || '不提醒',
-        reminderText: record.reminder === '提前3天提醒' ? '提前3天提醒' : '不提醒',
-        reminderStatus: record.reminder === '提前3天提醒'
+        reminderText: reminderOptions.isKnown(record.reminder) ? record.reminder : '不提醒',
+        reminderStatus: reminderOptions.enabledFor(record.reminder)
           ? (auth.currentUser() ? '正在读取云端提醒状态…' : '请先登录，提醒偏好目前仅保存在本机。')
           : '未选择提醒；如需提醒请编辑这个日子。',
         reminderActionText: '开启提醒',
@@ -75,7 +76,7 @@ Page({
         detail.lunarHelp = `支持 ${lunar.range.min}—${lunar.range.max} 农历年。闰月无对应年时跳到下一个有对应闰月且日期有效的年份，不替换为普通月；无有效日期的年份也会跳过。`;
       }
       this.setData({ event: detail, loading: false });
-      if (detail.reminder === '提前3天提醒' && auth.currentUser()) this.loadReminderStatus(detail.id);
+      if (reminderOptions.enabledFor(detail.reminder) && auth.currentUser()) this.loadReminderStatus(detail.id);
     } catch (error) {
       this.setData({ loading: false, event: null, error: error.message || '这个日子暂时无法读取。' });
       notify(error);
