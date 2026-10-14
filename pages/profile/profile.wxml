@@ -10,14 +10,15 @@
 
     <view class="profile-card">
       <button class="avatar-button" bindtap="openLogin" aria-label="{{guest ? '前往登录' : '编辑头像昵称'}}">
-        <image class="avatar" src="{{avatar}}" mode="aspectFit" binderror="avatarError" />
+        <image wx:if="{{!avatarFailed}}" class="avatar" src="{{avatar}}" mode="aspectFit" binderror="avatarError" />
+        <view wx:else class="avatar avatar-letter">{{avatarLetter}}</view>
       </button>
       <view class="profile-info">
         <text class="profile-name">{{nickname}}</text>
         <text class="profile-description muted">认真生活的人，自带温柔滤镜。</text>
         <button class="profile-link" bindtap="openLogin">
           <app-icon name="{{guest ? 'user' : 'edit'}}" size="{{25}}" color="accent" variant="{{theme}}" />
-          <text>{{guest ? '去登录 · 服务待接通' : '编辑头像与昵称'}}</text>
+          <text>{{guest ? '去登录 · 开启云端备份' : '编辑头像与昵称'}}</text>
         </button>
       </view>
     </view>
@@ -54,7 +55,7 @@
 
     <view class="settings">
       <button class="setting-row" bindtap="showReminders"><app-icon name="bell" size="{{36}}" color="accent" variant="{{theme}}" /><text class="setting-title">日子提醒</text><text class="setting-note muted">{{reminderNote}}</text><app-icon name="next" size="{{26}}" color="neutral" /></button>
-      <button class="setting-row" bindtap="showBackup"><app-icon name="cloud" size="{{36}}" color="accent" variant="{{theme}}" /><text class="setting-title">云端备份</text><text class="setting-note muted">尚未接通</text><app-icon name="next" size="{{26}}" color="neutral" /></button>
+      <button class="setting-row" bindtap="showBackup"><app-icon name="cloud" size="{{36}}" color="accent" variant="{{theme}}" /><text class="setting-title">云端备份</text><text class="setting-note muted">{{backupNote}}</text><app-icon name="next" size="{{26}}" color="neutral" /></button>
       <button class="setting-row" bindtap="openDays"><app-icon name="grid" size="{{36}}" color="accent" variant="{{theme}}" /><text class="setting-title">管理我的日子</text><text class="setting-note muted">{{stats.total}} 个日子</text><app-icon name="next" size="{{26}}" color="neutral" /></button>
       <button class="setting-row" bindtap="openPrivacy"><app-icon name="lock" size="{{36}}" color="accent" variant="{{theme}}" /><text class="setting-title">隐私与数据</text><app-icon name="next" size="{{26}}" color="neutral" /></button>
       <button class="setting-row" bindtap="showAbout"><app-icon name="info" size="{{36}}" color="accent" variant="{{theme}}" /><text class="setting-title">关于日子绵绵</text><app-icon name="next" size="{{26}}" color="neutral" /></button>

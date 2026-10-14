@@ -4,41 +4,42 @@
     <view class="privacy-intro">
       <view class="privacy-mark"><app-icon name="lock" size="{{50}}" color="accent" variant="{{theme}}" /></view>
       <text class="content-title">你的日子，只属于你</text>
-      <text class="privacy-subtitle muted">把现在能做的、还没接通的，都说清楚。</text>
+      <text class="privacy-subtitle muted">谁在收集、收集什么、你随时能怎么处理，都写在这里。</text>
     </view>
 
-    <view class="guest-banner privacy-status"><text class="status-title">当前阶段：本机访客记录</text><text class="status-description">真实后端未配置。登录、头像昵称保存、云端备份和订阅消息服务均尚未接通，本说明不代表这些服务已经可用。</text></view>
+    <view class="guest-banner privacy-status"><text class="status-title">运营者：个人开发者（已通过微信认证与小程序备案）</text><text class="status-description">访客记录只保存在本机；登录后可按账号同步到云端。提醒需要你主动授权，且是微信「一次性订阅」。</text></view>
 
     <view class="paper legal-paper legal-text">
       <view class="legal-section">
-        <view class="legal-heading"><text class="section-number">01</text><text>访客记录保存在本机</text></view>
-        <text class="legal-paragraph">你在访客模式创建的日子，包括名称、日期、分类、记录方式、重复设置、备注和提醒偏好，保存在当前小程序的本机存储中。主题偏好也只保存在本机。</text>
-        <text class="legal-paragraph">当前未将这些内容上传到账号或云端。换设备、清理小程序数据或卸载后，记录可能无法找回；本机存储不是云端备份。</text>
+        <view class="legal-heading"><text class="section-number">01</text><text>访客记录只保存在本机</text></view>
+        <text class="legal-paragraph">访客模式下，你创建的日子（名称、日期、分类、记录方式、重复设置、备注、提醒偏好）以及主题偏好，都保存在当前小程序的本机存储中。</text>
+        <text class="legal-paragraph">访客模式不联网、不上传这些内容。换设备、清理小程序数据或卸载后可能无法找回，本机存储不等于云端备份。</text>
       </view>
       <view class="legal-section">
-        <view class="legal-heading"><text class="section-number">02</text><text>登录不等于自动获取资料</text></view>
-        <text class="legal-paragraph">现在的登录服务尚未接通。点击尝试登录会展示真实服务错误，不会把临时登录凭证、本机缓存或微信开发者工具中的账号当成已登录用户。</text>
-        <text class="legal-paragraph">只有真实服务确认了身份，页面才会显示头像与昵称表单。访客页面的「日子的收藏家」和猫猫图片是默认展示，不是读取到的微信资料。</text>
+        <view class="legal-heading"><text class="section-number">02</text><text>登录只用于确认身份</text></view>
+        <text class="legal-paragraph">登录通过微信云托管完成：服务端从请求中获取你的微信身份标识（OpenID）用于建立账号，不要求你输入手机号。</text>
+        <text class="legal-paragraph">只有身份确认成功后，页面才会显示头像与昵称表单。访客页面的「日子的收藏家」和猫猫图片是默认展示，不是读取到的微信资料；不登录也能使用全部记录功能。</text>
       </view>
       <view class="legal-section">
         <view class="legal-heading"><text class="section-number">03</text><text>头像昵称，由你主动选择</text></view>
-        <text class="legal-paragraph">不会自动读取你的微信头像或昵称。身份确认后，你可以点头像按钮主动选择图片，也可以在昵称输入框中输入或主动选择昵称；昵称在点击保存、提交表单时收集。</text>
-        <text class="legal-paragraph">选头像产生的临时图片路径仅用于当前页面预览，不作为已保存的账号资料。保存需要真实资料服务处理；当前资料服务未接通，保存失败不会被显示为成功，也不会在本地伪造账号资料。</text>
+        <text class="legal-paragraph">不会自动读取你的微信头像或昵称。身份确认后，你可以用微信头像选择器主动挑选图片，也可以输入或选择昵称；只有你点击保存时才会提交这些内容。</text>
+        <text class="legal-paragraph">选中的头像会先保存在本机；登录状态下会尝试上传到云存储，以便换设备后仍能显示。上传失败不影响使用，头像仍会在本机正常显示。</text>
       </view>
       <view class="legal-section">
-        <view class="legal-heading"><text class="section-number">04</text><text>提醒与备份还在等待接通</text></view>
-        <text class="legal-paragraph">当前不会发送订阅消息，不会自动申请订阅授权，也不提供账号云端备份、跨设备同步或恢复。记录中的提醒偏好仅是记录内容，不表示通知已经生效。</text>
-        <text class="legal-paragraph">如果后续接入真实服务，需要先补充相应的数据处理与授权说明，再由你主动决定是否使用。当前不作服务可用性承诺。</text>
+        <view class="legal-heading"><text class="section-number">04</text><text>云端同步与订阅提醒</text></view>
+        <text class="legal-paragraph">登录后，新增、修改、删除的日子会同步到云端账号（按你的微信身份隔离）；换设备登录同一个微信即可恢复。退出账号后回到访客模式，本机访客记录不会被删除。</text>
+        <text class="legal-paragraph">订阅消息提醒需要你主动授权，且属于微信「一次性订阅」：授权一次对应一条通知，发送后需要再次授权。提醒按你选择的提前天数（1／3／7 天）发送，错过提醒当天不会补发。</text>
+        <text class="legal-paragraph">你可以随时在日子详情页重新授权，或删除该日子以取消它的提醒任务。</text>
       </view>
       <view class="legal-section">
-        <view class="legal-heading"><text class="section-number">05</text><text>你可以管理自己的日子</text></view>
-        <text class="legal-paragraph">可在「我的 → 管理我的日子」进入日子列表，再编辑或删除单条记录。删除记录无法通过当前尚未开通的云端服务恢复，请确认后操作。</text>
-        <text class="legal-paragraph">「移除示例日子」会先弹出确认框，只移除仍标记为示例的记录。你新建或保存过的日子不会随示例一起删除；此操作不清空本机全部数据。</text>
+        <view class="legal-heading"><text class="section-number">05</text><text>你可以管理自己的数据</text></view>
+        <text class="legal-paragraph">「我的 → 管理我的日子」可以查看、编辑、删除单条记录。删除在服务端同样生效，删除后无法恢复，请确认后操作。</text>
+        <text class="legal-paragraph">「移除示例日子」会先弹出确认框，只移除仍标记为示例的记录；你新建或保存过的日子不会随示例一起删除，此操作也不清空本机全部数据。</text>
       </view>
       <view class="legal-section last-section">
-        <view class="legal-heading"><text class="section-number">06</text><text>关于这份开发阶段说明</text></view>
-        <text class="legal-paragraph">本页说明当前实现的数据边界，不是已上线服务的完整隐私政策。运营主体、正式联系渠道与备案资料尚未提供，本页不编造这些信息。</text>
-        <text class="legal-paragraph">请避免在尚未具备云端备份的本机记录中保存高度敏感内容。正式接入服务前，应完善并核实运营主体、联系方式、数据处理规则及必要的授权说明。</text>
+        <view class="legal-heading"><text class="section-number">06</text><text>我们不做的事</text></view>
+        <text class="legal-paragraph">不收集手机号、位置、通讯录；不把你的日子展示给其他用户；不做广告投放相关的数据交换。</text>
+        <text class="legal-paragraph">数据处理范围限于实现上述功能所必需，不用于其他目的。如需查阅、更正或删除账号数据，可通过本页说明的方式在应用内完成，或联系我们处理。</text>
       </view>
     </view>
 

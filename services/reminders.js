@@ -22,7 +22,7 @@ function loginRequired() {
 }
 
 function backendRequired() {
-  return result(false, 'BACKEND_NOT_CONFIGURED', '提醒服务待接通，当前不会申请订阅，也不会声称已发送提醒。');
+  return result(false, 'BACKEND_NOT_CONFIGURED', '提醒服务暂时不可用，当前不会申请订阅，也不会声称已发送提醒。');
 }
 
 function subscriptionUnavailable() {

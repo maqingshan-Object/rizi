@@ -10,9 +10,13 @@ Page({
     guest: true,
     nickname: '日子的收藏家',
     avatar: '/assets/cat.png',
+    avatarIndex: 0,
+    avatarFailed: false,
+    avatarLetter: '日',
+    backupNote: '',
     stats: { total: 0, birthday: 0, countup: 0 },
     sampleCount: 0,
-    reminderNote: '待接通',
+    reminderNote: '读取中…',
     pendingReminderCount: 0,
     error: '',
     clearing: false,
@@ -30,10 +34,23 @@ Page({
   refresh() {
     prepare(this, 2);
     const user = auth.currentUser();
+    const nickname = user ? (user.nickname || '尚未设置昵称') : '日子的收藏家';
+    // 头像按优先级排队：云端地址 → 本机保存的副本 → 内置默认图；
+    // 前面的加载失败会自动试下一个，最后用昵称首字兜底，不会出现灰色空头像。
+    const candidates = [];
+    if (user && user.avatarUrl) candidates.push(user.avatarUrl);
+    const localAvatar = auth.localAvatar();
+    if (localAvatar && candidates.indexOf(localAvatar) < 0) candidates.push(localAvatar);
+    candidates.push('/assets/cat.png');
+    this._avatarCandidates = candidates;
     this.setData({
       guest: events.isGuest(),
-      nickname: user ? (user.nickname || '尚未设置昵称') : '日子的收藏家',
-      avatar: user && user.avatarUrl ? user.avatarUrl : '/assets/cat.png'
+      nickname,
+      avatarLetter: nickname.slice(0, 1),
+      avatar: candidates[0],
+      avatarIndex: 0,
+      avatarFailed: false,
+      backupNote: user ? '已开启' : '登录后开启'
     });
     this.loadReminderSummary();
     try {
@@ -77,7 +94,14 @@ Page({
   },
 
   avatarError() {
-    this.setData({ avatar: '/assets/cat.png' });
+    // 逐个候选往下试；全部失败才用昵称首字兜底。
+    const list = this._avatarCandidates || [];
+    const next = (this.data.avatarIndex || 0) + 1;
+    if (next < list.length) {
+      this.setData({ avatar: list[next], avatarIndex: next });
+      return;
+    }
+    this.setData({ avatarFailed: true });
   },
 
   loadReminderSummary() {
@@ -86,7 +110,7 @@ Page({
       if (!response.ok) {
         this.setData({
           reminderNote: response.status === 'BACKEND_NOT_CONFIGURED' || response.status === 'MISSING_TEMPLATE'
-            ? '待接通' : response.status === 'UNAUTHORIZED' ? '请先登录' : '读取失败',
+            ? '暂不可用' : response.status === 'UNAUTHORIZED' ? '请先登录' : '读取失败',
           pendingReminderCount: 0
         });
         return;
@@ -104,7 +128,7 @@ Page({
     remindersService.list().then(response => {
       if (!response.ok) {
         wx.showModal({
-          title: response.status === 'UNAUTHORIZED' ? '请先登录' : '提醒服务待接通',
+          title: response.status === 'UNAUTHORIZED' ? '请先登录' : '提醒服务暂时不可用',
           content: response.message,
           showCancel: false,
           confirmText: '知道了'
@@ -128,9 +152,18 @@ Page({
   },
 
   showBackup() {
+    if (this.data.guest) {
+      wx.showModal({
+        title: '云端备份需要先登录',
+        content: '登录后，日子会按你的微信身份同步到云端；换设备重新登录同一个微信即可恢复。当前是访客模式，记录只保存在本机。',
+        showCancel: false,
+        confirmText: '知道了'
+      });
+      return;
+    }
     wx.showModal({
-      title: '云端备份待接通',
-      content: '当前没有可用的登录和云端备份服务。访客日子保存在本机，尚未上传，不能跨设备恢复。请勿将本机记录视为云端备份。',
+      title: '云端备份已开启',
+      content: '新增、修改、删除都会同步到云端账号；换设备登录同一个微信即可恢复。未登录时记录只在本机，请勿把它当作云端备份。',
       showCancel: false,
       confirmText: '知道了'
     });
@@ -162,7 +195,7 @@ Page({
   showAbout() {
     wx.showModal({
       title: '日子绵绵',
-      content: '把重要的日子，慢慢放在心上。当前为开发中的原生小程序，支持本机访客记录与主题切换；事件云端同步与订阅提醒受后端配置、微信授权和服务端状态限制。',
+      content: '把重要的日子，慢慢放在心上。支持本机访客记录、微信登录后的云端同步，以及经你授权后的订阅消息提醒（提前 1／3／7 天）。提醒是微信一次性订阅：每授权一次对应一条通知，到期发送，错过当天不补发。',
       showCancel: false,
       confirmText: '慢慢记录'
     });

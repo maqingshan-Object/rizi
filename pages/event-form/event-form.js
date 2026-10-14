@@ -433,7 +433,7 @@ Page({
             this.showPostSaveNotice('登录已过期', `${authorized.message}\n日子已保存在本机；请到「我的」重新登录后再开启提醒。`);
             return;
           }
-          this.showPostSaveNotice('提醒尚未接通', authorized.message);
+          this.showPostSaveNotice('提醒没开成功', authorized.message);
           return;
         }
         this.showPostSaveNotice('提醒已开启', remoteSynced
@@ -441,7 +441,7 @@ Page({
           : '微信授权已完成，但事件尚未完成云端同步，本机不会声称提醒已开启。');
       }));
     }).catch(() => {
-      this.showPostSaveNotice('提醒尚未接通', '日子已保存，但提醒授权流程未完成，请稍后重新授权。');
+      this.showPostSaveNotice('提醒没开成功', '日子已保存，但提醒授权流程未完成，请稍后重新授权。');
     });
   },
 
