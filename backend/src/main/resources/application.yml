@@ -48,7 +48,8 @@ app:
     app-secret: ${WECHAT_APP_SECRET:}
     session-url: ${WECHAT_SESSION_URL:https://api.weixin.qq.com/sns/jscode2session}
     access-token-url: ${WECHAT_ACCESS_TOKEN_URL:https://api.weixin.qq.com/cgi-bin/token}
-    subscribe-message-url: ${WECHAT_SUBSCRIBE_MESSAGE_URL:https://api.weixin.qq.com/cgi-bin/message/subscribe}
+    # 注意：发送地址结尾必须是 /send，写成 /cgi-bin/message/subscribe 会 404。
+    subscribe-message-url: ${WECHAT_SUBSCRIBE_MESSAGE_URL:https://api.weixin.qq.com/cgi-bin/message/subscribe/send}
     subscribe-template-id: ${WECHAT_SUBSCRIBE_TEMPLATE_ID:}
     access-token: ${WECHAT_ACCESS_TOKEN:}
     # 模板字段名必须与公众平台模板里的 {{xxx.DATA}} 完全一致，否则微信返回 47003 参数不合法。

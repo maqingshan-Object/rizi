@@ -1,13 +1,20 @@
 # 预编译版本：本地已经执行 mvn package 生成可执行 JAR，
 # 云托管构建时不再访问 Maven Central，避免 429 限流导致构建失败。
-# 打包时把本文件作为 Dockerfile，与本目录的 app.jar 一起放入压缩包根目录。
+# 打包时把本文件作为 Dockerfile，与本目录的 app.jar、cacerts 一起放入压缩包根目录。
 FROM eclipse-temurin:21-jre
 WORKDIR /app
 ENV LANG=C.UTF-8
-# 容器默认时区是 UTC：@Scheduled(cron="0 0 2 * * *") 会按容器时区解释，
-# 结果"凌晨 2 点"实际跑在北京时间上午 10 点；凌晨 0–8 点之间"今天"还会算成前一天。
-# 这里在镜像层固化，避免依赖控制台环境变量被漏配。
+
+# ① 时区：容器默认 UTC，而 @Scheduled 的 cron 按容器时区解释，
+#    "0 0 2 * * *" 会变成北京时间上午 10 点；凌晨 0-8 点之间 LocalDate.now() 还会算成前一天。
 ENV TZ=Asia/Shanghai
+
+# ② CA 信任库：基础镜像里的 JVM 信任库可能缺失或为空，表现为访问微信接口报
+#    "PKIX path building failed: unable to find valid certification path to requested target"。
+#    这里自带一份完整的信任库并显式指定，不再依赖镜像默认值。
+COPY cacerts /app/cacerts
+
 COPY app.jar app.jar
 EXPOSE 8080
-ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75", "-Dfile.encoding=UTF-8", "-Duser.timezone=Asia/Shanghai", "-jar", "/app/app.jar"]
+
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75", "-Dfile.encoding=UTF-8", "-Duser.timezone=Asia/Shanghai", "-Djavax.net.ssl.trustStore=/app/cacerts", "-Djavax.net.ssl.trustStorePassword=changeit", "-jar", "/app/app.jar"]

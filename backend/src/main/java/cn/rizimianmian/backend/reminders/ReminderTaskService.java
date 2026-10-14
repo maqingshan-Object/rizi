@@ -14,10 +14,17 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class ReminderTaskService {
     private static final Logger log = LoggerFactory.getLogger(ReminderTaskService.class);
+
+    /** 同一进程内每个任务的重试上限，防止永久性失败每分钟刷接口/刷日志。容器重启即清零。 */
+    private static final int MAX_ATTEMPTS_PER_RUN = 3;
+
+    private final Map<String, Integer> attempts = new ConcurrentHashMap<>();
 
     private final ReminderTaskRepository tasks;
     private final EventRepository events;
@@ -83,21 +90,28 @@ public class ReminderTaskService {
     @Transactional
     public void dispatchDueTasks(LocalDate today) {
         int due = 0;
-        // 除 pending 外，一并捞「已授权但被打回 needs_authorization」的任务。
-        // 原因：像"未配置 WECHAT_SUBSCRIBE_TEMPLATE_ID"这种**服务端配置问题**也会把任务打回
-        // needs_authorization。如果只捞 pending，配置补齐后这些任务就永远躺在库里，
-        // 必须让用户重新点一次授权 —— 而从用户视角看，他明明已经授权过了。
+        // 除 pending 外，一并捞「已授权但被打回 needs_authorization / failed」的任务。
+        // 原因：像"未配置 WECHAT_SUBSCRIBE_TEMPLATE_ID"、"访问微信接口证书校验失败"这类
+        // **服务端自身问题**也会把任务打回 needs_authorization 或 failed。如果只捞 pending，
+        // 配置修好之后这些任务就永远躺在库里，用户明明授权过却还要重新点一次。
         for (ReminderTaskEntity task : tasks.findByStatusInAndAuthorizedTrue(
-                List.of(ReminderStatus.pending, ReminderStatus.needs_authorization))) {
+                List.of(ReminderStatus.pending, ReminderStatus.needs_authorization, ReminderStatus.failed))) {
             if (!task.isDue(today)) {
                 continue;
             }
+            // 同一进程内对同一任务最多重试 3 次：失败若是永久性的（如模板字段错配），
+            // 不至于每分钟刷接口、刷日志；容器重启即清零，修好配置后自然会再试。
+            int tried = attempts.getOrDefault(task.getId(), 0);
+            if (tried >= MAX_ATTEMPTS_PER_RUN) {
+                continue;
+            }
+            attempts.put(task.getId(), tried + 1);
             due++;
             ReminderTaskEntity attempted = attempt(task, task.getUserId());
             // 每个命中任务都留一行结果：SENT / FAILED / NEEDS_AUTHORIZATION，失败时带原因。
-            log.info("REMINDER_DISPATCH taskId={} eventId={} occurrence={} result={} error={}",
+            log.info("REMINDER_DISPATCH taskId={} eventId={} occurrence={} attempt={} result={} error={}",
                     attempted.getId(), attempted.getEventId(), attempted.getOccurrence(),
-                    attempted.getStatus(), attempted.getLastError());
+                    tried + 1, attempted.getStatus(), attempted.getLastError());
         }
         if (due > 0) {
             log.info("REMINDER_DISPATCH_DONE date={} due={}", today, due);
