@@ -7,7 +7,7 @@
       <text class="privacy-subtitle muted">谁在收集、收集什么、你随时能怎么处理，都写在这里。</text>
     </view>
 
-    <view class="guest-banner privacy-status"><text class="status-title">运营者：个人开发者（已通过微信认证与小程序备案）</text><text class="status-description">访客记录只保存在本机；登录后可按账号同步到云端。提醒需要你主动授权，且是微信「一次性订阅」。</text></view>
+    <view class="guest-banner privacy-status"><text class="status-title">运营者：小马（个人开发者，已通过微信认证与小程序备案）</text><text class="status-description">访客记录只保存在本机；登录后可按账号同步到云端。提醒需要你主动授权，且是微信「一次性订阅」。联系邮箱：254423926@qq.com</text></view>
 
     <view class="paper legal-paper legal-text">
       <view class="legal-section">
@@ -39,7 +39,7 @@
       <view class="legal-section last-section">
         <view class="legal-heading"><text class="section-number">06</text><text>我们不做的事</text></view>
         <text class="legal-paragraph">不收集手机号、位置、通讯录；不把你的日子展示给其他用户；不做广告投放相关的数据交换。</text>
-        <text class="legal-paragraph">数据处理范围限于实现上述功能所必需，不用于其他目的。如需查阅、更正或删除账号数据，可通过本页说明的方式在应用内完成，或联系我们处理。</text>
+        <text class="legal-paragraph">数据处理范围限于实现上述功能所必需，不用于其他目的。如需查阅、更正或删除账号数据，可以先在本应用内自行完成，也可以发邮件到 254423926@qq.com 联系我处理。</text>
       </view>
     </view>
 
