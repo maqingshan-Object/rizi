@@ -82,6 +82,23 @@ public final class TrustStoreSupport {
         return System.getProperty("javax.net.ssl.trustStorePassword", DEFAULT_PASSWORD);
     }
 
+    /**
+     * 构造**已绑定信任库**的出网请求工厂 —— 凡是要调微信接口的客户端都必须用它。
+     *
+     * <p>⚠️ 这是踩过坑的地方：只靠 {@code -Djavax.net.ssl.trustStore} 启动参数并不够，
+     * 云托管「云调用」会用自签证书终止 HTTPS，客户端不显式绑定就会报
+     * {@code PKIX path building failed: unable to find valid certification path}。
+     * 提醒功能当初单独写了这段；code2Session 因为"以前从没在容器里跑过"漏了，
+     * 结果购买流程整条挂掉。所以统一收在这里，新增客户端直接调用即可。
+     */
+    public static org.springframework.http.client.ClientHttpRequestFactory httpsRequestFactory(java.time.Duration readTimeout) {
+        org.springframework.http.client.JdkClientHttpRequestFactory factory =
+                new org.springframework.http.client.JdkClientHttpRequestFactory(
+                        java.net.http.HttpClient.newBuilder().sslContext(sslContext()).build());
+        factory.setReadTimeout(readTimeout);
+        return factory;
+    }
+
     /** 信任库里的条目数；-1 表示读不出来（文件缺失/密码不对/格式不兼容）。 */
     public static int countEntries(File file) {
         try (InputStream in = new FileInputStream(file)) {

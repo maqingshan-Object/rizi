@@ -1,6 +1,7 @@
 package cn.rizimianmian.backend.auth;
 
 import cn.rizimianmian.backend.config.AppProperties;
+import cn.rizimianmian.backend.config.TrustStoreSupport;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -11,7 +12,14 @@ public class WechatSessionClient {
     private final AppProperties properties;
 
     public WechatSessionClient(RestClient.Builder restClientBuilder, AppProperties properties) {
-        this.restClient = restClientBuilder.build();
+        // ⚠️ 必须显式把信任库绑到出网客户端上。
+        // 云托管「云调用」会用自签证书终止 https://api.weixin.qq.com，不绑就会报
+        // "PKIX path building failed: unable to find valid certification path"。
+        // 提醒客户端早就这么做了；这里当初漏了 —— 而登录在云托管下走内网协议
+        // （X-WX-OPENID），code2Session 从没被真正调用过，直到虚拟支付需要它。
+        this.restClient = restClientBuilder
+                .requestFactory(TrustStoreSupport.httpsRequestFactory(java.time.Duration.ofSeconds(10)))
+                .build();
         this.properties = properties;
     }
 

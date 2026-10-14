@@ -8,13 +8,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpRequestFactory;
-import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.net.http.HttpClient;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -53,10 +51,8 @@ public class WeChatSubscribeMessageClient {
     }
 
     private static ClientHttpRequestFactory httpsRequestFactory() {
-        JdkClientHttpRequestFactory factory = new JdkClientHttpRequestFactory(
-                HttpClient.newBuilder().sslContext(TrustStoreSupport.sslContext()).build());
-        factory.setReadTimeout(Duration.ofSeconds(10));
-        return factory;
+        // 统一收在 TrustStoreSupport 里，新增微信接口客户端直接复用，别再各写一份
+        return TrustStoreSupport.httpsRequestFactory(Duration.ofSeconds(10));
     }
 
     /**
