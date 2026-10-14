@@ -312,60 +312,48 @@ Page({
   },
 
   async paintCover(ctx, canvas, event) {
-    ctx.textAlign = 'center';
+    ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
     roundRect(ctx, 0, 0, COVER_W, COVER_H, 28);
     ctx.fillStyle = COLORS.paper;
     ctx.fill();
 
-    // 与海报同一套语言：全部居中、靠留白与字号拉层级。
-    // 横版"左圆右字"会把内容挤在中间、右边留一大片空，视觉没有重心，所以改成居中。
-    const circleY = 120;
-    ctx.beginPath();
-    ctx.arc(COVER_W / 2, circleY, 80, 0, Math.PI * 2);
-    ctx.fillStyle = COLORS.soft;
-    ctx.fill();
-    if (event.backgroundSrc) {
-      try {
-        const art = await loadImage(canvas, event.backgroundSrc);
-        ctx.drawImage(art, (COVER_W - 124) / 2, circleY - 62, 124, 124);
-      } catch (ignored) {}
-    }
+    // 像写信一样：左上写"什么事、还有多久"，中间是正文（天数），右下角落款日期。
+    // 只留三个信息，靠留白撑开，不靠插画和线条。
+    const pad = 56;
 
-    // 名字
-    const name = fitText(ctx, event.name, COVER_W - 120, 34, 24, 600);
+    const name = fitText(ctx, event.name, COVER_W - pad * 2, 36, 24, 600);
     ctx.fillStyle = COLORS.ink;
     ctx.font = `600 ${name.size}px sans-serif`;
-    ctx.fillText(name.text, COVER_W / 2, 230);
+    ctx.fillText(name.text, pad, 88);
 
-    // 状态（短词）
+    const status = posterStatus(event);
     ctx.fillStyle = COLORS.muted;
-    ctx.font = '20px sans-serif';
-    ctx.fillText(posterStatus(event), COVER_W / 2, 276);
+    ctx.font = '24px sans-serif';
+    ctx.fillText(status === '就在今天' ? status : status + '：', pad, 138);
 
-    // 天数：卡片主角，数字与单位作为整体居中
-    const number = fitText(ctx, event.countText || '—', COVER_W - 180, 92, 60, 700);
+    // 正文：天数，水平居中、字号最大，是整张卡的绝对主角
+    const number = fitText(ctx, event.countText || '—', COVER_W - pad * 2, 156, 96, 700);
     ctx.font = `700 ${number.size}px sans-serif`;
     const numberWidth = ctx.measureText(number.text).width;
-    const unitSize = Math.round(number.size * 0.42);
-    const unitGap = 10;
+    const unitSize = Math.round(number.size * 0.38);
+    const unitGap = 14;
     ctx.font = `500 ${unitSize}px sans-serif`;
     const unitWidth = event.unitText ? ctx.measureText(event.unitText).width + unitGap : 0;
     const startX = (COVER_W - numberWidth - unitWidth) / 2;
-    ctx.textAlign = 'left';
     ctx.fillStyle = COLORS.accent;
     ctx.font = `700 ${number.size}px sans-serif`;
-    ctx.fillText(number.text, startX, 356);
+    ctx.fillText(number.text, startX, 268);
     if (event.unitText) {
       ctx.font = `500 ${unitSize}px sans-serif`;
-      ctx.fillText(event.unitText, startX + numberWidth + unitGap, 356 + number.size * 0.22);
+      ctx.fillText(event.unitText, startX + numberWidth + unitGap, 268 + number.size * 0.24);
     }
-    ctx.textAlign = 'center';
 
-    // 日期
+    // 落款：右下角的具体日期
+    ctx.textAlign = 'right';
     ctx.fillStyle = COLORS.muted;
-    ctx.font = '22px sans-serif';
-    ctx.fillText(event.targetDateText, COVER_W / 2, 434);
+    ctx.font = '26px sans-serif';
+    ctx.fillText(event.targetDateText, COVER_W - pad, 424);
   },
 
   onSave() {
