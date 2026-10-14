@@ -4,8 +4,8 @@
 .local-banner app-icon { flex-shrink: 0; margin-top: 4rpx; }
 .detail-hero { position: relative; padding: 34rpx 32rpx 28rpx; margin-bottom: 26rpx; overflow: hidden; }
 .detail-hero > view, .detail-hero > text { position: relative; z-index: 1; }
-.detail-category-art { position: absolute; right: -12rpx; top: 150rpx; width: 235rpx; height: 260rpx; opacity: 0.18; pointer-events: none; }
-.theme-mint .detail-category-art { opacity: 0.10; }
+.detail-category-art { position: absolute; right: -12rpx; top: 150rpx; width: 235rpx; height: 260rpx; opacity: 0.92; pointer-events: none; }
+.theme-mint .detail-category-art { opacity: 0.72; }
 .hero-top { display: flex; align-items: center; justify-content: space-between; gap: 18rpx; }
 .detail-icon { display: flex; align-items: center; justify-content: center; width: 82rpx; height: 82rpx; border-radius: 28rpx; color: var(--accent); }
 .tint-pink { background: var(--pink); }
