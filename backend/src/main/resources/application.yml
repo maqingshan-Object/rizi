@@ -59,14 +59,17 @@ app:
     template-days-field: ${WECHAT_TEMPLATE_DAYS_FIELD:number5}
   reminder:
     cron: ${REMINDER_CRON:0 0 2 * * *}
-  # 小程序虚拟支付。留空则应用照常启动、商店接口返回"支付未配置"。
+  # 小程序虚拟支付。
+  # ⚠️ OfferID 与 env 都给默认值、不再要求环境变量：实测云托管在"环境变量的值是纯数字"时
+  #    会导致构建失败（GetBuildLogsResp.total 类型不匹配），而这两个值本身不是密钥，
+  #    写在这里既安全又避免踩坑。仍然可以用环境变量覆盖。
   # ⚠️ AppKey 是密钥：只放云托管环境变量，不进代码库、不下发前端。
-  # 取值位置：公众平台 → 虚拟支付 → 基础配置（OfferID / 现网 AppKey / 沙箱 AppKey）
   virtual-pay:
-    offer-id: ${VIRTUAL_PAY_OFFER_ID:}
+    offer-id: ${VIRTUAL_PAY_OFFER_ID:1450679167}
     app-key: ${VIRTUAL_PAY_APP_KEY:}
     sandbox-app-key: ${VIRTUAL_PAY_SANDBOX_APP_KEY:}
-    env: ${VIRTUAL_PAY_ENV:0}
+    # 0 正式 / 1 沙箱；默认先用沙箱，验证通过后再改成 0 重新部署
+    env: ${VIRTUAL_PAY_ENV:1}
     query-order-url: ${VIRTUAL_PAY_QUERY_ORDER_URL:}
     # 后台「开发管理 → 开发设置 → 消息推送」里填的那个 Token（用于校验推送地址）
     notify-token: ${VIRTUAL_PAY_NOTIFY_TOKEN:}

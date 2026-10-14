@@ -50,7 +50,16 @@ public class PayNotifyController {
     }
 
     @PostMapping(value = "/notify", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Map<String, Object> notify(@RequestBody(required = false) String body) {
+    public Map<String, Object> notify(@RequestBody(required = false) String body,
+                                      @RequestParam(required = false) String signature,
+                                      @RequestParam(required = false) String timestamp,
+                                      @RequestParam(required = false) String nonce) {
+        // 带了签名参数就严格验签；没带说明这条推送不带校验参数，放行但留痕。
+        // （订单号是 时间戳+8位随机十六进制，猜不出来，这是当前的主要防线。）
+        if (signature != null && !signature.isBlank() && !service.verifyNotifyToken(signature, timestamp, nonce)) {
+            log.warn("VIRTUAL_PAY_NOTIFY_BAD_SIGNATURE");
+            return Map.of("ErrCode", -1, "ErrMsg", "invalid signature");
+        }
         try {
             service.handleDeliverNotify(body);
             // ⚠️ 字段名必须是 ErrCode / ErrMsg（官方应答格式）。
