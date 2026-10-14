@@ -6,6 +6,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -49,13 +50,24 @@ public class PayNotifyController {
         return "invalid";
     }
 
-    @PostMapping(value = "/notify", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Map<String, Object> notify(@RequestBody(required = false) String body,
-                                      @RequestParam(required = false) String signature,
-                                      @RequestParam(required = false) String timestamp,
-                                      @RequestParam(required = false) String nonce) {
-        // 带了签名参数就严格验签；没带说明这条推送不带校验参数，放行但留痕。
-        // （订单号是 时间戳+8位随机十六进制，猜不出来，这是当前的主要防线。）
+    @PostMapping("/notify")
+    public Object notify(@RequestBody(required = false) String body,
+                         @RequestParam(required = false) String signature,
+                         @RequestParam(required = false) String timestamp,
+                         @RequestParam(required = false) String nonce,
+                         @RequestHeader(value = "x-wx-source", required = false) String wxSource) {
+        // ① 云托管「消息推送」配置时的路径检测：请求体是 {"action":"CheckContainerPath"}，
+        //    官方要求回复 success（或空），且 HTTP 状态必须是 200，否则配置检查失败。
+        if (body != null && body.contains("CheckContainerPath")) {
+            log.info("VIRTUAL_PAY_NOTIFY_CHECK ok");
+            return "success";
+        }
+        // ② 来源判断：云托管开了公网访问时，带 x-wx-source 头的才是微信侧推来的。
+        //    这里先记录不强拦（订单号本身不可猜是主要防线），等看到真实推送再决定是否收紧。
+        if (wxSource == null || wxSource.isBlank()) {
+            log.warn("VIRTUAL_PAY_NOTIFY_NO_SOURCE_HEADER");
+        }
+        // ③ 带了签名参数就严格验签
         if (signature != null && !signature.isBlank() && !service.verifyNotifyToken(signature, timestamp, nonce)) {
             log.warn("VIRTUAL_PAY_NOTIFY_BAD_SIGNATURE");
             return Map.of("ErrCode", -1, "ErrMsg", "invalid signature");
