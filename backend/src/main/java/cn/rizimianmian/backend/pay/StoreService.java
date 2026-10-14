@@ -120,10 +120,21 @@ public class StoreService {
                     product.priceCents(), "unconfigured", false, "支付还没配置好，等配置完成后就能购买");
         }
         String code = request.code() == null ? "" : request.code().trim();
+        // 进单就记一行：这样"请求到底有没有到后端"一眼可查（排查时最怕日志静默）
+        log.info("VIRTUAL_PAY_ORDER_REQUEST user={} product={} codePresent={} env={} configured={}",
+                userId, product.productId(), code.isEmpty() ? "no" : "yes", pay().resolvedEnv(), configured());
         if (code.isEmpty()) {
             throw new IllegalArgumentException("登录状态已失效，请重新进入小程序再试");
         }
-        WechatSessionClient.WechatSession session = sessions.exchangeCode(code);
+        WechatSessionClient.WechatSession session;
+        try {
+            // ⚠️ 这一步走 api.weixin.qq.com：云托管容器里会被「云调用」接管，
+            //    接口不在白名单会返回 502 SafeLinkError 85107。失败要留明确日志。
+            session = sessions.exchangeCode(code);
+        } catch (Exception exception) {
+            log.warn("VIRTUAL_PAY_CODES2SESSION_FAILED user={} error={}", userId, exception.getMessage());
+            throw exception;
+        }
         String sessionKey = session.session_key();
         if (sessionKey == null || sessionKey.isBlank()) {
             throw new IllegalArgumentException("没能拿到支付所需的会话信息，请重试");
