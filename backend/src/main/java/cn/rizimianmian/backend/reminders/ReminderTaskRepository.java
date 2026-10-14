@@ -13,6 +13,9 @@ public interface ReminderTaskRepository extends JpaRepository<ReminderTaskEntity
     List<ReminderTaskEntity> findByUserIdAndStatusInOrderByOccurrenceAsc(String userId, List<ReminderStatus> statuses);
     List<ReminderTaskEntity> findByStatus(ReminderStatus status);
     List<ReminderTaskEntity> findByStatusAndAuthorizedTrue(ReminderStatus status);
+
+    /** 派发时用：pending（正常待发）+ needs_authorization（多为服务端配置缺失被打回，补配后应自动重试）。 */
+    List<ReminderTaskEntity> findByStatusInAndAuthorizedTrue(List<ReminderStatus> statuses);
     Optional<ReminderTaskEntity> findByIdAndUserId(String id, String userId);
 
     /**

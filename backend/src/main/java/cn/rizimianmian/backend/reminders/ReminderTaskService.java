@@ -83,7 +83,12 @@ public class ReminderTaskService {
     @Transactional
     public void dispatchDueTasks(LocalDate today) {
         int due = 0;
-        for (ReminderTaskEntity task : tasks.findByStatusAndAuthorizedTrue(ReminderStatus.pending)) {
+        // 除 pending 外，一并捞「已授权但被打回 needs_authorization」的任务。
+        // 原因：像"未配置 WECHAT_SUBSCRIBE_TEMPLATE_ID"这种**服务端配置问题**也会把任务打回
+        // needs_authorization。如果只捞 pending，配置补齐后这些任务就永远躺在库里，
+        // 必须让用户重新点一次授权 —— 而从用户视角看，他明明已经授权过了。
+        for (ReminderTaskEntity task : tasks.findByStatusInAndAuthorizedTrue(
+                List.of(ReminderStatus.pending, ReminderStatus.needs_authorization))) {
             if (!task.isDue(today)) {
                 continue;
             }
