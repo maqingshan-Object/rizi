@@ -206,6 +206,10 @@ public class CapsuleService {
         if (gift.getUserId().equals(userId)) {
             throw new IllegalArgumentException("这是你自己送出的心意");
         }
+        // 记下接收方：到期提醒要发给他
+        if (gift.markClaimed(userId)) {
+            capsules.save(gift);
+        }
         boolean firstTime = entitlements
                 .findByUserIdAndItemTypeAndItemKey(userId, EntitlementType.support, "gift_received").isEmpty();
         boolean granted = false;

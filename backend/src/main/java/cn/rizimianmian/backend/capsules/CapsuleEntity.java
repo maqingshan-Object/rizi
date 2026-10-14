@@ -74,6 +74,13 @@ public class CapsuleEntity {
     @Column(name = "opened_at")
     private Instant openedAt;
 
+    /** 谁收下了这份心意（接收方提醒要知道发给谁）。 */
+    @Column(name = "claimed_by", length = 36)
+    private String claimedBy;
+
+    @Column(name = "claimed_at")
+    private Instant claimedAt;
+
     protected CapsuleEntity() {
     }
 
@@ -100,6 +107,16 @@ public class CapsuleEntity {
     /** 到启封日了吗（服务端日期为准）。 */
     public boolean openableOn(LocalDate today) {
         return status == Status.sealed && !openOn.isAfter(today);
+    }
+
+    /** 收下：记下接收方（同一张卡只认第一个收下的人）。 */
+    public boolean markClaimed(String claimerId) {
+        if (this.claimedBy != null) {
+            return false;
+        }
+        this.claimedBy = claimerId;
+        this.claimedAt = Instant.now();
+        return true;
     }
 
     public void markOpened() {
@@ -130,4 +147,6 @@ public class CapsuleEntity {
     public Instant getCreatedAt() { return createdAt; }
 
     public Instant getOpenedAt() { return openedAt; }
+
+    public String getClaimedBy() { return claimedBy; }
 }
