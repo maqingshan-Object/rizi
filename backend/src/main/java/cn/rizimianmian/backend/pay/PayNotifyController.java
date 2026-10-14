@@ -34,11 +34,13 @@ public class PayNotifyController {
     public Map<String, Object> notify(@RequestBody(required = false) String body) {
         try {
             service.handleDeliverNotify(body);
-            return Map.of("errcode", 0, "errmsg", "ok");
+            // ⚠️ 字段名必须是 ErrCode / ErrMsg（官方应答格式）。
+            // 写成 errcode/errmsg 会被判为"处理失败"，微信会一直重推同一条回调。
+            return Map.of("ErrCode", 0, "ErrMsg", "success");
         } catch (Exception exception) {
             // 返回非 0 会让微信稍后重推 —— 对"暂时性问题"正是我们想要的
             log.warn("VIRTUAL_PAY_NOTIFY_FAILED {}", exception.getMessage());
-            return Map.of("errcode", 1, "errmsg", String.valueOf(exception.getMessage()));
+            return Map.of("ErrCode", -1, "ErrMsg", String.valueOf(exception.getMessage()));
         }
     }
 }
