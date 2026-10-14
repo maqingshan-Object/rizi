@@ -62,13 +62,7 @@
         <text class="pill selected-total">{{selectedCount}} 个日子</text>
       </view>
 
-      <view class="section-heading section-title">
-        <text>这一天的日子</text>
-        <button class="inline-add" bindtap="onAddTap" hover-class="button-pressed" aria-label="为选中日期记一笔">
-          <app-icon name="plus" size="23" /><text>记一笔</text>
-        </button>
-      </view>
-      <view wx:if="{{selectedCount}}">
+      <view wx:if="{{selectedCount}}" class="selected-events">
         <button wx:for="{{selectedEvents}}" wx:key="rowKey" class="schedule paper" data-id="{{item.id}}" bindtap="onEventTap" hover-class="card-pressed" aria-label="{{item.name}}，{{item.whenText}}，查看详情">
           <view class="schedule-icon {{item.tintClass}}"><app-icon name="{{item.icon}}" size="36" /></view>
           <view class="schedule-info">
@@ -78,10 +72,6 @@
           <text class="{{item.whenClass}}">{{item.whenText}}</text>
           <view class="schedule-chevron"><app-icon name="next" size="24" /></view>
         </button>
-      </view>
-      <view wx:else class="selected-empty soft-card">
-        <view class="empty-icon"><app-icon name="leaf" size="32" /></view>
-        <text class="empty-copy">这一天还没有记录，也可以有新的小期待。</text>
       </view>
 
       <view class="section-heading section-title month-section-heading">
@@ -101,11 +91,11 @@
       </view>
       <view wx:else class="paper empty-state month-empty">
         <view class="state-icon"><app-icon name="calendar" size="36" /></view>
-        <text class="state-title">这个月，留一点空间给新期待</text>
-        <text class="state-description muted">点右下角的 ＋，为选中的日期记下一个日子。</text>
+        <text class="state-title">这个月还没有安排</text>
+        <text class="state-description muted">点右下角的 ＋，记下这个月的第一个日子。</text>
       </view>
       <view class="calendar-note muted">
-        <text>农历与休补标签仅在已有数据时显示；未标注的日期不代表已确认的假期安排。</text>
+        <text>休补标注仅供参考，未标注不代表不是假期。</text>
       </view>
       <text class="calendar-quote">每一个小圆点，都是生活的温柔提醒。</text>
     </view>

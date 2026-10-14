@@ -95,9 +95,9 @@
 .selected-date { display: block; font-size: 26rpx; font-weight: 500; }
 .selected-meta { display: block; margin-top: 6rpx; color: var(--cal-muted); font-size: 20rpx; line-height: 1.5; }
 .selected-total { color: var(--cal-accent); background: var(--cal-soft); padding: 7rpx 15rpx; border-radius: 25rpx; font-size: 19rpx; margin-left: 15rpx; flex-shrink: 0; }
+/* 选中日的条目：只在当天确实有日子时才渲染，避免空态占掉一大块版面 */
+.selected-events { margin-top: 17rpx; }
 .section-heading { display: flex; align-items: center; justify-content: space-between; margin: 32rpx 2rpx 19rpx; font-size: 27rpx; font-weight: 500; }
-.section-heading .inline-add { display: flex; align-items: center; background: transparent; padding: 5rpx 7rpx; font-size: 21rpx; font-weight: normal; color: var(--cal-accent); }
-.inline-add app-icon { margin-right: 5rpx; }
 .section-count { color: var(--cal-muted); font-size: 20rpx; font-weight: normal; }
 .calendar-content .schedule { display: flex; align-items: center; width: 100%; margin-bottom: 17rpx; padding: 25rpx 24rpx; border-radius: 30rpx; border: 1rpx solid var(--cal-line); background: var(--cal-paper); text-align: left; }
 .schedule-icon { display: flex; align-items: center; justify-content: center; width: 66rpx; height: 66rpx; border-radius: 23rpx; margin-right: 20rpx; flex-shrink: 0; }
@@ -115,9 +115,6 @@
 .schedule-day { display: block; font-size: 39rpx; line-height: 1.1; font-family: 'SF Pro Display', 'Helvetica Neue', sans-serif; font-weight: 500; }
 .schedule-month { display: block; color: var(--cal-muted); font-size: 18rpx; margin-top: 6rpx; }
 .month-schedule .schedule-icon { width: 57rpx; height: 57rpx; border-radius: 19rpx; margin-right: 16rpx; }
-.selected-empty { display: flex; align-items: center; padding: 24rpx; border: 1rpx dashed var(--cal-line); border-radius: 26rpx; background: rgba(135, 108, 66, 0.025); }
-.empty-icon { display: flex; color: var(--cal-accent); margin-right: 17rpx; flex-shrink: 0; }
-.empty-copy { color: var(--cal-muted); font-size: 23rpx; line-height: 1.8; }
 .month-empty, .page-state { background: var(--cal-paper); border-radius: 30rpx; padding: 38rpx 28rpx; text-align: center; }
 .state-icon { display: flex; justify-content: center; color: var(--cal-accent); margin-bottom: 19rpx; }
 .state-title { display: block; font-size: 27rpx; font-weight: 500; }
