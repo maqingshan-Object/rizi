@@ -41,6 +41,20 @@ function toAuthError(body, statusCode) {
   return error;
 }
 
+/**
+ * 登录态失效时用的"静默重登"钩子，由 auth.js 注册（signIn）。
+ * 为什么要这么做：JWT 默认 120 分钟过期，过期后所有请求都会失败。
+ * 而云托管模式下重新登录**不需要任何用户交互**（后端直接从 X-WX-OPENID 取身份，
+ * 连 AppSecret 都不用），request 模式下也只是 wx.login（同样无弹窗）。
+ * 所以过期时完全可以静默重登一次再重试，让用户完全无感 ——
+ * 否则用户看到的只是一句莫名其妙的"云托管服务返回异常"。
+ */
+let reauthenticator = null;
+
+function setReauthenticator(fn) {
+  reauthenticator = fn;
+}
+
 function viaContainer(method, path, data, header) {
   return wx.cloud.callContainer({
     config: { env: config.cloudEnv },
@@ -95,7 +109,7 @@ function viaRequest(method, path, data, header) {
   });
 }
 
-function request(method, path, data) {
+function request(method, path, data, reauthed) {
   if (!isBackendReady()) {
     const error = new Error('后端服务尚未配置，请在 config/backend.js 填写云托管环境 ID 和服务名称。');
     error.code = 'BACKEND_NOT_CONFIGURED';
@@ -108,6 +122,7 @@ function request(method, path, data) {
     token ? { Authorization: `Bearer ${token}` } : {}
   );
 
+  let call;
   if (containerReady()) {
     if (!wx.cloud || typeof wx.cloud.callContainer !== 'function') {
       const error = new Error('当前基础库不支持云托管调用，请将基础库最低版本设为 2.23.0 以上。');
@@ -115,10 +130,20 @@ function request(method, path, data) {
       return Promise.reject(error);
     }
     header['X-WX-SERVICE'] = config.serviceName;
-    return viaContainer(method, path, data, header);
+    call = viaContainer(method, path, data, header);
+  } else {
+    call = viaRequest(method, path, data, header);
   }
 
-  return viaRequest(method, path, data, header);
+  return call.catch(error => {
+    // 登录态失效：静默重登一次再重试整条请求（reauthed 保证只重试一次，不会死循环）。
+    if (error && error.authExpired && !reauthed && typeof reauthenticator === 'function') {
+      return Promise.resolve()
+        .then(() => reauthenticator())
+        .then(() => request(method, path, data, true));
+    }
+    throw error;
+  });
 }
 
 module.exports = {
@@ -126,6 +151,7 @@ module.exports = {
   isBackendReady,
   containerReady,
   requestModeReady,
+  setReauthenticator,
   get: path => request('GET', path),
   post: (path, data) => request('POST', path, data),
   put: (path, data) => request('PUT', path, data),

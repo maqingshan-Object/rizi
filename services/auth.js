@@ -61,4 +61,8 @@ function signOut() {
   try { getApp().globalData.user = null; } catch (ignored) {}
 }
 
+// 注册"静默重登"能力：http 层遇到 401/403（token 过期）时会调用它重新登录并重试。
+// 云托管登录不弹任何授权窗，所以用户完全无感，不会再看到"云托管服务返回异常"。
+http.setReauthenticator(() => signIn());
+
 module.exports = { currentUser, isConfigured, signIn, updateProfile, signOut };
