@@ -15,8 +15,24 @@ const COLORS = {
   ink: '#3a332a',
   accent: '#876c42',
   muted: '#998667',
-  line: 'rgba(135, 108, 66, 0.35)'
+  soft: 'rgba(135, 108, 66, 0.09)'
 };
+
+/**
+ * 海报上的状态词要短。
+ * 页面上写「距离这一天还有」很清楚，但印到卡片上就是噪音 —— 参考极简风格的
+ * 倒数卡片，这里只留「还有 / 已经走过」这种两三个字。
+ */
+function posterStatus(event) {
+  if (!event || event.unavailable) return '日期待换算';
+  const short = {
+    '距离这一天还有': '还有',
+    '已经一起走过': '已经走过',
+    '就在今天': '就在今天',
+    '这一天已经过去': '已经过去'
+  };
+  return short[event.statusText] || event.statusText;
+}
 
 function roundRect(ctx, x, y, w, h, r) {
   ctx.beginPath();
@@ -144,91 +160,77 @@ Page({
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
-    // 卡片底 + 内层虚线边框（呼应小程序里的 paper 卡片质感）
-    roundRect(ctx, 0, 0, POSTER_W, POSTER_H, 34);
+    // 卡片底：不加边框、不加分隔线 —— 极简风格靠留白和层级说话，不靠线
+    roundRect(ctx, 0, 0, POSTER_W, POSTER_H, 36);
     ctx.fillStyle = COLORS.paper;
     ctx.fill();
-    ctx.save();
-    ctx.setLineDash([9, 11]);
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = COLORS.line;
-    roundRect(ctx, 26, 26, POSTER_W - 52, POSTER_H - 52, 24);
-    ctx.stroke();
-    ctx.restore();
 
-    // 品牌
-    ctx.fillStyle = COLORS.muted;
-    ctx.font = '500 22px sans-serif';
-    ctx.fillText('日 子 绵 绵', POSTER_W / 2, 62);
-
-    // 分类插画（加载失败不影响其它内容）
+    // ① 圆形浅底 + 分类插画
+    const circleY = 162;
+    ctx.beginPath();
+    ctx.arc(POSTER_W / 2, circleY, 92, 0, Math.PI * 2);
+    ctx.fillStyle = COLORS.soft;
+    ctx.fill();
     if (event.backgroundSrc) {
       try {
         const art = await loadImage(canvas, event.backgroundSrc);
-        ctx.drawImage(art, (POSTER_W - 240) / 2, 96, 240, 240);
+        ctx.drawImage(art, (POSTER_W - 140) / 2, circleY - 70, 140, 140);
       } catch (ignored) {}
     }
 
-    // 日子名称
-    const name = fitText(ctx, event.name, POSTER_W - 130, 46, 28, 600);
+    // ② 日子名称
+    const name = fitText(ctx, event.name, POSTER_W - 140, 36, 24, 600);
     ctx.fillStyle = COLORS.ink;
     ctx.font = `600 ${name.size}px sans-serif`;
-    ctx.fillText(name.text, POSTER_W / 2, 390);
+    ctx.fillText(name.text, POSTER_W / 2, 300);
 
-    // 状态说明
-    ctx.fillStyle = COLORS.muted;
-    ctx.font = '24px sans-serif';
-    ctx.fillText(event.statusText, POSTER_W / 2, 432);
+    // ③ 状态小胶囊（「还有」/「已经走过」）
+    const statusText = posterStatus(event);
+    ctx.font = '22px sans-serif';
+    const pillWidth = ctx.measureText(statusText).width + 44;
+    const pillHeight = 42;
+    roundRect(ctx, (POSTER_W - pillWidth) / 2, 366 - pillHeight / 2, pillWidth, pillHeight, pillHeight / 2);
+    ctx.fillStyle = COLORS.soft;
+    ctx.fill();
+    ctx.fillStyle = COLORS.accent;
+    ctx.fillText(statusText, POSTER_W / 2, 366);
 
-    // 天数：整张卡片的视觉主角，数字与单位作为整体居中
-    const numberText = event.countText || '—';
-    ctx.font = '700 144px sans-serif';
-    const numberWidth = ctx.measureText(numberText).width;
-    const unitGap = 16;
-    ctx.font = '500 36px sans-serif';
+    // ④ 天数：整张卡片绝对的主角。数字与单位同色、单位约为数字的四成，
+    //    整组居中；位数多时自动缩字号，保证永远不出框。
+    const number = fitText(ctx, event.countText || '—', POSTER_W - 160, 180, 110, 700);
+    ctx.font = `700 ${number.size}px sans-serif`;
+    const numberWidth = ctx.measureText(number.text).width;
+    const unitSize = Math.round(number.size * 0.42);
+    const unitGap = 12;
+    ctx.font = `500 ${unitSize}px sans-serif`;
     const unitWidth = event.unitText ? ctx.measureText(event.unitText).width + unitGap : 0;
     const startX = (POSTER_W - numberWidth - unitWidth) / 2;
     ctx.textAlign = 'left';
     ctx.fillStyle = COLORS.accent;
-    ctx.font = '700 144px sans-serif';
-    ctx.fillText(numberText, startX, 528);
+    ctx.font = `700 ${number.size}px sans-serif`;
+    ctx.fillText(number.text, startX, 492);
     if (event.unitText) {
-      ctx.font = '500 36px sans-serif';
-      ctx.fillText(event.unitText, startX + numberWidth + unitGap, 562);
+      ctx.font = `500 ${unitSize}px sans-serif`;
+      ctx.fillText(event.unitText, startX + numberWidth + unitGap, 492 + number.size * 0.22);
     }
     ctx.textAlign = 'center';
 
-    // 日期（只留这一行信息，分类与重复方式不上海报：那是设置，不是内容）
+    // ⑤ 日期 + 目标日
     ctx.fillStyle = COLORS.ink;
     ctx.font = '28px sans-serif';
-    ctx.fillText(event.targetDateText, POSTER_W / 2, 636);
+    ctx.fillText(event.targetDateText, POSTER_W / 2, 656);
+    ctx.fillStyle = COLORS.muted;
+    ctx.font = '20px sans-serif';
+    ctx.fillText('- 目标日 -', POSTER_W / 2, 696);
 
-    // 留在心上的那句话
-    const phrase = fitText(ctx, event.phrase, POSTER_W - 130, 22, 18, 400);
-    ctx.fillStyle = COLORS.accent;
-    ctx.font = `400 ${phrase.size}px sans-serif`;
-    ctx.fillText(phrase.text, POSTER_W / 2, 688);
-
-    // 分隔线
-    ctx.save();
-    ctx.setLineDash([6, 8]);
-    ctx.lineWidth = 1.5;
-    ctx.strokeStyle = COLORS.line;
-    ctx.beginPath();
-    ctx.moveTo(140, 716);
-    ctx.lineTo(POSTER_W - 140, 716);
-    ctx.stroke();
-    ctx.restore();
-
-    // 底部：有小程序码就印在白卡片上（下载到的是白底图，直接贴会露出方块），没有就用文字兜底
+    // ⑥ 底部：有小程序码就印在白卡片上（下载到的是白底图，直接贴会露出方块），没有就用文字兜底
     let drewCode = false;
     try {
       const code = await loadImage(canvas, MINI_CODE_PATH);
-      const size = 96;
-      const pad = 8;
+      const size = 92;
+      const pad = 7;
       const x = (POSTER_W - size) / 2;
-      const y = 730 + pad;
-      // 白卡片：既让白底小程序码不突兀，也保证扫码所需的对比度
+      const y = 766;
       roundRect(ctx, x - pad, y - pad, size + pad * 2, size + pad * 2, 14);
       ctx.fillStyle = '#ffffff';
       ctx.fill();
@@ -239,18 +241,13 @@ Page({
       drewCode = true;
     } catch (ignored) {}
 
-    ctx.textAlign = 'center';
-    ctx.fillStyle = COLORS.muted;
-    if (drewCode) {
-      ctx.font = '19px sans-serif';
-      ctx.fillText('长按识别，开始记录你的日子', POSTER_W / 2, 858);
-    } else {
-      ctx.font = '500 26px sans-serif';
+    if (!drewCode) {
       ctx.fillStyle = COLORS.accent;
-      ctx.fillText('微信搜一搜「日子绵绵」', POSTER_W / 2, 780);
+      ctx.font = '500 26px sans-serif';
+      ctx.fillText('微信搜一搜「日子绵绵」', POSTER_W / 2, 790);
       ctx.fillStyle = COLORS.muted;
       ctx.font = '21px sans-serif';
-      ctx.fillText('把你的日子，也慢慢记下来', POSTER_W / 2, 820);
+      ctx.fillText('把你的日子，也慢慢记下来', POSTER_W / 2, 830);
     }
   },
 
