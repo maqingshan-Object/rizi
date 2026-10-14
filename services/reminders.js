@@ -100,7 +100,9 @@ function statusForEvent(eventId) {
     if (!tasks.length) {
       return result(true, 'NO_TASK', '云端还没有这个日子的提醒任务；本机偏好不代表提醒已开启。', null);
     }
-    const task = tasks[0];
+    // 一个日子可能同时有两条任务：「本次已发出」+「为下一次预建、尚未授权」。
+    // 优先展示还没授权的那条 —— 那才是用户接下来要处理的；没有就取最近的一条。
+    const task = tasks.find(item => item.authorized !== true) || tasks[tasks.length - 1];
     const labels = {
       needs_authorization: '需要重新授权提醒',
       sent: '服务端已发送，实际送达以微信为准',

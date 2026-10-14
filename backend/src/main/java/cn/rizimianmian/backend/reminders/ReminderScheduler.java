@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.Clock;
 import java.time.LocalDate;
+import java.util.List;
 
 @Component
 public class ReminderScheduler {
@@ -82,7 +83,10 @@ public class ReminderScheduler {
                 nextDue = due;
             }
         }
-        tasks.dispatchDueTasks(today);
+        List<String> sentTaskIds = tasks.dispatchDueTasks(today);
+        // 发完之后立刻为下一次发生日预建任务（独立事务）：一次性订阅发一条就消耗一次授权，
+        // 不预建的话，每年重复的日子从第二年起就再也发不出来了。
+        tasks.preScheduleNextOccurrences(sentTaskIds);
         log.info("REMINDER_SCAN date={} enabledEvents={} matchedToday={} nextDue={}",
                 today, enabledEvents, matchedToday, nextDue);
     }
