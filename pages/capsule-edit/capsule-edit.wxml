@@ -14,6 +14,12 @@
 
     <!-- 写新的 -->
     <block wx:else>
+      <view wx:if="{{noQuota}}" class="paper no-quota">
+        <text class="no-quota-title">这次还差一份额度</text>
+        <text class="no-quota-text muted">{{error}}</text>
+        <button class="btn-primary" bindtap="onStore">去看看</button>
+      </view>
+
       <view class="paper">
         <view class="kind-switch">
           <button class="{{kind === 'self' ? 'active' : ''}}" data-kind="self" bindtap="onKind">写给未来的自己</button>
@@ -44,7 +50,7 @@
         </view>
 
         <view wx:if="{{error}}" class="form-error">{{error}}</view>
-        <button class="btn-primary" bindtap="onSave" disabled="{{saving}}">{{saving ? '正在封存…' : '封存起来'}}</button>
+        <button class="btn-primary" bindtap="onSave" disabled="{{saving || noQuota}}">{{saving ? '正在封存…' : '封存起来'}}</button>
         <text class="form-help">{{kind === 'gift' ? '封存后会生成一张领取卡片，你通过微信发给对方 —— 到期前她只看到倒计时。' : '封存后不能提前打开，也不能修改；实在不想留了可以删除。'}}</text>
       </view>
     </block>

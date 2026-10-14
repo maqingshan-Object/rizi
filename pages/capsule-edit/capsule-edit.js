@@ -13,6 +13,8 @@ Page({
     recipient: '',
     minDate: '',
     loaded: null,
+    noQuota: false,
+    quotaLeft: null,
     saving: false,
     error: ''
   },
@@ -26,6 +28,8 @@ Page({
     const minDate = [tomorrow.getFullYear(), String(tomorrow.getMonth() + 1).padStart(2, '0'),
       String(tomorrow.getDate()).padStart(2, '0')].join('-');
     this.setData({ kind, minDate, openOn: minDate });
+    // 进页面就先看额度：没额度直接说清楚并给出路，别等写完 500 字才拦
+    if (!id) this.checkQuota();
     if (id) {
       this._id = id;
       this.setData({ mode: 'read' });
@@ -42,9 +46,30 @@ Page({
     }
   },
 
+  /** 额度校验：0 就禁用保存并显示去商店的入口。 */
+  checkQuota() {
+    if (!capsules.isReady()) return;
+    capsules.list().then(result => {
+      const counts = (result && result.counts) || {};
+      const left = this.data.kind === 'gift' ? counts.giftQuota : counts.selfQuota;
+      this.setData({
+        quotaLeft: left == null ? null : left,
+        noQuota: left === 0,
+        error: left === 0
+          ? (this.data.kind === 'gift' ? '送人的心意已经用完了，买一份就能继续送' : '自用胶囊额度用完了，买一个就能继续写')
+          : ''
+      });
+    }).catch(() => {});
+  },
+
+  onStore() {
+    wx.navigateTo({ url: '/pages/store/store' });
+  },
+
   onKind(event) {
     if (this.data.mode !== 'write') return;
     this.setData({ kind: event.currentTarget.dataset.kind });
+    this.checkQuota();
   },
   onTitle(event) { this.setData({ title: event.detail.value }); },
   onRecipient(event) { this.setData({ recipient: event.detail.value }); },
