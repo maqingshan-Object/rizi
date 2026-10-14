@@ -61,7 +61,7 @@ function annotate(e, base = today()) {
     categoryName: ({birthday:'生日',anniversary:'纪念日',holiday:'节日',other:'其他'})[e.category] || '其他',
     resolvedHolidayLabel: resolvedHoliday ? resolvedHoliday.label : '',
     festivalHelp: festival ? `按节日当天计算，支持 ${festivals.range.min}–${festivals.range.max} 年；不是放假起始日。` : '',
-    backgroundSrc: ({birthday:'/assets/birthday-art.png',anniversary:'/assets/anniversary-art.png',holiday:'/assets/holiday-art.png'})[e.category] || '',
+    backgroundSrc: ({birthday:'/assets/birthday-art.png',anniversary:'/assets/anniversary-art.png',holiday:'/assets/holiday-art.png',other:'/assets/other-art.png'})[e.category] || '',
     reminder: e.reminder || '不提醒', tint: e.tint || 'pink', icon: e.icon || 'heart'
   });
 }

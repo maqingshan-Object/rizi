@@ -39,7 +39,7 @@ const selectors = {
 const holidayLabel = key => key === 'next' ? '最近节假日' : festivals.definition(key).label;
 const categoryArt = {
   birthday: '/assets/birthday-art.png', holiday: '/assets/holiday-art.png',
-  anniversary: '/assets/anniversary-art.png'
+  anniversary: '/assets/anniversary-art.png', other: '/assets/other-art.png'
 };
 
 Page({
