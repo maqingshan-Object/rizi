@@ -2,6 +2,7 @@ const { prepare } = require('../../utils/page');
 const eventsService = require('../../services/events');
 const remindersService = require('../../services/reminders');
 const dateUtils = require('../../utils/date');
+const reminderOptions = require('../../utils/reminder');
 
 const CATEGORIES = [
   { key: 'all', label: '全部' },
@@ -29,6 +30,8 @@ function cardView(event) {
   return Object.assign({}, annotated, {
     icon: annotated.icon || 'days',
     tintClass: 'tint-' + tint,
+    // 卡片角落的小铃铛：只看本机的"提前提醒"设置，离线与访客模式同样准确。
+    reminderOn: reminderOptions.enabledFor(annotated.reminder),
     categoryLabel: CATEGORY_LABELS[annotated.category] || '日子',
     displayDate: annotated.displayDate || dateUtils.display(
       annotated.mode === 'countup' ? annotated.date : annotated.nextDate || annotated.date

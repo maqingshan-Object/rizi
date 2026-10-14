@@ -220,6 +220,11 @@
   background: var(--days-accent);
 }
 
+/* 已开启提醒的日子：卡片上带一个小铃铛，一眼看出哪些日子会提醒 */
+.reminder-bell { flex-shrink: 0; margin-left: 10rpx; opacity: .75; }
+.band-bell { margin-left: auto; }
+.life-bell { margin-left: 0; margin-right: 14rpx; }
+
 @media (max-width: 350px) {
   .days-content { padding-left: 28rpx; padding-right: 28rpx; }
   .home-title { font-size: 38rpx; }

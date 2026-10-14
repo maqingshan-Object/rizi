@@ -58,12 +58,13 @@
 
     <view wx:else>
       <text class="sort-note">置顶优先 · 倒计时由近到远</text>
-      <button wx:if="{{feature}}" class="feature-event" data-id="{{feature.id}}" bindtap="onEventTap" hover-class="card-pressed" aria-label="{{feature.name}}，{{feature.statusLabel}} {{feature.countText}} {{feature.unitLabel}}，查看详情">
+      <button wx:if="{{feature}}" class="feature-event" data-id="{{feature.id}}" bindtap="onEventTap" hover-class="card-pressed" aria-label="{{feature.name}}，{{feature.statusLabel}} {{feature.countText}} {{feature.unitLabel}}，{{feature.reminderOn ? '已开启提醒，' : ''}}查看详情">
         <view class="feature-border" />
         <view class="event-top">
           <view class="event-heading">
             <app-icon name="{{feature.icon}}" size="36" />
             <text class="event-name">{{feature.name}}</text>
+            <app-icon wx:if="{{feature.reminderOn}}" name="bell" size="26" class="reminder-bell" />
           </view>
           <text class="pill feature-pill">{{feature.featureLabel}}</text>
         </view>
@@ -83,10 +84,11 @@
       </button>
 
       <view wx:if="{{cards.length}}" class="cards-grid">
-        <button wx:for="{{cards}}" wx:key="id" class="event-card paper" data-id="{{item.id}}" bindtap="onEventTap" hover-class="card-pressed" aria-label="{{item.name}}，{{item.statusLabel}} {{item.countText}} {{item.unitLabel}}，查看详情">
+        <button wx:for="{{cards}}" wx:key="id" class="event-card paper" data-id="{{item.id}}" bindtap="onEventTap" hover-class="card-pressed" aria-label="{{item.name}}，{{item.statusLabel}} {{item.countText}} {{item.unitLabel}}，{{item.reminderOn ? '已开启提醒，' : ''}}查看详情">
           <view class="event-band {{item.tintClass}}">
             <app-icon name="{{item.icon}}" size="30" />
             <text class="small-name">{{item.name}}</text>
+            <app-icon wx:if="{{item.reminderOn}}" name="bell" size="24" class="reminder-bell band-bell" />
           </view>
           <view class="event-card-body">
             <image wx:if="{{item.backgroundSrc}}" class="small-category-art" src="{{item.backgroundSrc}}" mode="aspectFit" aria-hidden="true" />
@@ -101,12 +103,13 @@
         </button>
       </view>
 
-      <button wx:if="{{life}}" class="life-card paper" data-id="{{life.id}}" bindtap="onEventTap" hover-class="card-pressed" aria-label="{{life.name}}，{{life.countText}} {{life.unitLabel}}，查看详情">
+      <button wx:if="{{life}}" class="life-card paper" data-id="{{life.id}}" bindtap="onEventTap" hover-class="card-pressed" aria-label="{{life.name}}，{{life.countText}} {{life.unitLabel}}，{{life.reminderOn ? '已开启提醒，' : ''}}查看详情">
         <view class="life-icon"><app-icon name="{{life.icon}}" size="38" /></view>
         <view class="life-info">
           <text class="life-title">{{life.name}}</text>
           <text class="life-subtitle">又是值得好好生活的一天</text>
         </view>
+        <app-icon wx:if="{{life.reminderOn}}" name="bell" size="26" class="reminder-bell life-bell" />
         <view class="life-count">
           <text class="life-number">{{life.countText}}</text>
           <text class="life-unit">{{life.unitLabel}}</text>
