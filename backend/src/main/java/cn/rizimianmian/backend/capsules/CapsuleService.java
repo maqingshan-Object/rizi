@@ -236,9 +236,18 @@ public class CapsuleService {
                 capsule.getTitle() == null ? "" : capsule.getTitle(), capsule.getStatus().name(),
                 capsule.getOpenOn().toString(), daysLeft, openable, capsule.getRecipientName(),
                 revealed ? capsule.getContent() : null,
-                capsule.getCreatedAt() == null ? "" : capsule.getCreatedAt().toString(),
+                formatCreatedAt(capsule),
                 // 领取码只回给属主自己 —— 他要用它把卡片发出去
                 capsule.getPublicToken());
+    }
+
+    /** 写于：给前端一个能直接显示的日期（别把 ISO 时间戳丢给用户看）。 */
+    private String formatCreatedAt(CapsuleEntity capsule) {
+        if (capsule.getCreatedAt() == null) {
+            return "";
+        }
+        return java.time.LocalDate.ofInstant(capsule.getCreatedAt(), ZoneId.of("Asia/Shanghai"))
+                .toString().replace('-', '.');
     }
 
     private LocalDate parseDate(String value) {
