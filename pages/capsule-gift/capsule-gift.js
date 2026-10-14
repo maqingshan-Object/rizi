@@ -68,7 +68,8 @@ Page({
   onShareAppMessage() {
     return {
       title: '有人给你留了一段话，到那天才能打开',
-      path: '/pages/capsule-gift/capsule-gift?token=' + this._token
+      path: '/pages/capsule-gift/capsule-gift?token=' + this._token,
+      imageUrl: '/assets/capsule-gift-cover.png'
     };
   },
 

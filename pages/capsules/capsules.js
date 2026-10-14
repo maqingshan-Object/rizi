@@ -127,7 +127,9 @@ Page({
     }
     return {
       title: '给' + (name || '你') + '留了一段话，到那天才能打开',
-      path: '/pages/capsule-gift/capsule-gift?token=' + token
+      path: '/pages/capsule-gift/capsule-gift?token=' + token,
+      // 不指定 imageUrl 时微信用【页面截图】，会截到半截列表，很难看 ⚠️
+      imageUrl: '/assets/capsule-gift-cover.png'
     };
   }
 });
