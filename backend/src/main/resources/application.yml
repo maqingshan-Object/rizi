@@ -64,6 +64,9 @@ app:
   #    会导致构建失败（GetBuildLogsResp.total 类型不匹配），而这两个值本身不是密钥，
   #    写在这里既安全又避免踩坑。仍然可以用环境变量覆盖。
   # ⚠️ AppKey 是密钥：只放云托管环境变量，不进代码库、不下发前端。
+  capsule:
+    # 胶囊到期提醒：默认每天 09:00（Spring 是 6 段 cron）
+    reminder-cron: ${CAPSULE_REMINDER_CRON:0 0 9 * * *}
   virtual-pay:
     offer-id: ${VIRTUAL_PAY_OFFER_ID:1450679167}
     app-key: ${VIRTUAL_PAY_APP_KEY:}

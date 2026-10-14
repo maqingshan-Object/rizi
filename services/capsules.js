@@ -42,4 +42,26 @@ function claim(token) {
   return http.post('/api/gift/' + encodeURIComponent(token) + '/claim', {});
 }
 
-module.exports = { isReady, list, create, detail, open, remove, giftView, claim };
+/**
+ * 申请胶囊到期提醒的订阅授权。
+ *
+ * ⚠️ 一次性订阅：1 次授权 = 只能发 1 条 ⇒ 必须在使用当下（封存/收下那一刻）申请，
+ * 否则到期那天后端根本发不出消息。用户拒绝也不阻断主流程，只是收不到提醒。
+ */
+function requestReminderAuth() {
+  let templateId = '';
+  try { templateId = require('../config/backend').subscribeTemplateId || ''; } catch (error) { templateId = ''; }
+  return new Promise(resolve => {
+    if (!templateId || typeof wx.requestSubscribeMessage !== 'function') {
+      resolve(false);
+      return;
+    }
+    wx.requestSubscribeMessage({
+      tmplIds: [templateId],
+      success: res => resolve(!!res && res[templateId] === 'accept'),
+      fail: () => resolve(false)
+    });
+  });
+}
+
+module.exports = { isReady, list, create, detail, open, remove, giftView, claim, requestReminderAuth };

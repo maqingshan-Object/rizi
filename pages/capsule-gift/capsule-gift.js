@@ -49,7 +49,7 @@ Page({
       return;
     }
     this.setData({ claiming: true });
-    capsules.claim(this._token).then(result => {
+    capsules.requestReminderAuth().then(() => capsules.claim(this._token)).then(result => {
       this.setData({ claiming: false });
       wx.showModal({
         title: '收下了',

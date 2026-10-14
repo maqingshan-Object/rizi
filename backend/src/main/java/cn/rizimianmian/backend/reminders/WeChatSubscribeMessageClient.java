@@ -182,4 +182,87 @@ public class WeChatSubscribeMessageClient {
         String accessToken() { return access_token; }
     }
     private record WechatMessageResponse(Integer errcode, String errmsg) {}
+
+    /**
+     * 通用发送：给时间胶囊这类**非日子**的内容用。
+     *
+     * <p>字段沿用同一个模板的 thing/time/number（内容换成胶囊的标题与启封日），
+     * 所以**不需要新建模板**，复用 WECHAT_SUBSCRIBE_TEMPLATE_ID 即可。
+     *
+     * <p>⚠️ 这里刻意**不复用也不改动**上面的 {@code send(openId, event, occurrence)} ——
+     * 那个方法每天凌晨都在真正发提醒，动它风险太大；两者共用下面的私有工具与
+     * 同一套云调用/access_token 逻辑。
+     */
+    public SendResult sendCapsule(String openId, String name, java.time.LocalDate openOn, String page) {
+        String templateId = properties.wechat().subscribeTemplateId();
+        if (templateId == null || templateId.isBlank()) {
+            return SendResult.needsAuthorization("未配置 WECHAT_SUBSCRIBE_TEMPLATE_ID");
+        }
+        boolean cloudCall = cloudCallEnabled();
+        String accessToken = null;
+        if (!cloudCall) {
+            accessToken = properties.wechat().accessToken();
+            if (accessToken == null || accessToken.isBlank()) {
+                if (properties.wechat().appId().isBlank() || properties.wechat().appSecret().isBlank()) {
+                    return SendResult.needsAuthorization("未配置微信 access token，且 WECHAT_APP_ID/WECHAT_APP_SECRET 不完整");
+                }
+                try {
+                    AccessTokenResponse token = restClient.get()
+                            .uri(UriComponentsBuilder.fromUriString(properties.wechat().accessTokenUrl())
+                                    .queryParam("grant_type", "client_credential")
+                                    .queryParam("appid", properties.wechat().appId())
+                                    .queryParam("secret", properties.wechat().appSecret())
+                                    .build(true).toUriString())
+                            .retrieve().body(AccessTokenResponse.class);
+                    if (token == null || token.accessToken() == null || token.accessToken().isBlank()) {
+                        return SendResult.failed(token == null ? "微信 access token 响应为空" : token.errmsg());
+                    }
+                    accessToken = token.accessToken();
+                } catch (RestClientException exception) {
+                    return SendResult.failed("获取微信 access token 失败：" + exception.getMessage());
+                }
+            }
+        }
+        try {
+            Map<String, Map<String, String>> data = new LinkedHashMap<>();
+            data.put(properties.wechat().templateNameField(), Map.of("value", shorten(name, 20)));
+            data.put(properties.wechat().templateDateField(),
+                    Map.of("value", openOn.atTime(DISPLAY_TIME).format(DISPLAY_DATE_TIME)));
+            // number 只能纯数字：胶囊到期当天就发，所以是 0 天
+            data.put(properties.wechat().templateDaysField(), Map.of("value", "0"));
+            Map<String, Object> body = new LinkedHashMap<>();
+            body.put("touser", openId);
+            body.put("template_id", templateId);
+            body.put("page", page);
+            body.put("data", data);
+
+            UriComponentsBuilder uri = UriComponentsBuilder.fromUriString(properties.wechat().subscribeMessageUrl());
+            if (!cloudCall) {
+                uri.queryParam("access_token", accessToken);
+            }
+            ResponseEntity<WechatMessageResponse> entity = restClient.post()
+                    .uri(uri.build(true).toUriString())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(body)
+                    .retrieve()
+                    .toEntity(WechatMessageResponse.class);
+            WechatMessageResponse response = entity.getBody();
+            log.info("CAPSULE_SUBSCRIBE_SEND cloudCall={} errcode={}", cloudCall,
+                    response == null ? null : response.errcode());
+            if (response == null || response.errcode() == null) {
+                return SendResult.failed("微信订阅消息响应缺少 errcode，未确认发送成功");
+            }
+            if (response.errcode() != 0) {
+                if (response.errcode() == 43101) {
+                    return SendResult.needsAuthorization("没有可用的订阅次数了（一次性订阅发一条消耗一次），"
+                            + "用户下次封存胶囊时会重新授权：" + response.errmsg());
+                }
+                return SendResult.failed("微信订阅消息失败 errcode=" + response.errcode() + " " + response.errmsg());
+            }
+            return SendResult.sent();
+        } catch (Exception exception) {
+            return SendResult.failed("发送胶囊订阅消息异常：" + exception.getMessage());
+        }
+    }
+
 }

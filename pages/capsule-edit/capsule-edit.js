@@ -81,13 +81,14 @@ Page({
   onSave() {
     if (this.data.saving) return;
     this.setData({ saving: true, error: '' });
-    capsules.create({
+    // 先申请到期提醒的授权（一次性订阅，只能在使用当下申请），再封存
+    capsules.requestReminderAuth().then(() => capsules.create({
       kind: this.data.kind,
       title: this.data.title,
       content: this.data.content,
       openOn: this.data.openOn,
       recipientName: this.data.recipient
-    }).then(() => {
+    })).then(() => {
       wx.showToast({ title: '封存好了，等那天启封', icon: 'none' });
       setTimeout(() => wx.navigateBack({ delta: 1 }), 1200);
     }).catch(error => {
