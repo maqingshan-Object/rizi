@@ -123,7 +123,30 @@ public final class TrustStoreSupport {
         if (flag == null) {
             flag = System.getProperty("wechat.tls.trust-served-chain");
         }
-        return flag != null && ("true".equalsIgnoreCase(flag.trim()) || "1".equals(flag.trim()));
+        // 显式设过就听显式的（true/false 都算）
+        if (flag != null && !flag.isBlank()) {
+            return "true".equalsIgnoreCase(flag.trim()) || "1".equals(flag.trim());
+        }
+        // 兜底：容器里存在云调用目录、但里面没有可用证书 ⇒ 这条出网链路确实被平台代理拦截，
+        // 且"补信任库"的路走不通（没有证书可导入）。此时若不放行，**所有**微信接口调用都会
+        // 报 PKIX path building failed（提醒与支付一起挂）。
+        // 注意：这是"开关没设"时的兜底，显式设 false 可以关掉。
+        File dir = new File(CLOUD_CALL_CERT_DIR);
+        if (dir.isDirectory() && countCloudCallCertFiles() == 0) {
+            log.warn("TRUSTSTORE_AUTO_SERVED_CHAIN=on —— 目录 {} 存在但没有可用证书，"
+                    + "为让微信接口可用而自动放行服务端出示的证书链。"
+                    + "（如已把代理 CA 导入信任库，请显式设置 WECHAT_TLS_TRUST_SERVED_CHAIN=false 关闭）",
+                    CLOUD_CALL_CERT_DIR);
+            return true;
+        }
+        return false;
+    }
+
+    /** 云调用目录里可用的证书文件数（.crt / .pem）。 */
+    private static int countCloudCallCertFiles() {
+        File dir = new File(CLOUD_CALL_CERT_DIR);
+        File[] files = dir.listFiles((d, name) -> name.endsWith(".crt") || name.endsWith(".pem"));
+        return files == null ? 0 : files.length;
     }
 
     /** 取得（并缓存）信任库对应的 SSLContext；失败时回退到 JVM 默认实现。 */
