@@ -8,24 +8,26 @@ import org.springframework.stereotype.Component;
 
 import javax.net.ssl.HttpsURLConnection;
 import java.io.File;
-import java.io.FileInputStream;
 import java.net.URI;
-import java.security.KeyStore;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
-import java.util.Enumeration;
 
 /**
- * 启动自检：把"提醒为什么发不出去"最常被问的几件事直接写进日志，省掉一轮一轮猜。
+ * 出网自检：把"提醒为什么发不出去"最常被问的几件事直接写进日志，省掉一轮一轮猜。
  * 全程不打印敏感值（AppSecret / 模板 ID 只报"是否已配置"）。
+ *
+ * <p>注意：启动日志很快会被定时任务的日志刷走（云托管日志页往往搜不到），
+ * 所以 {@link #logSummary()} 还会被 {@code ReminderScheduler} 每次扫描时调用一次，
+ * 保证这些关键信息一定能落在日志窗口里。
  *
  * <p>排查索引：
  * <ul>
- *   <li>{@code TLS_DIAGNOSTIC_TRUSTSTORE_ENTRIES=0} —— JVM 信任库为空，
- *       调用任何 HTTPS 都会以 {@code PKIX path building failed} 失败（容器镜像常见坑）</li>
- *   <li>{@code TLS_DIAGNOSTIC_HANDSHAKE=failed} —— 连不上微信接口（证书链或出口网络问题）</li>
- *   <li>{@code WECHAT_DIAGNOSTIC templateFields ...} —— 模板字段名必须与公众平台模板里的
- *       {{xxx.DATA}} 完全一致，不一致微信会返回 47003 参数不合法</li>
+ *   <li>{@code TRUSTSTORE_BIND_FAILED} 或 {@code TLS_DIAGNOSTIC_TRUSTSTORE … entries=-1}
+ *       —— 信任库不可读，任何 HTTPS 都会 PKIX 失败</li>
+ *   <li>{@code TLS_DIAGNOSTIC_HANDSHAKE=failed} —— 拿到的证书链不被信任；
+ *       若"出口做了 TLS 拦截"，对端签发者会是内网 CA（看 serverCertIssuer）</li>
+ *   <li>{@code WECHAT_DIAGNOSTIC … templateFields} —— 字段名必须与公众平台模板里的
+ *       {{xxx.DATA}} 完全一致，否则微信返回 47003</li>
  * </ul>
  */
 @Component
@@ -40,52 +42,33 @@ public class WeChatTlsDiagnostics implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
-        reportTrustStore();
-        reportWechatConfig();
-        probeWechatApi();
+        logSummary();
     }
 
-    private void reportTrustStore() {
-        String configured = System.getProperty("javax.net.ssl.trustStore");
-        File trustStore = configured != null
-                ? new File(configured)
-                : new File(System.getProperty("java.home"), "lib/security/cacerts");
-        String password = System.getProperty("javax.net.ssl.trustStorePassword", "changeit");
+    /** 启动时与每次定时扫描时都会调用；内容全部为不含敏感值的诊断信息。 */
+    public void logSummary() {
+        File file = TrustStoreSupport.trustStoreFile();
+        log.info("TLS_DIAGNOSTIC_TRUSTSTORE path={} exists={} size={}B entries={}",
+                file.getAbsolutePath(), file.exists(), file.length(), TrustStoreSupport.countEntries(file));
 
-        log.info("TLS_DIAGNOSTIC_TRUSTSTORE path={} exists={} size={}B",
-                trustStore.getAbsolutePath(), trustStore.exists(), trustStore.length());
-        try (FileInputStream in = new FileInputStream(trustStore)) {
-            KeyStore store = KeyStore.getInstance(KeyStore.getDefaultType());
-            store.load(in, password.toCharArray());
-            int count = 0;
-            Enumeration<String> aliases = store.aliases();
-            while (aliases.hasMoreElements()) {
-                aliases.nextElement();
-                count++;
-            }
-            log.info("TLS_DIAGNOSTIC_TRUSTSTORE_ENTRIES={} （0 表示信任库为空，调微信接口必然 PKIX 失败）", count);
-        } catch (Exception exception) {
-            log.warn("TLS_DIAGNOSTIC_TRUSTSTORE_UNREADABLE error={}", exception.getMessage());
-        }
-    }
-
-    private void reportWechatConfig() {
         AppProperties.Wechat wechat = properties.wechat();
         log.info("WECHAT_DIAGNOSTIC appId={} appSecretConfigured={} templateIdConfigured={}",
                 wechat.appId(), hasText(wechat.appSecret()), hasText(wechat.subscribeTemplateId()));
-        log.info("WECHAT_DIAGNOSTIC templateFields name={} date={} days={}",
-                wechat.templateNameField(), wechat.templateDateField(), wechat.templateDaysField());
-        log.info("WECHAT_DIAGNOSTIC urls accessToken={} subscribe={}",
-                wechat.accessTokenUrl(), wechat.subscribeMessageUrl());
+        log.info("WECHAT_DIAGNOSTIC templateFields name={} date={} days={} subscribeUrl={}",
+                wechat.templateNameField(), wechat.templateDateField(), wechat.templateDaysField(),
+                wechat.subscribeMessageUrl());
         log.info("WECHAT_DIAGNOSTIC jwtAccessTokenMinutes={}", properties.jwt().accessTokenMinutes());
+
+        probe(wechat.accessTokenUrl());
     }
 
-    private void probeWechatApi() {
+    /** 用「与业务完全相同的 SSLContext」探测一次 TLS 握手，便于与线上发送失败原因直接对比。 */
+    private void probe(String url) {
         try {
-            HttpsURLConnection connection = (HttpsURLConnection) URI.create(properties.wechat().accessTokenUrl())
-                    .toURL().openConnection();
-            connection.setConnectTimeout(5000);
-            connection.setReadTimeout(5000);
+            HttpsURLConnection connection = (HttpsURLConnection) URI.create(url).toURL().openConnection();
+            connection.setSSLSocketFactory(TrustStoreSupport.sslContext().getSocketFactory());
+            connection.setConnectTimeout(3000);
+            connection.setReadTimeout(3000);
             connection.setRequestMethod("GET");
             int status = connection.getResponseCode();
             String issuer = "unknown";

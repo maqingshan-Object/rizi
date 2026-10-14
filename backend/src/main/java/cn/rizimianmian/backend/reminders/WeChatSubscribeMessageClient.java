@@ -1,13 +1,18 @@
 package cn.rizimianmian.backend.reminders;
 
 import cn.rizimianmian.backend.config.AppProperties;
+import cn.rizimianmian.backend.config.TrustStoreSupport;
 import cn.rizimianmian.backend.events.EventEntity;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.http.HttpClient;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -32,8 +37,19 @@ public class WeChatSubscribeMessageClient {
     private final AppProperties properties;
 
     public WeChatSubscribeMessageClient(RestClient.Builder restClientBuilder, AppProperties properties) {
-        this.restClient = restClientBuilder.build();
+        // 显式把信任库绑到出网客户端上。
+        // 只靠 -Djavax.net.ssl.trustStore 参数是不够确定的：容器里曾出现
+        // "PKIX path building failed: unable to find valid certification path"，
+        // 即调用微信接口时证书链无法被信任。这里直接构造 SSLContext 并交给 JDK HttpClient。
+        this.restClient = restClientBuilder.requestFactory(httpsRequestFactory()).build();
         this.properties = properties;
+    }
+
+    private static ClientHttpRequestFactory httpsRequestFactory() {
+        JdkClientHttpRequestFactory factory = new JdkClientHttpRequestFactory(
+                HttpClient.newBuilder().sslContext(TrustStoreSupport.sslContext()).build());
+        factory.setReadTimeout(Duration.ofSeconds(10));
+        return factory;
     }
 
     public SendResult send(String openId, EventEntity event, LocalDate occurrence) {

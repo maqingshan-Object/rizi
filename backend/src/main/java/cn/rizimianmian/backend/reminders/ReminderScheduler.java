@@ -1,5 +1,6 @@
 package cn.rizimianmian.backend.reminders;
 
+import cn.rizimianmian.backend.config.WeChatTlsDiagnostics;
 import cn.rizimianmian.backend.events.EventEntity;
 import cn.rizimianmian.backend.events.EventOccurrenceCalculator;
 import cn.rizimianmian.backend.events.EventRepository;
@@ -20,20 +21,22 @@ public class ReminderScheduler {
     private final ReminderTaskService tasks;
     private final EventOccurrenceCalculator occurrences;
     private final Clock clock;
+    private final WeChatTlsDiagnostics diagnostics;
 
     /** 同时存在测试用构造函数，必须显式标注让 Spring 选用这一个。 */
     @Autowired
     public ReminderScheduler(EventRepository events, ReminderTaskService tasks,
-                             EventOccurrenceCalculator occurrences) {
-        this(events, tasks, occurrences, Clock.systemDefaultZone());
+                             EventOccurrenceCalculator occurrences, WeChatTlsDiagnostics diagnostics) {
+        this(events, tasks, occurrences, Clock.systemDefaultZone(), diagnostics);
     }
 
     ReminderScheduler(EventRepository events, ReminderTaskService tasks,
-                      EventOccurrenceCalculator occurrences, Clock clock) {
+                      EventOccurrenceCalculator occurrences, Clock clock, WeChatTlsDiagnostics diagnostics) {
         this.events = events;
         this.tasks = tasks;
         this.occurrences = occurrences;
         this.clock = clock;
+        this.diagnostics = diagnostics;
     }
 
     @Scheduled(cron = "${app.reminder.cron:0 0 2 * * *}")
@@ -48,6 +51,12 @@ public class ReminderScheduler {
      * 注意：容器缩容到 0 实例时本方法不会执行，日志也会一起消失，这本身就是个信号。
      */
     public void scan(LocalDate today) {
+        // 顺手再打一遍出网自检：启动那几行很快会被定时日志刷走，
+        // 云托管日志页常常搜不到启动日志，这样保证关键信息一定可见。
+        if (diagnostics != null) {
+            diagnostics.logSummary();
+        }
+
         int enabledEvents = 0;
         int matchedToday = 0;
         LocalDate nextDue = null;
