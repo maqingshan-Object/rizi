@@ -226,3 +226,4 @@
   .feature-art { width: 206rpx; height: 212rpx; }
   .feature-count { padding-right: 176rpx; }
 }
+.capsule-banner{display:flex;align-items:center;gap:12rpx;margin:0 0 22rpx;padding:20rpx 24rpx;border-radius:22rpx;background:var(--soft);border:1rpx solid var(--accent)}.capsule-banner-icon{font-size:26rpx}.capsule-banner-text{flex:1;font-size:24rpx;color:var(--accent);font-weight:500}.capsule-banner-arrow{font-size:24rpx;color:var(--accent)}

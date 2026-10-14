@@ -6,6 +6,13 @@
       <text>当前为访客记录 · 仅保存在此设备</text>
     </view>
 
+    <!-- 时间胶囊提示条：只在【有可启封】或【有可送出的心意】时出现，其余时候完全占位为 0 -->
+    <view wx:if="{{capsuleBanner}}" class="capsule-banner" bindtap="openCapsules">
+      <text class="capsule-banner-icon">✨</text>
+      <text class="capsule-banner-text">{{capsuleBanner}}</text>
+      <text class="capsule-banner-arrow">→</text>
+    </view>
+
     <view class="home-head">
       <text class="date-line">{{todayLabel}}</text>
       <text class="home-title">日子慢慢，爱满满</text>

@@ -1,4 +1,18 @@
 const { prepare } = require('../../utils/page');
+const auth = require('../../services/auth');
+const capsulesService = require('../../services/capsules');
+
+/**
+ * 首页提示条：只在**有值得看一眼的事**时出现（有可启封的 / 有可送出的心意），
+ * 其余时候完全是空字符串 → WXML 里 wx:if 不渲染，首页保持干净。
+ * 优先级：可启封 > 有心意可送。
+ */
+function capsuleBannerText(counts) {
+  if (!counts) return '';
+  if (counts.openable > 0) return '你有 ' + counts.openable + ' 个时间胶囊今天可以启封';
+  if (counts.giftQuota > 0) return '你有一份心意可以送出去';
+  return '';
+}
 const eventsService = require('../../services/events');
 const remindersService = require('../../services/reminders');
 const dateUtils = require('../../utils/date');
@@ -63,7 +77,24 @@ Page({
     emptyDescription: '记下生日、相爱和生活，把小小的期待放在心上。'
   },
 
+  /** 读胶囊数量，决定首页提示条显示什么（读不到就保持不显示）。 */
+  loadCapsuleBanner() {
+    if (!auth.currentUser() || !capsulesService.isReady()) {
+      if (this.data.capsuleBanner) this.setData({ capsuleBanner: '' });
+      return;
+    }
+    capsulesService.list().then(result => {
+      const text = capsuleBannerText((result && result.counts) || {});
+      if (text !== this.data.capsuleBanner) this.setData({ capsuleBanner: text });
+    }).catch(() => {});
+  },
+
+  openCapsules() {
+    wx.navigateTo({ url: '/pages/capsules/capsules' });
+  },
+
   onShow() {
+    this.loadCapsuleBanner();
     // 转发 + 分享到朋友圈：朋友圈入口需要本页定义 onShareTimeline 才会出现
     wx.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage', 'shareTimeline'] });
     this.refresh();
