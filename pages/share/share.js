@@ -165,7 +165,7 @@ Page({
     if (event.backgroundSrc) {
       try {
         const art = await loadImage(canvas, event.backgroundSrc);
-        ctx.drawImage(art, (POSTER_W - 250) / 2, 96, 250, 250);
+        ctx.drawImage(art, (POSTER_W - 240) / 2, 96, 240, 240);
       } catch (ignored) {}
     }
 
@@ -173,44 +173,41 @@ Page({
     const name = fitText(ctx, event.name, POSTER_W - 130, 46, 28, 600);
     ctx.fillStyle = COLORS.ink;
     ctx.font = `600 ${name.size}px sans-serif`;
-    ctx.fillText(name.text, POSTER_W / 2, 400);
+    ctx.fillText(name.text, POSTER_W / 2, 390);
 
     // 状态说明
     ctx.fillStyle = COLORS.muted;
     ctx.font = '24px sans-serif';
-    ctx.fillText(event.statusText, POSTER_W / 2, 444);
+    ctx.fillText(event.statusText, POSTER_W / 2, 432);
 
-    // 天数：数字与单位作为一个整体居中
+    // 天数：整张卡片的视觉主角，数字与单位作为整体居中
     const numberText = event.countText || '—';
-    ctx.font = '700 128px sans-serif';
+    ctx.font = '700 144px sans-serif';
     const numberWidth = ctx.measureText(numberText).width;
-    ctx.font = '500 32px sans-serif';
-    const unitGap = 14;
+    const unitGap = 16;
+    ctx.font = '500 36px sans-serif';
     const unitWidth = event.unitText ? ctx.measureText(event.unitText).width + unitGap : 0;
     const startX = (POSTER_W - numberWidth - unitWidth) / 2;
     ctx.textAlign = 'left';
     ctx.fillStyle = COLORS.accent;
-    ctx.font = '700 128px sans-serif';
-    ctx.fillText(numberText, startX, 536);
+    ctx.font = '700 144px sans-serif';
+    ctx.fillText(numberText, startX, 528);
     if (event.unitText) {
-      ctx.font = '500 32px sans-serif';
+      ctx.font = '500 36px sans-serif';
       ctx.fillText(event.unitText, startX + numberWidth + unitGap, 562);
     }
     ctx.textAlign = 'center';
 
-    // 日期 / 分类 / 重复
+    // 日期（只留这一行信息，分类与重复方式不上海报：那是设置，不是内容）
     ctx.fillStyle = COLORS.ink;
-    ctx.font = '26px sans-serif';
-    ctx.fillText(event.targetDateText, POSTER_W / 2, 630);
-    ctx.fillStyle = COLORS.muted;
-    ctx.font = '21px sans-serif';
-    ctx.fillText(`${event.categoryText} · ${event.repeatText}`, POSTER_W / 2, 664);
+    ctx.font = '28px sans-serif';
+    ctx.fillText(event.targetDateText, POSTER_W / 2, 636);
 
     // 留在心上的那句话
-    const phrase = fitText(ctx, event.phrase, POSTER_W - 120, 22, 18, 400);
+    const phrase = fitText(ctx, event.phrase, POSTER_W - 130, 22, 18, 400);
     ctx.fillStyle = COLORS.accent;
     ctx.font = `400 ${phrase.size}px sans-serif`;
-    ctx.fillText(phrase.text, POSTER_W / 2, 690);
+    ctx.fillText(phrase.text, POSTER_W / 2, 688);
 
     // 分隔线
     ctx.save();
@@ -218,8 +215,8 @@ Page({
     ctx.lineWidth = 1.5;
     ctx.strokeStyle = COLORS.line;
     ctx.beginPath();
-    ctx.moveTo(120, 716);
-    ctx.lineTo(POSTER_W - 120, 716);
+    ctx.moveTo(140, 716);
+    ctx.lineTo(POSTER_W - 140, 716);
     ctx.stroke();
     ctx.restore();
 
@@ -243,17 +240,17 @@ Page({
     } catch (ignored) {}
 
     ctx.textAlign = 'center';
+    ctx.fillStyle = COLORS.muted;
     if (drewCode) {
-      ctx.fillStyle = COLORS.muted;
-      ctx.font = '21px sans-serif';
-      ctx.fillText('长按小程序码，把你的日子也记下来', POSTER_W / 2, 860);
+      ctx.font = '19px sans-serif';
+      ctx.fillText('长按识别，开始记录你的日子', POSTER_W / 2, 858);
     } else {
-      ctx.fillStyle = COLORS.accent;
       ctx.font = '500 26px sans-serif';
-      ctx.fillText('微信搜一搜「日子绵绵」', POSTER_W / 2, 812);
+      ctx.fillStyle = COLORS.accent;
+      ctx.fillText('微信搜一搜「日子绵绵」', POSTER_W / 2, 780);
       ctx.fillStyle = COLORS.muted;
       ctx.font = '21px sans-serif';
-      ctx.fillText('把你的日子，也慢慢记下来', POSTER_W / 2, 852);
+      ctx.fillText('把你的日子，也慢慢记下来', POSTER_W / 2, 820);
     }
   },
 
