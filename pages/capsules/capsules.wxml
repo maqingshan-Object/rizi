@@ -12,17 +12,18 @@
       <view class="quota-strip">
         <view class="quota-card"><text class="quota-label">待启封</text><text class="quota-value">{{counts.sealed}}</text></view>
         <view class="quota-card"><text class="quota-label">可启封</text><text class="quota-value">{{counts.openable}}</text></view>
-        <view class="quota-card"><text class="quota-label">自用额度</text><text class="quota-value">{{counts.selfQuota}}</text></view>
+        <view class="quota-card"><text class="quota-label">剩余额度</text><text class="quota-value">{{counts.quota}}</text></view>
       </view>
 
       <!-- 可送出的心意：有额度才出现 -->
-      <view wx:if="{{counts.giftQuota > 0}}" class="gift-ticket">
+      <view wx:if="{{counts.quota >= counts.costGift}}" class="gift-ticket">
         <view>
           <text class="ticket-title">你有一份心意可以送出</text>
-          <text class="ticket-sub">送给一个你在意的人，等一个属于你们的日子</text>
+          <text class="ticket-sub">送给一个你在意的人，等一个属于你们的日子（消耗 {{counts.costGift}} 个）</text>
         </view>
         <button class="btn-primary" bindtap="onWriteGift">送出去</button>
       </view>
+      <text class="form-help quota-help">自己写消耗 {{counts.costSelf}} 个 · 送人消耗 {{counts.costGift}} 个 · 现有 {{counts.quota}} 个</text>
 
       <view wx:if="{{error}}" class="form-error">{{error}}</view>
       <view wx:if="{{loading}}" class="poster-hint muted">正在读取…</view>

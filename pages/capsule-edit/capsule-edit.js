@@ -51,13 +51,15 @@ Page({
     if (!capsules.isReady()) return;
     capsules.list().then(result => {
       const counts = (result && result.counts) || {};
-      const left = this.data.kind === 'gift' ? counts.giftQuota : counts.selfQuota;
+      const cost = this.data.kind === 'gift' ? (counts.costGift || 2) : (counts.costSelf || 1);
+      const left = counts.quota == null ? null : counts.quota;
+      const enough = left == null ? true : left >= cost;
       this.setData({
-        quotaLeft: left == null ? null : left,
-        noQuota: left === 0,
-        error: left === 0
-          ? (this.data.kind === 'gift' ? '送人的心意已经用完了，买一份就能继续送' : '自用胶囊额度用完了，买一个就能继续写')
-          : ''
+        quotaLeft: left,
+        noQuota: !enough,
+        error: enough ? '' : (this.data.kind === 'gift'
+          ? '送出一份心意需要 ' + cost + ' 个时间胶囊，现在有 ' + left + ' 个'
+          : '写一个时间胶囊需要 ' + cost + ' 个，现在有 ' + left + ' 个')
       });
     }).catch(() => {});
   },

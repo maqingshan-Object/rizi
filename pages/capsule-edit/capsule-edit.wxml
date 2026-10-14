@@ -15,7 +15,7 @@
     <!-- 写新的 -->
     <block wx:else>
       <view wx:if="{{noQuota}}" class="paper no-quota">
-        <text class="no-quota-title">这次还差一份额度</text>
+        <text class="no-quota-title">额度不够了</text>
         <text class="no-quota-text muted">{{error}}</text>
         <button class="btn-primary" bindtap="onStore">去看看</button>
       </view>

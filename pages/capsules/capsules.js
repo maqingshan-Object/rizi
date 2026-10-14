@@ -11,7 +11,7 @@ Page({
     openable: [],
     sealed: [],
     opened: [],
-    counts: { sealed: 0, openable: 0, selfQuota: 0, giftQuota: 0 }
+    counts: { sealed: 0, openable: 0, quota: 0, costSelf: 1, costGift: 2 }
   },
 
   onShow() {
@@ -48,16 +48,22 @@ Page({
   },
 
   onWriteGift() {
-    if (!this.data.counts.giftQuota) {
+    // 送人消耗 2 个；额度不够就引导去商店，别让人白写
+    if ((this.data.counts.quota || 0) < (this.data.counts.costGift || 2)) {
       wx.showModal({
         title: '这份心意已经用掉了',
-        content: '想再送一个人，可以去商店买一份送人胶囊。',
+        content: '送出一份心意需要 2 个时间胶囊，现在的额度不够了，可以去商店补充。',
         confirmText: '去商店', cancelText: '知道了',
         success: r => { if (r.confirm) wx.navigateTo({ url: '/pages/store/store' }); }
       });
       return;
     }
     wx.navigateTo({ url: '/pages/capsule-edit/capsule-edit?kind=gift' });
+  },
+
+  /** 自己写消耗 1 个 */
+  hasSelfQuota() {
+    return (this.data.counts.quota || 0) >= (this.data.counts.costSelf || 1);
   },
 
   onOpen(event) {

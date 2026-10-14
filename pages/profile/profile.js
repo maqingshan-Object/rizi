@@ -69,7 +69,7 @@ Page({
       const parts = [];
       if (counts.openable) parts.push(counts.openable + ' 个可启封');
       if (counts.sealed) parts.push(counts.sealed + ' 个待启封');
-      if (counts.giftQuota) parts.push('1 份心意可送出');
+      if (counts.quota) parts.push('额度 ' + counts.quota + ' 个');
       if (parts.length) this.setData({ capsuleNote: parts.join(' · ') });
     }).catch(() => {});
   },

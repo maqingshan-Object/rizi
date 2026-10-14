@@ -10,7 +10,7 @@ const capsulesService = require('../../services/capsules');
 function capsuleBannerText(counts) {
   if (!counts) return '';
   if (counts.openable > 0) return '你有 ' + counts.openable + ' 个时间胶囊今天可以启封';
-  if (counts.giftQuota > 0) return '你有一份心意可以送出去';
+  if ((counts.quota || 0) >= (counts.costGift || 2)) return '你有一份心意可以送出去';
   return '';
 }
 const eventsService = require('../../services/events');

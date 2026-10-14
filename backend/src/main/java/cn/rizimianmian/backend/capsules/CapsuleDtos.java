@@ -19,8 +19,13 @@ public final class CapsuleDtos {
                               String createdAt, String publicToken) {
     }
 
-    /** 数量汇总：给「我的」页与首页提示条用。 */
-    public record CountsView(int sealed, int openable, int selfQuota, int giftQuota) {
+    /**
+     * 数量汇总：给「我的」页与首页提示条用。
+     *
+     * <p>额度是**通用**的（不区分自用/送人）：{@code quota} 是剩余个数，
+     * {@code costSelf}/{@code costGift} 是两种用法各自的消耗（自己写 1、送人 2）。
+     */
+    public record CountsView(int sealed, int openable, int quota, int costSelf, int costGift) {
     }
 
     public record ListView(List<CapsuleView> capsules, CountsView counts) {

@@ -28,10 +28,12 @@ import java.util.List;
 public class CapsuleService {
     private static final Logger log = LoggerFactory.getLogger(CapsuleService.class);
 
-    /** 新用户赠送：1 个自用 + 1 个送人。 */
+    /** 新用户赠送的额度个数（通用额度，不区分用途）。 */
     private static final String WELCOME_KEY = "welcome";
-    private static final int FREE_SELF = 1;
-    private static final int FREE_GIFT = 1;
+    private static final int FREE_QUOTA = 6;
+    /** 消耗规则：自己写扣 1，送人扣 2（送人多了"传递"这一层）。 */
+    public static final int COST_SELF = 1;
+    public static final int COST_GIFT = 2;
     private static final int MAX_CONTENT = 500;
 
     private final CapsuleRepository capsules;
@@ -54,9 +56,8 @@ public class CapsuleService {
         }
         // 标记行（不参与扣减，只表示"已经发过欢迎额度"）
         entitlements.save(new EntitlementEntity(userId, EntitlementType.support, WELCOME_KEY, null));
-        grant(userId, EntitlementType.capsule, FREE_SELF);
-        grant(userId, EntitlementType.capsule_gift, FREE_GIFT);
-        log.info("CAPSULE_WELCOME_GRANTED user={} self={} gift={}", userId, FREE_SELF, FREE_GIFT);
+        grant(userId, EntitlementType.capsule, FREE_QUOTA);
+        log.info("CAPSULE_WELCOME_GRANTED user={} quota={}", userId, FREE_QUOTA);
     }
 
     private void grant(String userId, EntitlementType type, int quantity) {
@@ -76,15 +77,16 @@ public class CapsuleService {
                 .map(EntitlementEntity::getQuantity).orElse(0);
     }
 
-    private void consume(String userId, EntitlementType type) {
-        EntitlementEntity entity = entitlements.findByUserIdAndItemTypeAndItemKey(userId, type, "capsule")
-                .orElseThrow(() -> new IllegalArgumentException(
-                        type == EntitlementType.capsule ? "还没有自用胶囊额度，去商店看看" : "还没有可以送出的心意，去商店看看"));
-        if (entity.getQuantity() <= 0) {
-            throw new IllegalArgumentException(
-                    type == EntitlementType.capsule ? "自用胶囊额度用完了，可以再买一个" : "这份心意已经送出去了，可以再买一份");
+    /** 扣额度（通用池）：不够就明确告诉他差几个。 */
+    private void consume(String userId, int cost) {
+        EntitlementEntity entity = entitlements
+                .findByUserIdAndItemTypeAndItemKey(userId, EntitlementType.capsule, "capsule")
+                .orElseThrow(() -> new IllegalArgumentException("时间胶囊额度不够了，去商店看看"));
+        if (entity.getQuantity() < cost) {
+            throw new IllegalArgumentException("时间胶囊额度不够了（这个需要 " + cost + " 个，现在有 "
+                    + entity.getQuantity() + " 个）");
         }
-        entity.increase(-1);
+        entity.increase(-cost);
         entitlements.save(entity);
     }
 
@@ -110,7 +112,7 @@ public class CapsuleService {
         if (kind == CapsuleEntity.Kind.gift && recipient.isEmpty()) {
             throw new IllegalArgumentException("送给别人时，写一下对方的称呼吧");
         }
-        consume(userId, kind == CapsuleEntity.Kind.gift ? EntitlementType.capsule_gift : EntitlementType.capsule);
+        consume(userId, kind == CapsuleEntity.Kind.gift ? COST_GIFT : COST_SELF);
         CapsuleEntity capsule = new CapsuleEntity(userId, kind, trim(request.title(), 120), content, openOn,
                 recipient.isEmpty() ? null : trim(recipient, 60), null);
         capsules.save(capsule);
@@ -142,7 +144,7 @@ public class CapsuleService {
             }
         }
         return new CapsuleDtos.CountsView(sealed, openable, quotaOf(userId, EntitlementType.capsule),
-                quotaOf(userId, EntitlementType.capsule_gift));
+                COST_SELF, COST_GIFT);
     }
 
     @Transactional
@@ -215,7 +217,8 @@ public class CapsuleService {
         boolean granted = false;
         if (firstTime) {
             entitlements.save(new EntitlementEntity(userId, EntitlementType.support, "gift_received", null));
-            grant(userId, EntitlementType.capsule_gift, 1);
+            // 受赠也并入通用额度（额度已不分用途，见类注释）
+            grant(userId, EntitlementType.capsule, 1);
             granted = true;
             log.info("CAPSULE_TRANSFER_GRANTED user={} from={}", userId, gift.getId());
         }
