@@ -68,8 +68,9 @@ app:
     offer-id: ${VIRTUAL_PAY_OFFER_ID:1450679167}
     app-key: ${VIRTUAL_PAY_APP_KEY:}
     sandbox-app-key: ${VIRTUAL_PAY_SANDBOX_APP_KEY:}
-    # 0 正式 / 1 沙箱；默认先用沙箱，验证通过后再改成 0 重新部署
-    env: ${VIRTUAL_PAY_ENV:1}
+    # 0 正式 / 1 沙箱。iOS 只能用正式环境，所以默认走 0；
+    # ⚠️ 不要用环境变量覆盖（纯数字值会触发云托管构建失败 100030）
+    env: ${VIRTUAL_PAY_ENV:0}
     query-order-url: ${VIRTUAL_PAY_QUERY_ORDER_URL:}
     # 后台「开发管理 → 开发设置 → 消息推送」里填的那个 Token（用于校验推送地址）
     notify-token: ${VIRTUAL_PAY_NOTIFY_TOKEN:}
