@@ -4,6 +4,10 @@
 FROM eclipse-temurin:21-jre
 WORKDIR /app
 ENV LANG=C.UTF-8
+# 容器默认时区是 UTC：@Scheduled(cron="0 0 2 * * *") 会按容器时区解释，
+# 结果"凌晨 2 点"实际跑在北京时间上午 10 点；凌晨 0–8 点之间"今天"还会算成前一天。
+# 这里在镜像层固化，避免依赖控制台环境变量被漏配。
+ENV TZ=Asia/Shanghai
 COPY app.jar app.jar
 EXPOSE 8080
-ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75", "-Dfile.encoding=UTF-8", "-jar", "/app/app.jar"]
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75", "-Dfile.encoding=UTF-8", "-Duser.timezone=Asia/Shanghai", "-jar", "/app/app.jar"]
