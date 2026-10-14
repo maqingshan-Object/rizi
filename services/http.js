@@ -1,6 +1,5 @@
 const config = require('../config/backend');
-
-const TOKEN_KEY = 'days_auth_access_token_v1';
+const session = require('./session');
 
 function containerReady() {
   return config.mode === 'container' && !!config.cloudEnv && !!config.serviceName;
@@ -15,10 +14,30 @@ function isBackendReady() {
   return containerReady() || requestModeReady();
 }
 
+/** 401/403 一律按"登录态失效"处理（JWT 默认有效期 120 分钟，过期后服务端就是这么回的）。 */
+function isAuthFailure(statusCode) {
+  return statusCode === 401 || statusCode === 403;
+}
+
 function toError(body, statusCode, fallback) {
   const error = new Error((body && body.message) || fallback);
   error.code = (body && body.code) || `HTTP_${statusCode}`;
   error.statusCode = statusCode;
+  return error;
+}
+
+/**
+ * 服务端拒绝访问：清掉本地登录态，让界面回到"未登录"，并给出可读原因。
+ * 之前这里直接落到通用兜底文案「云托管服务返回异常。」，
+ * 用户完全看不出是"后端挂了"还是"登录过期了"（实际是后者）。
+ */
+function toAuthError(body, statusCode) {
+  session.clear();
+  try { getApp().globalData.user = null; } catch (ignored) {}
+  const error = new Error((body && body.message) || '登录已过期，请重新登录后再试。');
+  error.code = (body && body.code) || 'AUTH_EXPIRED';
+  error.statusCode = statusCode;
+  error.authExpired = true;
   return error;
 }
 
@@ -34,7 +53,9 @@ function viaContainer(method, path, data, header) {
     const statusCode = response.statusCode || 0;
     const body = response.data === undefined ? {} : response.data;
     if (statusCode >= 200 && statusCode < 300) return body;
-    throw toError(body, statusCode, '云托管服务返回异常。');
+    if (isAuthFailure(statusCode) && session.token()) throw toAuthError(body, statusCode);
+    // 兜底文案带上状态码，方便以后凭一句提示就能定位问题。
+    throw toError(body, statusCode, `云托管服务返回异常（HTTP ${statusCode}）。`);
   }).catch(reason => {
     if (reason && reason.statusCode) throw reason;
     const error = new Error('云托管调用失败，请确认环境 ID、服务名称和基础库版本（需 2.23.0 以上）。');
@@ -58,7 +79,11 @@ function viaRequest(method, path, data, header) {
           resolve(body);
           return;
         }
-        reject(toError(body, response.statusCode, '请求后端服务失败，请稍后重试。'));
+        if (isAuthFailure(response.statusCode) && session.token()) {
+          reject(toAuthError(body, response.statusCode));
+          return;
+        }
+        reject(toError(body, response.statusCode, `请求后端服务失败（HTTP ${response.statusCode}），请稍后重试。`));
       },
       fail(reason) {
         const error = new Error('无法连接后端服务，请检查网络或后端是否已启动。');
@@ -77,7 +102,7 @@ function request(method, path, data) {
     return Promise.reject(error);
   }
 
-  const token = wx.getStorageSync(TOKEN_KEY);
+  const token = session.token();
   const header = Object.assign(
     { 'content-type': 'application/json' },
     token ? { Authorization: `Bearer ${token}` } : {}

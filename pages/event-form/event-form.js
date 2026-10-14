@@ -428,11 +428,16 @@ Page({
       }
       remoteSync.then(remoteSynced => remindersService.authorizeForEvent(record.id).then(authorized => {
         if (!authorized.ok) {
+          // 登录过期是最常见的原因（JWT 默认 120 分钟），要说清楚，别丢一句"服务异常"。
+          if (authorized.status === 'AUTH_EXPIRED' || authorized.status === 'UNAUTHORIZED') {
+            this.showPostSaveNotice('登录已过期', `${authorized.message}\n日子已保存在本机；请到「我的」重新登录后再开启提醒。`);
+            return;
+          }
           this.showPostSaveNotice('提醒尚未接通', authorized.message);
           return;
         }
-        this.showPostSaveNotice('授权状态已提交', remoteSynced
-          ? '已提交云端提醒授权状态；实际发送以服务端状态为准，不代表消息已经送达。'
+        this.showPostSaveNotice('提醒已开启', remoteSynced
+          ? '微信订阅授权已获得，并已同步到云端。到期后由服务端自动发送，实际送达以微信为准。'
           : '微信授权已完成，但事件尚未完成云端同步，本机不会声称提醒已开启。');
       }));
     }).catch(() => {

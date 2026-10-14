@@ -1,11 +1,9 @@
 const config = require('../config/backend');
 const http = require('./http');
-
-const USER_KEY = 'days_auth_user_v1';
-const TOKEN_KEY = 'days_auth_access_token_v1';
+const session = require('./session');
 
 function currentUser() {
-  return wx.getStorageSync(USER_KEY) || null;
+  return session.user();
 }
 
 function isConfigured() {
@@ -18,8 +16,7 @@ function setSession(response) {
     error.code = 'INVALID_AUTH_RESPONSE';
     throw error;
   }
-  wx.setStorageSync(TOKEN_KEY, response.accessToken);
-  wx.setStorageSync(USER_KEY, response.user);
+  session.save(response.accessToken, response.user);
   try { getApp().globalData.user = response.user; } catch (ignored) {}
   return response.user;
 }
@@ -54,14 +51,13 @@ async function updateProfile({ nickname, avatarUrl }) {
     throw error;
   }
   const user = await http.post('/api/auth/profile', { nickname, avatarUrl });
-  wx.setStorageSync(USER_KEY, user);
+  session.saveUser(user);
   try { getApp().globalData.user = user; } catch (ignored) {}
   return user;
 }
 
 function signOut() {
-  wx.removeStorageSync(USER_KEY);
-  wx.removeStorageSync(TOKEN_KEY);
+  session.clear();
   try { getApp().globalData.user = null; } catch (ignored) {}
 }
 

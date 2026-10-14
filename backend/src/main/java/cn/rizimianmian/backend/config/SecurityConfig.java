@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -21,6 +22,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @Configuration
@@ -36,8 +38,27 @@ public class SecurityConfig {
                         .requestMatchers("/actuator/health", "/api/health",
                                 "/api/auth/wechat/login", "/api/auth/cloudrun/login").permitAll()
                         .anyRequest().authenticated())
+                // 未带 token / token 过期时，返回 401 + 可读 JSON。
+                // Spring Security 默认是"403 + 空 body"，小程序拿不到 message 只能显示
+                // 「云托管服务返回异常。」，用户完全看不出是登录过期还是后端故障。
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint((request, response, authException) ->
+                                writeJson(response, HttpServletResponse.SC_UNAUTHORIZED,
+                                        "AUTH_REQUIRED", "登录已过期或未登录，请重新登录后再试。"))
+                        .accessDeniedHandler((request, response, deniedException) ->
+                                writeJson(response, HttpServletResponse.SC_FORBIDDEN,
+                                        "FORBIDDEN", "当前账号无权访问该资源。")))
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
+    }
+
+    /** 安全链路上的错误响应也统一成 {code, message}，与业务异常保持同一形状。 */
+    private static void writeJson(HttpServletResponse response, int status, String code, String message)
+            throws IOException {
+        response.setStatus(status);
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+        response.getWriter().write("{\"code\":\"" + code + "\",\"message\":\"" + message + "\"}");
     }
 
     @Bean
