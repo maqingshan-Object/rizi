@@ -78,8 +78,12 @@ public class WeChatTlsDiagnostics implements ApplicationRunner {
             }
             log.info("TLS_DIAGNOSTIC_HANDSHAKE=ok httpStatus={} serverCertIssuer={}", status, issuer);
         } catch (Exception exception) {
-            log.warn("TLS_DIAGNOSTIC_HANDSHAKE=failed type={} error={}",
-                    exception.getClass().getSimpleName(), exception.getMessage());
+            log.warn("TLS_DIAGNOSTIC_HANDSHAKE=failed type={} error={}", exception.getClass().getSimpleName(), exception.getMessage());
+            if (!TrustStoreSupport.trustServedChainEnabled()) {
+                log.warn("TLS_DIAGNOSTIC_HINT=若上面 TRUSTSTORE_ACTIVE 的 entries 正常（如 112）却仍失败，"
+                        + "说明拿到的证书不是真实的公共证书（出口被 TLS 代理替换）。"
+                        + "可设 WECHAT_TLS_TRUST_SERVED_CHAIN=true 临时放行，并会把对端证书链打进日志（TRUSTSTORE_SERVED_CHAIN_CERT）");
+            }
         }
     }
 
