@@ -142,6 +142,13 @@ public class WeChatSubscribeMessageClient {
                 return SendResult.failed("微信订阅消息响应缺少 errcode，未确认发送成功");
             }
             if (response.errcode() != 0) {
+                // 43101 = 用户拒绝接收 / 可用的订阅次数已用完。
+                // 这不是"发送失败"，而是"需要用户重新授权"：归类正确后，首页的
+                // 「提醒还没开启」提示条会自动亮起，用户只要重新点一次「开启提醒」就能继续收到。
+                if (response.errcode() == 43101) {
+                    return SendResult.needsAuthorization("微信侧没有可用的订阅次数了（一次性订阅发一条消耗一次），"
+                            + "到首页点「去开启」重新授权后即可继续收到提醒：" + response.errmsg());
+                }
                 String hint = cloudCall && openApiSeqId == null
                         ? "（响应头没有 x-openapi-seqid，说明本次没有走云调用链路）" : "";
                 return SendResult.failed("微信订阅消息发送失败：" + response.errmsg() + hint);

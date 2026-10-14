@@ -15,6 +15,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -139,7 +140,7 @@ class ReminderPrescheduleTest {
         when(wechat.send(anyString(), any(), any())).thenReturn(WeChatSubscribeMessageClient.SendResult.sent());
         when(tasks.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        List<String> sent = service.dispatchDueTasks(LocalDate.of(2026, 10, 14));
+        List<String> sent = service.dispatchDueTasks(LocalDate.of(2026, 10, 14), 3);
 
         assertEquals(List.of(task.getId()), sent, "发送成功的任务 id 必须回传，才能预建下一次");
         assertEquals(ReminderStatus.sent, task.getStatus());
@@ -159,9 +160,68 @@ class ReminderPrescheduleTest {
                 .thenReturn(WeChatSubscribeMessageClient.SendResult.failed("模拟发送失败"));
         when(tasks.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        List<String> sent = service.dispatchDueTasks(LocalDate.of(2026, 10, 14));
+        List<String> sent = service.dispatchDueTasks(LocalDate.of(2026, 10, 14), 3);
 
         assertTrue(sent.isEmpty());
         assertEquals(ReminderStatus.failed, task.getStatus());
+    }
+
+    @Test
+    void 到期日已过但在补发窗口内仍会尝试发送() {
+        // 发生日 2026-10-17、提前 3 天 ⇒ 到期日 2026-10-14；今天是 10-16（到期日已过 2 天）
+        ReminderTaskEntity task = new ReminderTaskEntity("u1", "e1", LocalDate.of(2026, 10, 17), 3);
+        task.markAuthorized();
+        when(tasks.findByStatusInAndAuthorizedTrue(anyList())).thenReturn(List.of(task));
+        EventEntity event = yearlyEvent();
+        when(events.findByIdAndUserId("e1", "u1")).thenReturn(Optional.of(event));
+        UserEntity user = mock(UserEntity.class);
+        when(user.getOpenId()).thenReturn("openid-1");
+        when(users.findById("u1")).thenReturn(Optional.of(user));
+        when(wechat.send(anyString(), any(), any())).thenReturn(WeChatSubscribeMessageClient.SendResult.sent());
+        when(tasks.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        List<String> sent = service.dispatchDueTasks(LocalDate.of(2026, 10, 16), 3);
+
+        assertEquals(List.of(task.getId()), sent, "窗口内的过期任务应该被补发");
+    }
+
+    @Test
+    void 超出补发窗口的任务不再发送() {
+        ReminderTaskEntity task = new ReminderTaskEntity("u1", "e1", LocalDate.of(2026, 10, 17), 3);
+        task.markAuthorized();
+        when(tasks.findByStatusInAndAuthorizedTrue(anyList())).thenReturn(List.of(task));
+
+        // 到期日 10-14，今天 10-20 ⇒ 超出 3 天窗口
+        List<String> sent = service.dispatchDueTasks(LocalDate.of(2026, 10, 20), 3);
+
+        assertTrue(sent.isEmpty(), "过期太久不该突然补发");
+    }
+
+    @Test
+    void 宽限为零时等同旧的精确当天匹配() {
+        ReminderTaskEntity task = new ReminderTaskEntity("u1", "e1", LocalDate.of(2026, 10, 17), 3);
+        task.markAuthorized();
+        when(tasks.findByStatusInAndAuthorizedTrue(anyList())).thenReturn(List.of(task));
+
+        assertTrue(service.dispatchDueTasks(LocalDate.of(2026, 10, 16), 0).isEmpty(), "宽限 0：提前一天不发");
+    }
+
+    @Test
+    void 重新授权可以救回已失败的任务() {
+        ReminderTaskEntity failed = new ReminderTaskEntity("u1", "e1", LocalDate.of(2026, 10, 17), 3);
+        failed.markAuthorized();
+        failed.markFailed("微信订阅消息发送失败：system error");
+        assertEquals(ReminderStatus.failed, failed.getStatus());
+
+        when(tasks.findByIdAndUserId(failed.getId(), "u1")).thenReturn(Optional.of(failed));
+        when(tasks.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        List<ReminderDtos.ReminderView> authorized = service.authorize("u1",
+                new ReminderDtos.TaskIdsRequest(List.of(failed.getId())));
+
+        assertEquals(1, authorized.size(), "失败任务必须能被重新授权激活（否则永远卡在失败状态）");
+        assertEquals(ReminderStatus.pending, failed.getStatus());
+        assertTrue(failed.isAuthorized());
+        assertNull(failed.getLastError(), "重新授权后失败原因应清空");
     }
 }

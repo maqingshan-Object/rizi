@@ -18,6 +18,15 @@ import java.util.List;
 public class ReminderScheduler {
     private static final Logger log = LoggerFactory.getLogger(ReminderScheduler.class);
 
+    /**
+     * 补发窗口：到期日过后这么多天内仍然尝试发送。
+     *
+     * <p>定时任务每天只跑一次，如果没有窗口，"到期日当天发送失败"就等于永久丢掉这条提醒
+     * （微信抖动、网络波动、临时缺订阅次数都会造成这种失败）。给 3 天宽限之后，
+     * 偶发失败第二天还能补上；过期太久则不再打扰，避免几个月后突然蹦出一条旧提醒。
+     */
+    private static final int CATCH_UP_DAYS = 3;
+
     private final EventRepository events;
     private final ReminderTaskService tasks;
     private final EventOccurrenceCalculator occurrences;
@@ -69,21 +78,25 @@ public class ReminderScheduler {
             }
             // 该条日子真正应该发提醒的那一天 = 发生日 - 提前天数
             LocalDate due = occurrence.minusDays(event.getReminderDaysBefore());
-            if (due.isBefore(today)) {
+            if (due.isAfter(today)) {
+                // 还没到期：只记录最近的一次，便于日志里一眼看到下一次什么时候发。
+                if (nextDue == null || due.isBefore(nextDue)) {
+                    nextDue = due;
+                }
                 continue;
             }
-            if (due.equals(today)) {
-                matchedToday++;
-                tasks.ensurePending(event.getUserId(), event.getId(), occurrence, event.getReminderDaysBefore());
-                log.info("REMINDER_MATCH eventId={} occurrence={} daysBefore={} 今天到期，已进入待发送队列",
-                        event.getId(), occurrence, event.getReminderDaysBefore());
+            if (due.isBefore(today.minusDays(CATCH_UP_DAYS))) {
+                // 已经超出补发窗口，不再处理。
                 continue;
             }
-            if (nextDue == null || due.isBefore(nextDue)) {
-                nextDue = due;
-            }
+            // 到期日已到（含窗口内的补发）：确保任务存在，再交给派发环节。
+            matchedToday++;
+            boolean catchUp = due.isBefore(today);
+            tasks.ensurePending(event.getUserId(), event.getId(), occurrence, event.getReminderDaysBefore());
+            log.info("REMINDER_MATCH eventId={} occurrence={} daysBefore={} due={} catchUp={} 已进入待发送队列",
+                    event.getId(), occurrence, event.getReminderDaysBefore(), due, catchUp);
         }
-        List<String> sentTaskIds = tasks.dispatchDueTasks(today);
+        List<String> sentTaskIds = tasks.dispatchDueTasks(today, CATCH_UP_DAYS);
         // 发完之后立刻为下一次发生日预建任务（独立事务）：一次性订阅发一条就消耗一次授权，
         // 不预建的话，每年重复的日子从第二年起就再也发不出来了。
         tasks.preScheduleNextOccurrences(sentTaskIds);

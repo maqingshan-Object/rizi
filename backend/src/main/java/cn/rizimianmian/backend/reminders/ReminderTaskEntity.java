@@ -83,8 +83,24 @@ public class ReminderTaskEntity {
         this.updatedAt = Instant.now();
     }
 
-    public boolean isDue(java.time.LocalDate today) {
-        return occurrence.minusDays(daysBefore).equals(today);
+    /** 这条任务真正应该发提醒的那一天（发生日 − 提前天数）。 */
+    public java.time.LocalDate dueDate() {
+        return occurrence.minusDays(daysBefore);
+    }
+
+    /**
+     * 到期日已到、且还在补发窗口内。
+     *
+     * <p>为什么要窗口：定时任务每天只跑一次，「到期日当天」原本是唯一机会 ——
+     * 一次失败（微信抖动、网络波动、临时缺次数）就等于永久丢掉这条提醒。
+     * 给几天宽限之后，偶发失败在窗口内还能补上，过期太久则不再打扰。
+     */
+    public boolean isDueWithin(java.time.LocalDate today, int graceDays) {
+        java.time.LocalDate due = dueDate();
+        if (due.isAfter(today)) {
+            return false;
+        }
+        return !due.plusDays(graceDays).isBefore(today);
     }
 
     public void markSent() {

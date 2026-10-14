@@ -73,18 +73,23 @@ public class ReminderTaskService {
 
     @Transactional
     public List<ReminderDtos.ReminderView> authorize(String userId, ReminderDtos.TaskIdsRequest request) {
+        // 也接受 failed：发送失败（微信抖动、临时缺次数）之后，用户在详情页重新点「开启提醒」时，
+        // 这条任务必须能被重新激活 —— 否则它会永远卡在失败状态，谁都救不回来。
         List<ReminderDtos.ReminderView> authorized = markAuthorized(userId, request,
-                List.of(ReminderStatus.needs_authorization, ReminderStatus.pending));
+                List.of(ReminderStatus.needs_authorization, ReminderStatus.pending, ReminderStatus.failed));
         // 这条日志用来证明"用户点了授权，且请求真的到了后端"。
         log.info("REMINDER_AUTHORIZE user={} tasks={}", userId, authorized.size());
         return authorized;
     }
 
     /**
-     * 派发今天到期的任务，返回**发送成功**的任务 id（供 {@link #preScheduleNextOccurrences} 预建下一次）。
+     * 派发到期（含补发窗口内）的任务，返回**发送成功**的任务 id（供 {@link #preScheduleNextOccurrences} 预建下一次）。
+     *
+     * @param graceDays 补发窗口：到期日过后这么多天内仍然尝试发送。定时任务每天只跑一次，
+     *                  没有窗口的话"一次失败 = 永久丢掉提醒"。
      */
     @Transactional
-    public List<String> dispatchDueTasks(LocalDate today) {
+    public List<String> dispatchDueTasks(LocalDate today, int graceDays) {
         int due = 0;
         List<String> sentTaskIds = new ArrayList<>();
         // 除 pending 外，一并捞「已授权但被打回 needs_authorization / failed」的任务。
@@ -93,9 +98,11 @@ public class ReminderTaskService {
         // 配置修好之后这些任务就永远躺在库里，用户明明授权过却还要重新点一次。
         for (ReminderTaskEntity task : tasks.findByStatusInAndAuthorizedTrue(
                 List.of(ReminderStatus.pending, ReminderStatus.needs_authorization, ReminderStatus.failed))) {
-            if (!task.isDue(today)) {
+            if (!task.isDueWithin(today, graceDays)) {
                 continue;
             }
+            // 到期日已过、但在补发窗口内：日志里标出来，便于排查"这条为什么今天才发"。
+            boolean catchUp = task.dueDate().isBefore(today);
             // 同一进程内对同一任务最多重试 3 次：失败若是永久性的（如模板字段错配），
             // 不至于每分钟刷接口、刷日志；容器重启即清零，修好配置后自然会再试。
             int tried = attempts.getOrDefault(task.getId(), 0);
@@ -109,8 +116,8 @@ public class ReminderTaskService {
                 sentTaskIds.add(attempted.getId());
             }
             // 每个命中任务都留一行结果：SENT / FAILED / NEEDS_AUTHORIZATION，失败时带原因。
-            log.info("REMINDER_DISPATCH taskId={} eventId={} occurrence={} attempt={} result={} error={}",
-                    attempted.getId(), attempted.getEventId(), attempted.getOccurrence(),
+            log.info("REMINDER_DISPATCH taskId={} eventId={} occurrence={} due={} catchUp={} attempt={} result={} error={}",
+                    attempted.getId(), attempted.getEventId(), attempted.getOccurrence(), attempted.dueDate(), catchUp,
                     tried + 1, attempted.getStatus(), attempted.getLastError());
         }
         if (due > 0) {
