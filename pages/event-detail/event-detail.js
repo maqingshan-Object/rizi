@@ -9,7 +9,9 @@ const eventView = require('../../utils/event-view');
 Page({
   data: {
     theme: 'cream', guest: true, loading: true, error: '', missing: false,
-    event: null, busy: false, reminderBusy: false, deleted: false
+    event: null, busy: false, reminderBusy: false, deleted: false,
+    // 详细信息默认收起：详情页首屏只留"日子本身"，设置项点开再看
+    infoOpen: false
   },
 
   onLoad(options) {
@@ -43,6 +45,10 @@ Page({
   },
 
   onRetry() { if (!this.data.deleted) this.refresh(); },
+
+  onToggleInfo() {
+    this.setData({ infoOpen: !this.data.infoOpen });
+  },
 
   /**
    * 转发文案统一由 utils/event-view 提供，分享海报页用的是同一份，

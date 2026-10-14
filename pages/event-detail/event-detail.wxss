@@ -25,10 +25,16 @@
 .hero-phrase { display: block; font-size: 20rpx; color: var(--accent); line-height: 1.8; margin-top: 16rpx; }
 .hero-cat { width: 166rpx; height: 154rpx; flex-shrink: 0; }
 .information-paper { padding: 6rpx 30rpx 24rpx; margin-bottom: 24rpx; }
+/* 详细信息折叠开关：默认收起，首屏只留"日子本身" */
+.info-toggle { display: flex; align-items: center; width: 100%; padding: 22rpx 0; text-align: left; background: transparent; border-bottom: 1rpx solid #d9ceba55; }
+.info-toggle-label { font-size: 25rpx; font-weight: 500; margin-right: 16rpx; }
+.info-toggle-hint { flex: 1; font-size: 21rpx; }
+.info-chevron { display: flex; flex-shrink: 0; transform: rotate(90deg); transition: transform 0.2s ease; }
+.info-chevron.is-open { transform: rotate(-90deg); }
 .detail-line { display: flex; align-items: flex-start; justify-content: space-between; gap: 24rpx; padding: 24rpx 0; border-bottom: 1rpx solid #d9ceba55; font-size: 24rpx; line-height: 1.65; }
 .detail-line > .muted { flex-shrink: 0; }
 .detail-value { text-align: right; overflow-wrap: break-word; min-width: 0; }
-.reminder-line { border-bottom: 0; padding-bottom: 8rpx; }
+.reminder-line { border-bottom: 0; border-top: 1rpx solid #d9ceba55; padding-top: 24rpx; padding-bottom: 8rpx; }
 .form-help { display: block; color: var(--muted); font-size: 21rpx; line-height: 1.8; }
 .reminder-help { margin-top: 8rpx; }
 .reminder-button { width: 100%; margin-top: 18rpx; }
