@@ -1,6 +1,7 @@
 const auth = require('../../services/auth');
 const events = require('../../services/events');
 const remindersService = require('../../services/reminders');
+const store = require('../../services/store');
 const { prepare, notify, login } = require('../../utils/page');
 
 /** 内置默认头像：它是带留白的插画，不适合裁切铺满，单独用 aspectFit 呈现。 */
@@ -27,12 +28,46 @@ Page({
     themes: [
       { id: 'cream', name: '奶油猫猫', caption: '温暖奶油', bg: '#faf6eb', soft: '#f6e9c9', accent: '#876c42' },
       { id: 'cherry', name: '樱桃手账', caption: '柔雾樱粉', bg: '#fcf2f0', soft: '#f7dfe2', accent: '#a35965' },
-      { id: 'mint', name: '薄荷极简', caption: '清新留白', bg: '#f2f6f2', soft: '#e2ece5', accent: '#526f63' }
-    ]
+      { id: 'mint', name: '薄荷极简', caption: '清新留白', bg: '#f2f6f2', soft: '#e2ece5', accent: '#526f63' },
+      // 付费主题：没购买时 locked=true，点击会引导去商店
+      { id: 'spring', name: '春日野餐', caption: '嫩芽野餐', bg: '#f7f8ef', soft: '#e6efd9', accent: '#6f8f5b', paid: true },
+      { id: 'autumn', name: '秋日信笺', caption: '暖纸枫红', bg: '#f9f3e8', soft: '#f0dfc9', accent: '#a2663f', paid: true }
+    ],
+    ownedThemes: [],
+    hasStore: false
   },
 
   onShow() {
     this.refresh();
+    this.loadStore();
+  },
+
+  /** 读云端权益，给付费主题打上 locked 标记（未拥有的付费主题切不过去）。 */
+  loadStore() {
+    if (!auth.currentUser() || !store.isReady()) {
+      this.setData({ hasStore: false });
+      this.applyThemeLock([]);
+      return;
+    }
+    this.setData({ hasStore: true });
+    store.entitlements().then(list => {
+      const owned = (list || []).filter(item => item.itemType === 'theme').map(item => item.itemKey);
+      this.applyThemeLock(owned);
+    }).catch(() => {
+      // 读不到权益时按"都没买"处理：不影响免费主题，也不会误放付费主题
+      this.applyThemeLock([]);
+    });
+  },
+
+  applyThemeLock(owned) {
+    const themes = this.data.themes.map(item => Object.assign({}, item, {
+      locked: !!item.paid && owned.indexOf(item.id) < 0
+    }));
+    this.setData({ themes, ownedThemes: owned });
+  },
+
+  onOpenStore() {
+    wx.navigateTo({ url: '/pages/store/store' });
   },
 
   refresh() {
@@ -79,7 +114,19 @@ Page({
 
   chooseTheme(event) {
     const id = event.currentTarget.dataset.id;
-    if (!this.data.themes.some(theme => theme.id === id)) return;
+    const theme = this.data.themes.find(item => item.id === id);
+    if (!theme) return;
+    // 付费主题要先拥有；没拥有就别切，明确引导去商店
+    if (theme.locked) {
+      wx.showModal({
+        title: '这是一套付费主题',
+        content: `「${theme.name}」购买后即可使用，记日子与提醒功能不受影响。要去看一眼吗？`,
+        confirmText: '去商店',
+        cancelText: '再看看',
+        success: result => { if (result.confirm) this.onOpenStore(); }
+      });
+      return;
+    }
     try {
       wx.setStorageSync('days_theme', id);
       prepare(this, 2);

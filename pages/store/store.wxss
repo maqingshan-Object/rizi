@@ -1,0 +1,25 @@
+.store-body { padding-top: 24rpx; }
+
+.store-notice { padding: 32rpx 30rpx; text-align: center; }
+.store-notice .notice-title { display: block; font-size: 30rpx; font-weight: 600; margin-bottom: 14rpx; }
+.store-notice .notice-text { display: block; font-size: 23rpx; line-height: 1.9; margin-bottom: 26rpx; }
+
+.store-intro { margin-bottom: 26rpx; }
+.store-title { display: block; font-size: 34rpx; font-weight: 600; }
+.store-subtitle { display: block; font-size: 22rpx; line-height: 1.85; margin-top: 10rpx; }
+
+.store-group { margin-bottom: 12rpx; }
+.store-group .section-title { margin-bottom: 10rpx; }
+.group-hint { display: block; font-size: 21rpx; margin-bottom: 16rpx; }
+
+.goods-card { display: flex; align-items: center; justify-content: space-between; padding: 26rpx 28rpx; margin-bottom: 18rpx; gap: 20rpx; }
+.goods-main { flex: 1; min-width: 0; }
+.goods-name { display: block; font-size: 28rpx; font-weight: 500; }
+.goods-desc { display: block; font-size: 21rpx; line-height: 1.8; margin-top: 8rpx; }
+.goods-action { display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0; }
+.goods-price { font-size: 28rpx; font-weight: 600; color: var(--accent); margin-bottom: 12rpx; }
+.goods-button { min-width: 150rpx; padding: 16rpx 20rpx; font-size: 24rpx; }
+.goods-button.owned { opacity: 0.6; }
+
+.refresh-button { width: 100%; margin-top: 20rpx; }
+.store-help { text-align: center; }

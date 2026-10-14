@@ -46,11 +46,17 @@
             <view class="mini-cards"><view style="background:{{item.soft}};"></view><view style="background:{{item.soft}};"></view></view>
             <view class="mini-tabs"><view></view><view></view><view style="background:{{item.accent}};"></view></view>
             <view wx:if="{{theme === item.id}}" class="theme-check" style="background:{{item.accent}};"><app-icon name="check" size="{{22}}" color="white" /></view>
+            <view wx:if="{{item.locked}}" class="theme-lock" style="background:{{item.accent}};"><app-icon name="lock" size="{{22}}" color="white" /></view>
           </view>
           <text class="theme-name">{{item.name}}</text>
           <text class="theme-caption muted">{{item.caption}}</text>
         </button>
       </view>
+      <button wx:if="{{hasStore}}" class="store-entry" bindtap="onOpenStore">
+        <text class="store-entry-title">主题商店</text>
+        <text class="store-entry-hint muted">还有两套新主题可以带走</text>
+        <app-icon name="next" size="{{26}}" color="neutral" />
+      </button>
     </view>
 
     <view class="settings">

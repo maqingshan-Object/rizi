@@ -1,0 +1,44 @@
+<view class="app-page theme-{{theme}} subpage">
+  <nav-header title="主题商店" back="{{true}}" theme="{{theme}}" />
+  <view class="page-body store-body">
+    <view wx:if="{{!logged}}" class="paper store-notice">
+      <text class="notice-title">登录后才能购买</text>
+      <text class="notice-text muted">购买记录要跟着账号走，换个手机也能找回已购买的主题。</text>
+      <button class="btn-primary" bindtap="onGoLogin">去登录</button>
+    </view>
+
+    <view wx:elif="{{!configured}}" class="paper store-notice">
+      <text class="notice-title">支付还没配置好</text>
+      <text class="notice-text muted">后台填好 OfferID 与 AppKey 之后，这里的商品就能购买了。主题之外的功能仍然全部免费可用。</text>
+    </view>
+
+    <block wx:else>
+      <view class="store-intro">
+        <text class="store-title">为喜欢的样子花一点点钱</text>
+        <text class="store-subtitle muted">记日子、提醒、云端备份永久免费；这里只卖"更好看"和"更特别"。</text>
+      </view>
+
+      <view wx:if="{{error}}" class="form-error">{{error}}</view>
+
+      <view wx:for="{{groups}}" wx:key="key" class="store-group">
+        <text class="section-title">{{item.title}}</text>
+        <text wx:if="{{item.hint}}" class="group-hint muted">{{item.hint}}</text>
+        <view wx:for="{{item.items}}" wx:for-item="goods" wx:key="productId" class="paper goods-card">
+          <view class="goods-main">
+            <text class="goods-name">{{goods.name}}</text>
+            <text class="goods-desc muted">{{goods.description}}</text>
+          </view>
+          <view class="goods-action">
+            <text class="goods-price">{{goods.priceText}}</text>
+            <button wx:if="{{goods.owned}}" class="btn-secondary goods-button owned" disabled="{{true}}">已拥有</button>
+            <button wx:else class="btn-primary goods-button" bindtap="onBuy" data-id="{{goods.productId}}" disabled="{{buying}}">{{buying && pendingId === goods.productId ? '处理中…' : '购买'}}</button>
+          </view>
+        </view>
+      </view>
+
+      <button class="btn-secondary refresh-button" bindtap="onRefresh" disabled="{{loading}}">{{loading ? '正在刷新…' : '支付成功但没解锁？点这里刷新权益'}}</button>
+      <text class="form-help store-help">虚拟支付按次购买；iOS 端会走 Apple 支付（由 Apple 完成扣款与结算）。购买后主题立即解锁，可在「我的」里切换。</text>
+    </block>
+    <view class="safe-bottom"></view>
+  </view>
+</view>

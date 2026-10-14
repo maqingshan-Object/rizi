@@ -6,6 +6,7 @@
     "pages/event-form/event-form",
     "pages/event-detail/event-detail",
     "pages/share/share",
+    "pages/store/store",
     "pages/login/login",
     "pages/privacy/privacy"
   ],
