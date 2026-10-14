@@ -50,11 +50,19 @@ public class StoreService {
 
     private AppProperties.VirtualPay pay() {
         AppProperties.VirtualPay config = properties.virtualPay();
-        return config == null ? new AppProperties.VirtualPay(null, null, null, 0, null) : config;
+        return config == null ? new AppProperties.VirtualPay(null, null, null, 0, null, null) : config;
     }
 
     public boolean configured() {
         return pay().configured();
+    }
+
+    /**
+     * 消息推送地址校验（微信保存推送地址时会带 signature/timestamp/nonce/echostr 来验证）。
+     * 用的是后台「消息推送」里填的 Token。
+     */
+    public boolean verifyNotifyToken(String signature, String timestamp, String nonce) {
+        return VirtualPaySigner.matchesWechatSignature(pay().notifyToken(), signature, timestamp, nonce);
     }
 
     /** 商品列表（带"是否已拥有"，前端可直接打上"已拥有"标记）。 */

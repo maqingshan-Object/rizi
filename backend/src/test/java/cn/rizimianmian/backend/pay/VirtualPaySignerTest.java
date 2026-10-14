@@ -34,10 +34,31 @@ class VirtualPaySignerTest {
 
     @Test
     void configuredOnlyWhenOfferIdAndAppKeyPresent() {
-        assertFalse(new cn.rizimianmian.backend.config.AppProperties.VirtualPay("", "", "", 0, null).configured());
-        assertFalse(new cn.rizimianmian.backend.config.AppProperties.VirtualPay("123", "", "", 0, null).configured());
-        assertTrue(new cn.rizimianmian.backend.config.AppProperties.VirtualPay("123", "key", "", 0, null).configured());
+        assertFalse(new cn.rizimianmian.backend.config.AppProperties.VirtualPay("", "", "", 0, null, null).configured());
+        assertFalse(new cn.rizimianmian.backend.config.AppProperties.VirtualPay("123", "", "", 0, null, null).configured());
+        assertTrue(new cn.rizimianmian.backend.config.AppProperties.VirtualPay("123", "key", "", 0, null, null).configured());
         // env=1 时用沙箱 key，此时现网 key 为空也应算"已配置"
-        assertTrue(new cn.rizimianmian.backend.config.AppProperties.VirtualPay("123", "", "sandbox", 1, null).configured());
+        assertTrue(new cn.rizimianmian.backend.config.AppProperties.VirtualPay("123", "", "sandbox", 1, null, null).configured());
+    }
+
+    @Test
+    void sha1MatchesKnownVector() {
+        // 标准测试向量：sha1("abc")
+        assertEquals("a9993e364706816aba3e25717850c26c9cd0d89d", VirtualPaySigner.sha1Hex("abc"));
+    }
+
+    @Test
+    void notifyAddressVerificationSortsTokenTimestampNonce() {
+        String token = "daysToken";
+        String timestamp = "1666000000";
+        String nonce = "abc123";
+        String[] parts = { token, timestamp, nonce };
+        java.util.Arrays.sort(parts);
+        String good = VirtualPaySigner.sha1Hex(String.join("", parts));
+
+        assertTrue(VirtualPaySigner.matchesWechatSignature(token, good, timestamp, nonce), "签名正确时应当通过");
+        assertFalse(VirtualPaySigner.matchesWechatSignature(token, "deadbeef", timestamp, nonce), "签名不对必须拒绝");
+        assertFalse(VirtualPaySigner.matchesWechatSignature("", good, timestamp, nonce), "没配 Token 时必须拒绝");
+        assertFalse(VirtualPaySigner.matchesWechatSignature(token, null, timestamp, nonce), "缺 signature 必须拒绝");
     }
 }

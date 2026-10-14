@@ -46,7 +46,8 @@ public record AppProperties(
             String appKey,
             String sandboxAppKey,
             Integer env,
-            String queryOrderUrl
+            String queryOrderUrl,
+            String notifyToken
     ) {
         /** OfferID + 对应环境的 AppKey 都有了才算配置完成。 */
         public boolean configured() {

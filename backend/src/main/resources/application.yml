@@ -68,6 +68,8 @@ app:
     sandbox-app-key: ${VIRTUAL_PAY_SANDBOX_APP_KEY:}
     env: ${VIRTUAL_PAY_ENV:0}
     query-order-url: ${VIRTUAL_PAY_QUERY_ORDER_URL:}
+    # 后台「开发管理 → 开发设置 → 消息推送」里填的那个 Token（用于校验推送地址）
+    notify-token: ${VIRTUAL_PAY_NOTIFY_TOKEN:}
   jwt:
     secret: ${JWT_SECRET}
     access-token-minutes: ${JWT_ACCESS_TOKEN_MINUTES:120}
