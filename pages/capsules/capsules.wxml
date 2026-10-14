@@ -39,15 +39,19 @@
       <!-- 封存中：打码 + 大倒计时 -->
       <block wx:if="{{sealed.length}}">
         <text class="group-title">🔒 封存中</text>
-        <view wx:for="{{sealed}}" wx:key="id" class="capsule-card" data-id="{{item.id}}" data-days="{{item.daysLeft}}" bindtap="onSealedTap">
-          <view class="cap-head">
-            <text class="cap-title">{{item.title || '写给未来的一段话'}}</text>
-            <text class="cap-mark">{{item.recipientName ? '送给 ' + item.recipientName : '只给自己'}}</text>
+        <block wx:for="{{sealed}}" wx:key="id">
+          <view class="capsule-card" data-id="{{item.id}}" data-days="{{item.daysLeft}}" bindtap="onSealedTap">
+            <view class="cap-head">
+              <text class="cap-title">{{item.title || '写给未来的一段话'}}</text>
+              <text class="cap-mark">{{item.recipientName ? '送给 ' + item.recipientName : '只给自己'}}</text>
+            </view>
+            <view class="mask-lines"><view class="mask-line"></view><view class="mask-line short"></view></view>
+            <view class="cap-countdown"><text class="num">{{item.daysLeft}}</text><text class="unit">天后启封</text></view>
+            <text class="cap-foot">写于 {{item.createdAt}}</text>
           </view>
-          <view class="mask-lines"><view class="mask-line"></view><view class="mask-line short"></view></view>
-          <view class="cap-countdown"><text class="num">{{item.daysLeft}}</text><text class="unit">天后启封</text></view>
-          <text class="cap-foot">写于 {{item.createdAt}}</text>
-        </view>
+          <!-- 送人且还没发出去：引导他发给对方（分享路径带领取码） -->
+          <button wx:if="{{item.kind === 'gift' && item.publicToken}}" class="btn-secondary send-button" open-type="share" data-token="{{item.publicToken}}" data-name="{{item.recipientName || '对方'}}">把这张卡片发给{{item.recipientName || '对方'}}</button>
+        </block>
       </block>
 
       <!-- 已启封：可读可删 -->

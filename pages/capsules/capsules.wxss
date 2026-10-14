@@ -33,3 +33,6 @@
 .cap-content { display: block; font-size: 26rpx; line-height: 1.95; margin: 18rpx 0 12rpx; white-space: pre-wrap; }
 
 .fab-capsule { position: fixed; right: 38rpx; bottom: calc(180rpx + env(safe-area-inset-bottom)); }
+
+/* 把卡片发给对方：紧跟在封存中的送人胶囊下面 */
+.send-button { width: 100%; margin: -8rpx 0 22rpx; font-size: 24rpx; border-style: dashed; }

@@ -229,7 +229,9 @@ public class CapsuleService {
                 capsule.getTitle() == null ? "" : capsule.getTitle(), capsule.getStatus().name(),
                 capsule.getOpenOn().toString(), daysLeft, openable, capsule.getRecipientName(),
                 revealed ? capsule.getContent() : null,
-                capsule.getCreatedAt() == null ? "" : capsule.getCreatedAt().toString());
+                capsule.getCreatedAt() == null ? "" : capsule.getCreatedAt().toString(),
+                // 领取码只回给属主自己 —— 他要用它把卡片发出去
+                capsule.getPublicToken());
     }
 
     private LocalDate parseDate(String value) {

@@ -106,5 +106,22 @@ Page({
 
   onGiftRead() {
     wx.showToast({ title: '对方打开时会看到你的称呼', icon: 'none' });
+  },
+
+  /**
+   * 把领取卡发出去：分享路径带领取码，对方打开就是「XX 给你留了一段话」。
+   * ⚠️ 文案刻意不写"分享得奖励" —— 微信判定诱导分享会封号；
+   *    这里是"把礼物发出去"，不是"分享换权益"。
+   */
+  onShareAppMessage(event) {
+    const token = event && event.target && event.target.dataset ? event.target.dataset.token : '';
+    const name = event && event.target && event.target.dataset ? event.target.dataset.name : '你';
+    if (!token) {
+      return { title: '日子绵绵 · 把重要的日子放在心上', path: '/pages/days/days' };
+    }
+    return {
+      title: '给' + (name || '你') + '留了一段话，到那天才能打开',
+      path: '/pages/capsule-gift/capsule-gift?token=' + token
+    };
   }
 });

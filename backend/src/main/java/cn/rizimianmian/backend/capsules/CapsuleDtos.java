@@ -16,7 +16,7 @@ public final class CapsuleDtos {
      */
     public record CapsuleView(String id, String kind, String title, String status, String openOn,
                               long daysLeft, boolean openable, String recipientName, String content,
-                              String createdAt) {
+                              String createdAt, String publicToken) {
     }
 
     /** 数量汇总：给「我的」页与首页提示条用。 */

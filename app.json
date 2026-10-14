@@ -9,6 +9,7 @@
     "pages/store/store",
     "pages/capsules/capsules",
     "pages/capsule-edit/capsule-edit",
+    "pages/capsule-gift/capsule-gift",
     "pages/login/login",
     "pages/privacy/privacy"
   ],
