@@ -1,5 +1,6 @@
 const { prepare } = require('../../utils/page');
 const eventsService = require('../../services/events');
+const remindersService = require('../../services/reminders');
 const dateUtils = require('../../utils/date');
 
 const CATEGORIES = [
@@ -12,6 +13,14 @@ const CATEGORIES = [
 const CATEGORY_LABELS = {
   birthday: '生日', anniversary: '纪念日', holiday: '节日', other: '其他'
 };
+
+/** 把 'YYYY-MM-DD' 往前推 days 天，得到"提醒日"。 */
+function shiftDays(iso, days) {
+  if (!iso) return '';
+  const parts = String(iso).split('-').map(Number);
+  const date = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2] - (Number(days) || 0)));
+  return dateUtils.dateString(date.getUTCFullYear(), date.getUTCMonth() + 1, date.getUTCDate());
+}
 
 function cardView(event) {
   const annotated = dateUtils.annotate(event);
@@ -43,6 +52,7 @@ Page({
     })),
     loading: true,
     error: '',
+    reminderNotice: null,
     feature: null,
     cards: [],
     life: null,
@@ -83,6 +93,8 @@ Page({
         visibleCount: 0
       });
     }
+    // 本机记录渲染完再补云端提醒状态：不阻塞首屏，也不影响离线可用。
+    this.refreshReminderNotice();
   },
 
   applyCategory(category) {
@@ -122,5 +134,62 @@ Page({
 
   onRetryTap() {
     this.refresh();
+  },
+
+  /**
+   * 首页显著位置的"还没开启提醒"提示。
+   *
+   * 口径与后端完全一致：只看云端任务里 authorized !== true 的日子 —— 用户以为开了、
+   * 服务端其实不会发，是这里最容易踩的坑，所以宁可提示得直白。
+   * 提醒日已经过去的不提示（本轮的发送窗口已经错过，提示了也点不出结果）。
+   */
+  refreshReminderNotice() {
+    if (eventsService.isGuest() || !eventsService.remoteReady()) {
+      if (this.data.reminderNotice) this.setData({ reminderNotice: null });
+      return;
+    }
+    remindersService.pendingAuthorization(this._events).then(response => {
+      if (!response.ok || !response.data || !response.data.length) {
+        if (this.data.reminderNotice) this.setData({ reminderNotice: null });
+        return;
+      }
+      const today = dateUtils.today();
+      const items = response.data
+        .map(item => {
+          const due = shiftDays(item.task.occurrence, item.task.daysBefore);
+          return Object.assign({}, item, { due, remaining: dateUtils.daysBetween(today, due) });
+        })
+        .filter(item => item.remaining >= 0)
+        .sort((a, b) => a.remaining - b.remaining);
+      if (!items.length) {
+        if (this.data.reminderNotice) this.setData({ reminderNotice: null });
+        return;
+      }
+      const first = items[0];
+      const count = items.length;
+      this.setData({
+        reminderNotice: {
+          eventId: first.event.id,
+          count,
+          title: '提醒还没开启',
+          desc: count === 1
+            ? `「${first.event.name}」还没完成微信订阅授权`
+            : `「${first.event.name}」等 ${count} 个日子还没完成微信订阅授权`,
+          timeText: first.remaining === 0 ? '提醒日就是今天' : `提醒将在 ${first.remaining} 天后发出`,
+          action: '去开启'
+        }
+      });
+    }).catch(() => {
+      if (this.data.reminderNotice) this.setData({ reminderNotice: null });
+    });
+  },
+
+  onReminderNoticeTap() {
+    const notice = this.data.reminderNotice;
+    if (!notice || !notice.eventId) return;
+    wx.navigateTo({
+      url: '/pages/event-detail/event-detail?id=' + encodeURIComponent(notice.eventId),
+      fail: () => wx.showToast({ title: '详情页暂时打不开，请重试', icon: 'none' })
+    });
   }
 });

@@ -13,6 +13,16 @@
       <image class="head-cat" src="/assets/cat.png" mode="aspectFit" aria-label="温柔的奶油小猫" />
     </view>
 
+    <view wx:if="{{reminderNotice}}" class="reminder-notice" bindtap="onReminderNoticeTap" hover-class="card-pressed" aria-role="button" aria-label="{{reminderNotice.desc}}，{{reminderNotice.timeText}}，点这里去开启提醒授权">
+      <view class="notice-icon"><app-icon name="bell" size="30" /></view>
+      <view class="notice-body">
+        <text class="notice-title">{{reminderNotice.title}}</text>
+        <text class="notice-desc">{{reminderNotice.desc}}</text>
+        <text class="notice-time">{{reminderNotice.timeText}}</text>
+      </view>
+      <text class="notice-action">{{reminderNotice.action}}</text>
+    </view>
+
     <view class="category-tabs" aria-label="事件分类">
       <button wx:for="{{categories}}" wx:key="key" class="{{item.className}}" data-category="{{item.key}}" bindtap="onCategoryTap" hover-class="button-pressed" aria-label="{{item.label}}分类">
         <text>{{item.label}}</text>

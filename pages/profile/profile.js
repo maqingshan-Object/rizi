@@ -82,7 +82,7 @@ Page({
 
   loadReminderSummary() {
     this.setData({ reminderNote: this.data.guest ? '请先登录' : '读取中…', pendingReminderCount: 0 });
-    remindersService.list().then(response => {
+    remindersService.pendingAuthorization(events.list()).then(response => {
       if (!response.ok) {
         this.setData({
           reminderNote: response.status === 'BACKEND_NOT_CONFIGURED' || response.status === 'MISSING_TEMPLATE'
@@ -91,10 +91,11 @@ Page({
         });
         return;
       }
-      const pending = response.data.filter(item => item && ['pending', 'needs_authorization'].includes(item.status)).length;
+      // 与首页提示同一口径：authorized !== true 才算"还没开启"，避免两处数字打架。
+      const pending = (response.data || []).filter(item => item && item.task && item.event).length;
       this.setData({
         pendingReminderCount: pending,
-        reminderNote: pending ? `${pending} 条待授权` : response.data.length ? `${response.data.length} 条云端任务` : '暂无任务'
+        reminderNote: pending ? `${pending} 个日子待开启提醒` : '没有待开启的提醒'
       });
     });
   },

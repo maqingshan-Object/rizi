@@ -125,6 +125,31 @@ function statusForEvent(eventId) {
   });
 }
 
+/**
+ * 汇总「已开启提醒、但云端任务还没完成授权」的日子（首页提示用）。
+ *
+ * 判定只看云端任务：authorized !== true 且未发出、未取消，才算"还没开启"。
+ * 这样提示的口径和「服务端到底会不会发」完全一致，不会给出安慰性的假结论。
+ * 返回 items: [{ task, event }]；日期排序与剩余天数交给调用方算（这里不依赖日期工具）。
+ */
+function pendingAuthorization(events) {
+  if (!auth.currentUser()) return Promise.resolve(loginRequired());
+  if (!isBackendReady()) return Promise.resolve(backendRequired());
+  return list().then(response => {
+    if (!response.ok) return response;
+    const byId = {};
+    (Array.isArray(events) ? events : []).forEach(item => {
+      if (item && item.id) byId[item.id] = item;
+    });
+    const items = (response.data || [])
+      .filter(task => task && task.authorized !== true
+        && ['pending', 'needs_authorization', 'failed'].indexOf(task.status) >= 0)
+      .map(task => ({ task, event: byId[task.eventId] || null }))
+      .filter(item => item.event);
+    return result(true, 'PENDING_AUTHORIZATION', '已读取待授权的提醒。', items);
+  });
+}
+
 async function subscribeForEvent(eventId) {
   if (!auth.currentUser()) return loginRequired();
   if (!isBackendReady()) return backendRequired();
@@ -156,5 +181,6 @@ module.exports = {
   authorize,
   authorizeForEvent,
   statusForEvent,
+  pendingAuthorization,
   subscribeForEvent
 };
