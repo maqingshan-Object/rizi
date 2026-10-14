@@ -97,18 +97,18 @@
   background: var(--days-feature);
 }
 .feature-border { position: absolute; top: 17rpx; right: 17rpx; bottom: 17rpx; left: 17rpx; border: 1rpx dashed rgba(135, 108, 66, 0.22); border-radius: 30rpx; pointer-events: none; }
-.event-top { display: flex; align-items: center; justify-content: space-between; position: relative; }
+.event-top { display: flex; align-items: center; justify-content: space-between; position: relative; z-index: 2; }
 .event-heading { display: flex; align-items: center; flex: 1; min-width: 0; font-size: 26rpx; font-weight: 500; }
 .event-heading app-icon { margin-right: 12rpx; flex-shrink: 0; }
 .event-name { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .feature-pill { margin-left: 12rpx; padding: 6rpx 12rpx; border-radius: 22rpx; font-size: 18rpx; background: rgba(255, 253, 247, 0.55); color: var(--days-accent); flex-shrink: 0; }
 .feature-status { display: block; margin-top: 24rpx; font-size: 21rpx; color: var(--days-accent); }
-.feature-count { display: flex; align-items: baseline; position: relative; z-index: 1; padding-right: 160rpx; min-height: 112rpx; }
+.feature-count { display: flex; align-items: baseline; position: relative; z-index: 1; padding-right: 212rpx; min-height: 112rpx; }
 .feature-number { font-family: 'Avenir Next', 'Helvetica Neue', sans-serif; font-size: 105rpx; font-weight: 500; letter-spacing: -5rpx; line-height: 1.12; word-break: break-all; }
 .feature-unit { margin-left: 12rpx; font-size: 25rpx; color: var(--days-accent); white-space: nowrap; }
 .feature-cat { position: absolute; right: 20rpx; bottom: 62rpx; width: 184rpx; height: 172rpx; transform: rotate(-5deg); pointer-events: none; }
 .feature-phrase { display: block; margin-top: 8rpx; color: var(--days-accent); font-size: 19rpx; opacity: 0.8; }
-.event-footer { position: relative; display: flex; align-items: center; justify-content: space-between; color: var(--days-accent); font-size: 19rpx; margin-top: 23rpx; opacity: 0.85; }
+.event-footer { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; color: var(--days-accent); font-size: 19rpx; margin-top: 23rpx; opacity: 0.85; }
 .event-link { display: flex; align-items: center; flex-shrink: 0; margin-left: 10rpx; }
 .event-link app-icon { margin-left: 5rpx; }
 .cards-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 22rpx -10rpx 0; }
@@ -131,8 +131,8 @@
 .tint-blue { background: var(--days-blue); }
 .event-card-body { padding: 19rpx 23rpx 23rpx; position: relative; overflow: hidden; }
 .event-card-body > text, .event-card-body > view { position: relative; z-index: 1; }
-.small-category-art { position: absolute; right: -12rpx; top: 12rpx; width: 130rpx; height: 138rpx; opacity: 0.15; pointer-events: none; }
-.feature-art { position: absolute; right: 26rpx; bottom: 56rpx; width: 180rpx; height: 186rpx; opacity: 0.82; pointer-events: none; }
+.small-category-art { position: absolute; right: -10rpx; top: 8rpx; width: 152rpx; height: 162rpx; opacity: 0.3; pointer-events: none; }
+.feature-art { position: absolute; right: 20rpx; bottom: 44rpx; width: 246rpx; height: 254rpx; opacity: 0.92; pointer-events: none; }
 .feature-holiday { display: block; position: relative; font-size: 22rpx; margin-top: 18rpx; color: var(--days-accent); }
 .small-holiday { display: block; font-size: 19rpx; margin-bottom: 6rpx; color: var(--days-accent); }
 .sort-note { display: block; font-size: 19rpx; color: var(--days-muted); margin: -9rpx 4rpx 16rpx; }
@@ -243,4 +243,6 @@
   .life-number { font-size: 34rpx; }
   .notice-desc { font-size: 20rpx; }
   .notice-action { padding: 8rpx 16rpx; font-size: 20rpx; }
+  .feature-art { width: 206rpx; height: 212rpx; }
+  .feature-count { padding-right: 176rpx; }
 }
