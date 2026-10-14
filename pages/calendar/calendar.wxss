@@ -90,13 +90,9 @@
 .legend-item:last-child { margin-right: 0; }
 .legend-badge { font-size: 15rpx; width: 25rpx; height: 25rpx; line-height: 25rpx; text-align: center; border-radius: 6rpx; margin-right: 8rpx; }
 .legend-dot { width: 8rpx; height: 8rpx; background: #c58c93; border-radius: 50%; margin-right: 9rpx; }
-.selection-summary { display: flex; align-items: center; justify-content: space-between; background: rgba(135, 108, 66, 0.045); border-radius: 23rpx; padding: 22rpx 24rpx; margin-top: 23rpx; }
-.selected-heading { flex: 1; min-width: 0; }
-.selected-date { display: block; font-size: 26rpx; font-weight: 500; }
-.selected-meta { display: block; margin-top: 6rpx; color: var(--cal-muted); font-size: 20rpx; line-height: 1.5; }
-.selected-total { color: var(--cal-accent); background: var(--cal-soft); padding: 7rpx 15rpx; border-radius: 25rpx; font-size: 19rpx; margin-left: 15rpx; flex-shrink: 0; }
 /* 选中日的条目：只在当天确实有日子时才渲染，避免空态占掉一大块版面 */
-.selected-events { margin-top: 17rpx; }
+.selected-events { margin-top: 26rpx; }
+.selected-hint { display: block; margin: 0 2rpx 15rpx; color: var(--cal-muted); font-size: 21rpx; }
 .section-heading { display: flex; align-items: center; justify-content: space-between; margin: 32rpx 2rpx 19rpx; font-size: 27rpx; font-weight: 500; }
 .section-count { color: var(--cal-muted); font-size: 20rpx; font-weight: normal; }
 .calendar-content .schedule { display: flex; align-items: center; width: 100%; margin-bottom: 17rpx; padding: 25rpx 24rpx; border-radius: 30rpx; border: 1rpx solid var(--cal-line); background: var(--cal-paper); text-align: left; }

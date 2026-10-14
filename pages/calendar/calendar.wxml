@@ -54,15 +54,8 @@
         </view>
       </view>
 
-      <view class="selection-summary soft-card">
-        <view class="selected-heading">
-          <text class="selected-date">{{selectedLabel}}</text>
-          <text class="selected-meta">{{selectedMeta}}</text>
-        </view>
-        <text class="pill selected-total">{{selectedCount}} 个日子</text>
-      </view>
-
       <view wx:if="{{selectedCount}}" class="selected-events">
+        <text class="selected-hint">{{selectedLabel}} · {{selectedCount}} 个日子</text>
         <button wx:for="{{selectedEvents}}" wx:key="rowKey" class="schedule paper" data-id="{{item.id}}" bindtap="onEventTap" hover-class="card-pressed" aria-label="{{item.name}}，{{item.whenText}}，查看详情">
           <view class="schedule-icon {{item.tintClass}}"><app-icon name="{{item.icon}}" size="36" /></view>
           <view class="schedule-info">
