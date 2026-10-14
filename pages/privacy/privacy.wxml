@@ -7,7 +7,11 @@
       <text class="privacy-subtitle muted">谁在收集、收集什么、你随时能怎么处理，都写在这里。</text>
     </view>
 
-    <view class="guest-banner privacy-status"><text class="status-title">运营者：小马（个人开发者，已通过微信认证与小程序备案）</text><text class="status-description">访客记录只保存在本机；登录后可按账号同步到云端。提醒需要你主动授权，且是微信「一次性订阅」。联系邮箱：254423926@qq.com</text></view>
+    <view class="privacy-status">
+      <text class="status-title">运营者：小马 · 个人开发者</text>
+      <text class="status-description">已通过微信认证与小程序备案 ｜ 联系邮箱 254423926@qq.com</text>
+    </view>
+    <text class="privacy-lead muted">访客记录只保存在本机；登录后按账号同步到云端。提醒需要你主动授权，且是微信「一次性订阅」。</text>
 
     <view class="paper legal-paper legal-text">
       <view class="legal-section">
@@ -17,7 +21,7 @@
       </view>
       <view class="legal-section">
         <view class="legal-heading"><text class="section-number">02</text><text>登录只用于确认身份</text></view>
-        <text class="legal-paragraph">登录通过微信云托管完成：服务端从请求中获取你的微信身份标识（OpenID）用于建立账号，不要求你输入手机号。</text>
+        <text class="legal-paragraph">登录通过微信云托管完成：我们从你的登录请求中取得微信身份标识（OpenID）来建立账号，不要求你输入手机号。</text>
         <text class="legal-paragraph">只有身份确认成功后，页面才会显示头像与昵称表单。访客页面的「日子的收藏家」和猫猫图片是默认展示，不是读取到的微信资料；不登录也能使用全部记录功能。</text>
       </view>
       <view class="legal-section">
@@ -33,7 +37,7 @@
       </view>
       <view class="legal-section">
         <view class="legal-heading"><text class="section-number">05</text><text>你可以管理自己的数据</text></view>
-        <text class="legal-paragraph">「我的 → 管理我的日子」可以查看、编辑、删除单条记录。删除在服务端同样生效，删除后无法恢复，请确认后操作。</text>
+        <text class="legal-paragraph">「我的 → 管理我的日子」可以查看、编辑、删除单条记录。登录状态下删除，云端会一起删掉，之后无法恢复，请确认后操作。</text>
         <text class="legal-paragraph">「移除示例日子」会先弹出确认框，只移除仍标记为示例的记录；你新建或保存过的日子不会随示例一起删除，此操作也不清空本机全部数据。</text>
       </view>
       <view class="legal-section last-section">
