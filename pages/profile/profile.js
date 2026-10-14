@@ -3,6 +3,9 @@ const events = require('../../services/events');
 const remindersService = require('../../services/reminders');
 const { prepare, notify, login } = require('../../utils/page');
 
+/** 内置默认头像：它是带留白的插画，不适合裁切铺满，单独用 aspectFit 呈现。 */
+const DEFAULT_AVATAR = '/assets/cat.png';
+
 Page({
   data: {
     theme: 'cream',
@@ -12,6 +15,7 @@ Page({
     avatar: '/assets/cat.png',
     avatarIndex: 0,
     avatarFailed: false,
+    avatarArt: false,
     avatarLetter: '日',
     backupNote: '',
     stats: { total: 0, birthday: 0, countup: 0 },
@@ -41,7 +45,7 @@ Page({
     if (user && user.avatarUrl) candidates.push(user.avatarUrl);
     const localAvatar = auth.localAvatar();
     if (localAvatar && candidates.indexOf(localAvatar) < 0) candidates.push(localAvatar);
-    candidates.push('/assets/cat.png');
+    candidates.push(DEFAULT_AVATAR);
     this._avatarCandidates = candidates;
     this.setData({
       guest: events.isGuest(),
@@ -50,6 +54,9 @@ Page({
       avatar: candidates[0],
       avatarIndex: 0,
       avatarFailed: false,
+      // 用户头像用 aspectFill 铺满方框（否则四周会留白，看起来"没对齐"）；
+      // 内置插画保持 aspectFit + 内边距，避免被裁掉边缘。
+      avatarArt: candidates[0] === DEFAULT_AVATAR,
       backupNote: user ? '已开启' : '登录后开启'
     });
     this.loadReminderSummary();
@@ -98,7 +105,11 @@ Page({
     const list = this._avatarCandidates || [];
     const next = (this.data.avatarIndex || 0) + 1;
     if (next < list.length) {
-      this.setData({ avatar: list[next], avatarIndex: next });
+      this.setData({
+        avatar: list[next],
+        avatarIndex: next,
+        avatarArt: list[next] === DEFAULT_AVATAR
+      });
       return;
     }
     this.setData({ avatarFailed: true });

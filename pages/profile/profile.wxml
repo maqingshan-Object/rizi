@@ -10,7 +10,7 @@
 
     <view class="profile-card">
       <button class="avatar-button" bindtap="openLogin" aria-label="{{guest ? '前往登录' : '编辑头像昵称'}}">
-        <image wx:if="{{!avatarFailed}}" class="avatar" src="{{avatar}}" mode="aspectFit" binderror="avatarError" />
+        <image wx:if="{{!avatarFailed}}" class="avatar {{avatarArt ? 'avatar-art' : ''}}" src="{{avatar}}" mode="{{avatarArt ? 'aspectFit' : 'aspectFill'}}" binderror="avatarError" />
         <view wx:else class="avatar avatar-letter">{{avatarLetter}}</view>
       </button>
       <view class="profile-info">
