@@ -210,7 +210,7 @@ Page({
     const phrase = fitText(ctx, event.phrase, POSTER_W - 120, 22, 18, 400);
     ctx.fillStyle = COLORS.accent;
     ctx.font = `400 ${phrase.size}px sans-serif`;
-    ctx.fillText(phrase.text, POSTER_W / 2, 706);
+    ctx.fillText(phrase.text, POSTER_W / 2, 690);
 
     // 分隔线
     ctx.save();
@@ -218,17 +218,27 @@ Page({
     ctx.lineWidth = 1.5;
     ctx.strokeStyle = COLORS.line;
     ctx.beginPath();
-    ctx.moveTo(120, 738);
-    ctx.lineTo(POSTER_W - 120, 738);
+    ctx.moveTo(120, 716);
+    ctx.lineTo(POSTER_W - 120, 716);
     ctx.stroke();
     ctx.restore();
 
-    // 底部：有小程序码就印码，没有就用文字兜底
+    // 底部：有小程序码就印在白卡片上（下载到的是白底图，直接贴会露出方块），没有就用文字兜底
     let drewCode = false;
     try {
       const code = await loadImage(canvas, MINI_CODE_PATH);
-      const size = 118;
-      ctx.drawImage(code, (POSTER_W - size) / 2, 756, size, size);
+      const size = 96;
+      const pad = 8;
+      const x = (POSTER_W - size) / 2;
+      const y = 730 + pad;
+      // 白卡片：既让白底小程序码不突兀，也保证扫码所需的对比度
+      roundRect(ctx, x - pad, y - pad, size + pad * 2, size + pad * 2, 14);
+      ctx.fillStyle = '#ffffff';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(135, 108, 66, 0.18)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.drawImage(code, x, y, size, size);
       drewCode = true;
     } catch (ignored) {}
 
@@ -236,7 +246,7 @@ Page({
     if (drewCode) {
       ctx.fillStyle = COLORS.muted;
       ctx.font = '21px sans-serif';
-      ctx.fillText('长按小程序码，把你的日子也记下来', POSTER_W / 2, 890);
+      ctx.fillText('长按小程序码，把你的日子也记下来', POSTER_W / 2, 860);
     } else {
       ctx.fillStyle = COLORS.accent;
       ctx.font = '500 26px sans-serif';
