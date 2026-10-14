@@ -7,6 +7,8 @@
     "pages/event-detail/event-detail",
     "pages/share/share",
     "pages/store/store",
+    "pages/capsules/capsules",
+    "pages/capsule-edit/capsule-edit",
     "pages/login/login",
     "pages/privacy/privacy"
   ],

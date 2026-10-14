@@ -1,0 +1,35 @@
+.capsule-body { padding-top: 20rpx; }
+
+/* 数量与心意券 */
+.quota-strip { display: flex; gap: 18rpx; margin-bottom: 26rpx; }
+.quota-card { flex: 1; padding: 22rpx 24rpx; border-radius: 26rpx; background: var(--soft); }
+.quota-card .quota-label { display: block; font-size: 21rpx; color: var(--muted); }
+.quota-card .quota-value { display: block; font-size: 38rpx; font-weight: 600; color: var(--accent); margin-top: 6rpx; }
+
+/* 待启封的心意券（免费送人额度包装成"一份心意"） */
+.gift-ticket { display: flex; align-items: center; justify-content: space-between; padding: 26rpx 28rpx; margin-bottom: 24rpx; border-radius: 28rpx; background: var(--paper); border: 1rpx dashed var(--accent); }
+.gift-ticket .ticket-title { display: block; font-size: 26rpx; font-weight: 500; }
+.gift-ticket .ticket-sub { display: block; font-size: 21rpx; color: var(--muted); margin-top: 8rpx; }
+.gift-ticket button { padding: 16rpx 24rpx; font-size: 24rpx; }
+
+/* 分组 */
+.group-title { display: block; font-size: 24rpx; color: var(--muted); margin: 24rpx 0 16rpx; }
+
+/* 可启封：金色微光 */
+.capsule-card { display: block; width: 100%; text-align: left; padding: 28rpx; margin-bottom: 20rpx; border-radius: 30rpx; background: var(--paper); border: 1rpx solid #d9ceba66; }
+.capsule-card.openable { border: 2rpx solid var(--accent); box-shadow: 0 0 0 6rpx rgba(135, 108, 66, 0.08); }
+.capsule-card .cap-head { display: flex; align-items: center; justify-content: space-between; }
+.capsule-card .cap-title { font-size: 28rpx; font-weight: 500; }
+.capsule-card .cap-mark { font-size: 20rpx; color: var(--muted); }
+
+/* 封存中：打码条 + 大倒计时 */
+.mask-lines { margin: 22rpx 0 18rpx; }
+.mask-lines .mask-line { display: block; height: 20rpx; border-radius: 10rpx; background: #e7dcc7; margin-bottom: 12rpx; }
+.mask-lines .mask-line.short { width: 55%; }
+.cap-countdown { display: flex; align-items: baseline; justify-content: center; margin: 10rpx 0 6rpx; }
+.cap-countdown .num { font-family: 'Avenir Next', sans-serif; font-size: 76rpx; font-weight: 600; color: var(--accent); letter-spacing: -2rpx; }
+.cap-countdown .unit { font-size: 24rpx; color: var(--muted); margin-left: 10rpx; }
+.cap-foot { display: block; text-align: center; font-size: 20rpx; color: var(--muted); margin-top: 8rpx; }
+.cap-content { display: block; font-size: 26rpx; line-height: 1.95; margin: 18rpx 0 12rpx; white-space: pre-wrap; }
+
+.fab-capsule { position: fixed; right: 38rpx; bottom: calc(180rpx + env(safe-area-inset-bottom)); }

@@ -60,6 +60,7 @@
     </view>
 
     <view class="settings">
+      <button class="setting-row capsule-row" bindtap="onOpenCapsules"><app-icon name="spark" size="{{36}}" color="accent" variant="{{theme}}" /><text class="setting-title">时间胶囊</text><text class="setting-note muted">{{capsuleNote}}</text><app-icon name="next" size="{{26}}" color="neutral" /></button>
       <button class="setting-row" bindtap="showReminders"><app-icon name="bell" size="{{36}}" color="accent" variant="{{theme}}" /><text class="setting-title">日子提醒</text><text class="setting-note muted">{{reminderNote}}</text><app-icon name="next" size="{{26}}" color="neutral" /></button>
       <button class="setting-row" bindtap="showBackup"><app-icon name="cloud" size="{{36}}" color="accent" variant="{{theme}}" /><text class="setting-title">云端备份</text><text class="setting-note muted">{{backupNote}}</text><app-icon name="next" size="{{26}}" color="neutral" /></button>
       <button class="setting-row" bindtap="openDays"><app-icon name="grid" size="{{36}}" color="accent" variant="{{theme}}" /><text class="setting-title">管理我的日子</text><text class="setting-note muted">{{stats.total}} 个日子</text><app-icon name="next" size="{{26}}" color="neutral" /></button>

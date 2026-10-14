@@ -1,0 +1,53 @@
+<view class="app-page theme-{{theme}} subpage">
+  <nav-header title="{{mode === 'read' ? '启封的胶囊' : (kind === 'gift' ? '送出一份心意' : '封一个时间胶囊')}}" back="{{true}}" theme="{{theme}}" />
+  <view class="page-body edit-body">
+
+    <!-- 只读：启封后查看 -->
+    <block wx:if="{{mode === 'read'}}">
+      <view wx:if="{{error}}" class="form-error">{{error}}</view>
+      <view wx:elif="{{loaded}}" class="paper read-paper">
+        <text class="read-content">{{loaded.content}}</text>
+        <text class="read-foot">{{loaded.openOn}} 启封 · 写于 {{loaded.createdAt}}</text>
+      </view>
+      <text class="form-help">启封后的内容不再修改 —— 它是你当时写下的样子。</text>
+    </block>
+
+    <!-- 写新的 -->
+    <block wx:else>
+      <view class="paper">
+        <view class="kind-switch">
+          <button class="{{kind === 'self' ? 'active' : ''}}" data-kind="self" bindtap="onKind">写给未来的自己</button>
+          <button class="{{kind === 'gift' ? 'active' : ''}}" data-kind="gift" bindtap="onKind">送给某个人</button>
+        </view>
+
+        <view class="form-group">
+          <text class="form-label">标题（可不填）</text>
+          <input class="form-input" value="{{title}}" bindinput="onTitle" maxlength="60" placeholder="{{kind === 'gift' ? '例如：给小鱼的一句话' : '例如：写给一年后的你'}}" />
+        </view>
+
+        <view wx:if="{{kind === 'gift'}}" class="form-group">
+          <text class="form-label">送给谁（对方的称呼）</text>
+          <input class="form-input" value="{{recipient}}" bindinput="onRecipient" maxlength="20" placeholder="例如：小鱼" />
+        </view>
+
+        <view class="form-group">
+          <text class="form-label">想说的话</text>
+          <textarea class="cap-textarea" value="{{content}}" bindinput="onContent" maxlength="500" placeholder="慢慢写，它会被好好封存起来。" />
+          <text class="counter">{{content.length}} / 500</text>
+        </view>
+
+        <view class="form-group">
+          <text class="form-label">启封的日子</text>
+          <picker mode="date" value="{{openOn}}" start="{{minDate}}" bindchange="onDate">
+            <view class="form-input">{{openOn}}</view>
+          </picker>
+        </view>
+
+        <view wx:if="{{error}}" class="form-error">{{error}}</view>
+        <button class="btn-primary" bindtap="onSave" disabled="{{saving}}">{{saving ? '正在封存…' : '封存起来'}}</button>
+        <text class="form-help">{{kind === 'gift' ? '封存后会生成一张领取卡片，你通过微信发给对方 —— 到期前她只看到倒计时。' : '封存后不能提前打开，也不能修改；实在不想留了可以删除。'}}</text>
+      </view>
+    </block>
+    <view class="safe-bottom"></view>
+  </view>
+</view>

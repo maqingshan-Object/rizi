@@ -1,0 +1,72 @@
+<view class="app-page theme-{{theme}} subpage">
+  <nav-header title="时间胶囊" back="{{true}}" theme="{{theme}}" />
+  <view class="page-body capsule-body">
+    <view wx:if="{{!logged}}" class="paper page-state">
+      <text class="state-title">登录后才能用时间胶囊</text>
+      <text class="state-description muted">胶囊要存在云端，换个手机也找得回来 —— 这是"写给未来"不能丢的部分。</text>
+      <button class="btn-primary" bindtap="onWrite">去登录</button>
+    </view>
+
+    <block wx:else>
+      <!-- 数量一眼可见 -->
+      <view class="quota-strip">
+        <view class="quota-card"><text class="quota-label">待启封</text><text class="quota-value">{{counts.sealed}}</text></view>
+        <view class="quota-card"><text class="quota-label">可启封</text><text class="quota-value">{{counts.openable}}</text></view>
+        <view class="quota-card"><text class="quota-label">自用额度</text><text class="quota-value">{{counts.selfQuota}}</text></view>
+      </view>
+
+      <!-- 可送出的心意：有额度才出现 -->
+      <view wx:if="{{counts.giftQuota > 0}}" class="gift-ticket">
+        <view>
+          <text class="ticket-title">你有一份心意可以送出</text>
+          <text class="ticket-sub">送给一个你在意的人，等一个属于你们的日子</text>
+        </view>
+        <button class="btn-primary" bindtap="onWriteGift">送出去</button>
+      </view>
+
+      <view wx:if="{{error}}" class="form-error">{{error}}</view>
+      <view wx:if="{{loading}}" class="poster-hint muted">正在读取…</view>
+
+      <!-- 可以启封了：金色高亮 -->
+      <block wx:if="{{openable.length}}">
+        <text class="group-title">✨ 可以启封了</text>
+        <view wx:for="{{openable}}" wx:key="id" class="capsule-card openable" data-id="{{item.id}}" bindtap="onOpen" aria-label="启封{{item.title}}">
+          <view class="cap-head"><text class="cap-title">{{item.title || '一段封存的话'}}</text><text class="cap-mark">启封</text></view>
+          <text class="cap-foot">{{item.openOn}} 启封{{item.recipientName ? ' · 送给 ' + item.recipientName : ''}}</text>
+        </view>
+      </block>
+
+      <!-- 封存中：打码 + 大倒计时 -->
+      <block wx:if="{{sealed.length}}">
+        <text class="group-title">🔒 封存中</text>
+        <view wx:for="{{sealed}}" wx:key="id" class="capsule-card" data-id="{{item.id}}" data-days="{{item.daysLeft}}" bindtap="onSealedTap">
+          <view class="cap-head">
+            <text class="cap-title">{{item.title || '写给未来的一段话'}}</text>
+            <text class="cap-mark">{{item.recipientName ? '送给 ' + item.recipientName : '只给自己'}}</text>
+          </view>
+          <view class="mask-lines"><view class="mask-line"></view><view class="mask-line short"></view></view>
+          <view class="cap-countdown"><text class="num">{{item.daysLeft}}</text><text class="unit">天后启封</text></view>
+          <text class="cap-foot">写于 {{item.createdAt}}</text>
+        </view>
+      </block>
+
+      <!-- 已启封：可读可删 -->
+      <block wx:if="{{opened.length}}">
+        <text class="group-title">已启封</text>
+        <view wx:for="{{opened}}" wx:key="id" class="capsule-card" data-id="{{item.id}}" bindtap="onRead">
+          <view class="cap-head"><text class="cap-title">{{item.title || '启封的胶囊'}}</text><text class="cap-mark">已启封</text></view>
+          <text class="cap-content">{{item.content}}</text>
+          <view class="cap-foot"><text data-id="{{item.id}}" catchtap="onDelete">删除</text></view>
+        </view>
+      </block>
+
+      <view wx:if="{{!openable.length && !sealed.length && !opened.length && !loading}}" class="empty-state">
+        <text>还没有时间胶囊</text>
+        <text class="empty-hint">写一段话，指定一个未来的日子打开 —— 到时候会提醒你</text>
+      </view>
+
+      <button class="btn-primary fab-capsule" bindtap="onWrite">封一个时间胶囊</button>
+    </block>
+    <view class="safe-bottom"></view>
+  </view>
+</view>

@@ -34,7 +34,13 @@ Page({
       { id: 'autumn', name: '秋日信笺', caption: '暖纸枫红', bg: '#f9f3e8', soft: '#f0dfc9', accent: '#a2663f', paid: true }
     ],
     ownedThemes: [],
-    hasStore: false
+    hasStore: false,
+    capsuleNote: '写一段话，指定未来某天启封'
+  },
+
+  /** 时间胶囊入口：把"有几个"直接写在入口上（可启封时优先显示）。 */
+  onOpenCapsules() {
+    wx.navigateTo({ url: '/pages/capsules/capsules' });
   },
 
   onShow() {
@@ -57,6 +63,15 @@ Page({
       // 读不到权益时按"都没买"处理：不影响免费主题，也不会误放付费主题
       this.applyThemeLock([]);
     });
+    // 顺手读胶囊数量，挂在入口上（读不到就保持引导文案）
+    require('../../services/capsules').list().then(result => {
+      const counts = (result && result.counts) || {};
+      const parts = [];
+      if (counts.openable) parts.push(counts.openable + ' 个可启封');
+      if (counts.sealed) parts.push(counts.sealed + ' 个待启封');
+      if (counts.giftQuota) parts.push('1 份心意可送出');
+      if (parts.length) this.setData({ capsuleNote: parts.join(' · ') });
+    }).catch(() => {});
   },
 
   applyThemeLock(owned) {
