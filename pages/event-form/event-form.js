@@ -399,7 +399,26 @@ Page({
       notify(error);
       return;
     }
-    this.setData({ saving: false, saved: true });
+    // 先把 saving 关掉（不管后面做什么，页面都不会再卡在「正在保存」✅）
+    this.setData({ saving: false });
+    var reminderOn = !!this.data.reminder && this.data.reminder !== '不提醒';
+    if (!auth.currentUser() && reminderOn && !this.NOT_LOGGED_PROMPTED) {
+      this.NOT_LOGGED_PROMPTED = true;
+      wx.showModal({
+        title: '登录后，到日子会收到微信提醒',
+        content: '日子已经存到这台手机了。登录一下，到那天微信就会提醒你 —— 换手机也不会丢。',
+        confirmText: '去登录',
+        cancelText: '以后再说',
+        success: result => {
+          wx.navigateBack({ delta: 1, fail: () => wx.switchTab({ url: '/pages/days/days' }) });
+          if (result.confirm) {
+            setTimeout(() => wx.navigateTo({ url: '/pages/login/login' }), 150);
+          }
+        }
+      });
+      return;
+    }
+    this.setData({ saved: true });
     this.onSavedBack();
   },
 
