@@ -18,7 +18,7 @@ public enum StoreProduct {
             List.of(new Grant(EntitlementType.theme, "cherry", 1))),
     THEME_MINT("theme_mint", "薄荷极简主题", "清新留白", 199, 1,
             List.of(new Grant(EntitlementType.theme, "mint", 1))),
-    THEME_BUNDLE("theme_bundle", "主题合集（四套）", "春日野餐 + 秋日信笺 + 樱桃手账 + 薄荷极简", 299, 1,
+    THEME_BUNDLE("theme_bundle", "主题合集（四套）", "春日野餐 + 秋日信笺 + 樱桃手账 + 薄荷极简", 499, 1,
             List.of(new Grant(EntitlementType.theme, "spring", 1),
                     new Grant(EntitlementType.theme, "autumn", 1),
                     new Grant(EntitlementType.theme, "cherry", 1),
