@@ -228,3 +228,19 @@
 }
 .capsule-banner{display:flex;align-items:center;gap:12rpx;margin:0 0 22rpx;padding:20rpx 24rpx;border-radius:22rpx;background:var(--soft);border:1rpx solid var(--accent)}.capsule-banner-icon{font-size:26rpx}.capsule-banner-text{flex:1;font-size:24rpx;color:var(--accent);font-weight:500}.capsule-banner-arrow{font-size:24rpx;color:var(--accent)}
 .guest-banner{display:flex;align-items:center;gap:14rpx}.guest-banner .guest-text{flex:1;min-width:0}.guest-banner .guest-title{display:block;font-size:23rpx}.guest-banner .guest-sub{display:block;font-size:20rpx;color:var(--muted);margin-top:4rpx}.guest-login{margin:0;padding:12rpx 26rpx;font-size:23rpx;line-height:1.4;border-radius:999rpx;background:var(--accent);color:#fff;flex-shrink:0}
+
+/* 访客提示条 + 登录按钮：整体提亮，让 CTA 明显可点 ✅ */
+.guest-banner{display:flex;align-items:center;gap:14rpx;opacity:1;
+  padding:22rpx 24rpx;border-radius:22rpx;
+  background:var(--paper);border:1rpx solid var(--accent);
+  box-shadow:0 4rpx 14rpx rgba(135,108,66,.10)}
+.guest-banner .guest-dot{background:var(--accent);opacity:1;flex-shrink:0}
+.guest-banner .guest-text{flex:1;min-width:0;opacity:1}
+.guest-banner .guest-title{display:block;font-size:23rpx;color:var(--ink);opacity:1}
+.guest-banner .guest-sub{display:block;font-size:20rpx;color:var(--accent);margin-top:4rpx;opacity:1}
+.guest-login{margin:0;flex-shrink:0;min-width:130rpx;
+  padding:14rpx 30rpx;font-size:24rpx;line-height:1.35;font-weight:600;
+  border:none;border-radius:999rpx;color:#fff;opacity:1;
+  background-color:var(--accent);
+  box-shadow:0 6rpx 16rpx rgba(135,108,66,.38)}
+.guest-login::after{border:none}
