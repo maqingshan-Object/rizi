@@ -16,6 +16,6 @@ module.exports = {
   timeout: 10000,
 
   // 订阅消息模板 ID（在微信公众平台申请后填写，并同时把 subscribeEnabled 改为 true）
-  subscribeTemplateId: 'iPpB8SYN0vYqgoxQrYHR_NEhgk9__qJ-434wAFz95_w',
+  subscribeTemplateId: 'lBn8jTXf4VIeSde5cW_G8mXlzZHbKzAOW0_7owNKqYo',
   subscribeEnabled: true
 };
