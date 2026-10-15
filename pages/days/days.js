@@ -150,6 +150,30 @@ Page({
 
   applyCategory(category) {
     const visible = (this._events || []).filter(event => category === 'all' || event.category === category);
+    // 访客 + 只剩默认示例 => 等同于「还没有记录」，露出空状态引导他主动添加 ✅
+    // （示例只是示范，不该让访客以为"已经有数据了" ⚠️）
+    if (eventsService.isGuest()) {
+      const realEvents = visible.filter(function (e) {
+        return String((e && e.id) || '').indexOf('sample-') !== 0;
+      });
+      if (!realEvents.length) {
+        const label = CATEGORY_LABELS[category];
+        this.setData({
+          category,
+          categories: CATEGORIES.map(function (item) {
+            return Object.assign({}, item, {
+              className: item.key === category ? 'category-button is-active' : 'category-button'
+            });
+          }),
+          feature: null,
+          cards: [],
+          visibleCount: 0,
+          emptyTitle: category === 'all' ? '还没有珍藏的日子' : '还没有' + label + '记录',
+          emptyDescription: '记下第一个属于你的日子 —— 生日、纪念日，或者只是想让某一天被记住。'
+        });
+        return;
+      }
+    }
     // 排序覆盖整列表，再选首张大卡；不再把某种日子抽出打乱顺序。
     const feature = visible[0] || null;
     const cards = visible.slice(feature ? 1 : 0);
