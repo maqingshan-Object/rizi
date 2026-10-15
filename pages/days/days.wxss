@@ -244,3 +244,20 @@
   background-color:var(--accent);
   box-shadow:0 6rpx 16rpx rgba(135,108,66,.38)}
 .guest-login::after{border:none}
+
+/* ⚠️ 父级 opacity 会让整条 banner（含按钮）一起变淡，子元素设 opacity:1 也救不回来，
+   所以这几条必须 !important 强压旧规则。 */
+.guest-banner{opacity:1 !important;background:#fffdf7 !important;border:1rpx solid rgba(135,108,66,.35) !important;
+  box-shadow:0 4rpx 14rpx rgba(135,108,66,.10) !important}
+.guest-banner .guest-text{opacity:1 !important}
+.guest-banner .guest-title{color:#3a332a !important;opacity:1 !important}
+.guest-banner .guest-sub{color:#8a6a45 !important;opacity:1 !important}
+.guest-banner .guest-dot{opacity:1 !important}
+/* CTA：换成更亮的蜜金，白字加粗 + 投影，明显可点 */
+.guest-login{margin:0 !important;flex-shrink:0 !important;min-width:132rpx !important;
+  padding:16rpx 32rpx !important;font-size:25rpx !important;font-weight:700 !important;
+  line-height:1.35 !important;border:none !important;border-radius:999rpx !important;
+  color:#fff !important;opacity:1 !important;
+  background-color:#c8894a !important;
+  box-shadow:0 6rpx 18rpx rgba(200,137,74,.45) !important}
+.guest-login::after{border:none !important}
