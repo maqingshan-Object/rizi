@@ -205,13 +205,16 @@ Page({
       var withReminder = localList.filter(function (e) {
         return e && e.reminder && e.reminder !== '\u4e0d\u63d0\u9192';
       }).length;
+      // \u4e00\u4e2a\u63d0\u9192\u90fd\u6ca1\u8bbe\uff1a\u4e0d\u663e\u793a\u2014\u2014\u4e0a\u9762\u5df2\u7ecf\u6709\u4e00\u6761\u767b\u5f55\u5f15\u5bfc\uff0c\u4e24\u6761\u540c\u65f6\u51fa\u73b0\u53cd\u800c\u91cd\u590d\u4e86\u26a0\ufe0f
+      if (!withReminder) {
+        if (this.data.reminderNotice) this.setData({ reminderNotice: null });
+        return;
+      }
       this.setData({
         reminderNotice: {
           guest: true,
           title: '\u5fae\u4fe1\u63d0\u9192\u8fd8\u6ca1\u5f00\u542f',
-          desc: withReminder
-            ? '\u6709 ' + withReminder + ' \u4e2a\u65e5\u5b50\u8bbe\u4e86\u63d0\u9192\uff0c\u767b\u5f55\u540e\u624d\u80fd\u53d1\u5230\u5fae\u4fe1'
-            : '\u6709 ' + localList.length + ' \u4e2a\u65e5\u5b50\uff0c\u767b\u5f55\u540e\u53ef\u4ee5\u5728\u5fae\u4fe1\u91cc\u63d0\u9192\u4f60',
+          desc: '\u6709 ' + withReminder + ' \u4e2a\u65e5\u5b50\u8bbe\u4e86\u63d0\u9192\uff0c\u767b\u5f55\u540e\u624d\u80fd\u53d1\u5230\u5fae\u4fe1',
           timeText: '\u767b\u5f55\u53ea\u8981\u4e00\u79d2\uff0c\u4e0d\u7528\u586b\u4efb\u4f55\u8d44\u6599',
           action: '\u53bb\u767b\u5f55'
         }
