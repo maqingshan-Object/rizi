@@ -53,10 +53,13 @@ app:
     subscribe-template-id: ${WECHAT_SUBSCRIBE_TEMPLATE_ID:}
     access-token: ${WECHAT_ACCESS_TOKEN:}
     # 模板字段名必须与公众平台模板里的 {{xxx.DATA}} 完全一致，否则微信返回 47003 参数不合法。
-    # 当前模板「记念日提醒」(编号 24904)：thing1=名称 / time2=日期 / number5=剩余天数
-    template-name-field: ${WECHAT_TEMPLATE_NAME_FIELD:thing1}
-    template-date-field: ${WECHAT_TEMPLATE_DATE_FIELD:time2}
-    template-days-field: ${WECHAT_TEMPLATE_DAYS_FIELD:number5}
+    # 当前模板「纪念日提醒」(编号 2889，类目=日历)：
+    #   thing6=名称 / date7=日期 / thing8=天数
+    # ⚠️ 2026-10-15 更新过服务类目，旧模板(24904: thing1/time2/number5)被微信删除，
+    #    重建后的新模板字段名不同，别再用旧值。
+    template-name-field: ${WECHAT_TEMPLATE_NAME_FIELD:thing6}
+    template-date-field: ${WECHAT_TEMPLATE_DATE_FIELD:date7}
+    template-days-field: ${WECHAT_TEMPLATE_DAYS_FIELD:thing8}
   reminder:
     cron: ${REMINDER_CRON:0 0 2 * * *}
   # 小程序虚拟支付。
