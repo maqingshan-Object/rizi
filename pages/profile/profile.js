@@ -27,8 +27,8 @@ Page({
     clearing: false,
     themes: [
       { id: 'cream', name: '奶油猫猫', caption: '温暖奶油', bg: '#faf6eb', soft: '#f6e9c9', accent: '#876c42' },
-      { id: 'cherry', name: '樱桃手账', caption: '柔雾樱粉', bg: '#fcf2f0', soft: '#f7dfe2', accent: '#a35965' },
-      { id: 'mint', name: '薄荷极简', caption: '清新留白', bg: '#f2f6f2', soft: '#e2ece5', accent: '#526f63' },
+      { id: 'cherry', name: '樱桃手账', caption: '柔雾樱粉', bg: '#fcf2f0', soft: '#f7dfe2', accent: '#a35965', paid: true },
+      { id: 'mint', name: '薄荷极简', caption: '清新留白', bg: '#f2f6f2', soft: '#e2ece5', accent: '#526f63', paid: true },
       // 付费主题：没购买时 locked=true，点击会引导去商店
       { id: 'spring', name: '春日野餐', caption: '嫩芽野餐', bg: '#f7f8ef', soft: '#e6efd9', accent: '#6f8f5b', paid: true },
       { id: 'autumn', name: '秋日信笺', caption: '暖纸枫红', bg: '#f9f3e8', soft: '#f0dfc9', accent: '#a2663f', paid: true }
