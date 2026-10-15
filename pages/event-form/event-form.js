@@ -398,27 +398,6 @@ Page({
       notify(error);
       return;
     }
-    // 未登录 + 这个日子开了提醒 -> show login prompt instead of the saved page
-    // ⚠️ savedRecord 是在上面 try 块里声明的（const），出来就取不到了，
-    //    直接用会 ReferenceError —— 页面就卡在「正在保存」。这里用表单自己的状态。
-    var reminderOn = !!this.data.reminder && this.data.reminder !== '不提醒';
-    if (!auth.currentUser() && reminderOn && !this.NOT_LOGGED_PROMPTED) {
-      this.NOT_LOGGED_PROMPTED = true;
-      this.setData({ saving: false });
-      wx.showModal({
-        title: '登录后，到日子会收到微信提醒',
-        content: '日子已经存到这台手机了。登录一下，到那天微信就会提醒你 —— 换手机也不会丢。',
-        confirmText: '去登录',
-        cancelText: '以后再说',
-        success: result => {
-          wx.navigateBack({ delta: 1, fail: () => wx.switchTab({ url: '/pages/days/days' }) });
-          if (result.confirm) {
-            setTimeout(() => wx.navigateTo({ url: '/pages/login/login' }), 150);
-          }
-        }
-      });
-      return;
-    }
     this.setData({ saving: false, saved: true });
     this.onSavedBack();
   },
