@@ -21,6 +21,11 @@
       <text class="content-title">日子已先保存在本机</text>
       <text class="form-help">保存后会自动同步到云端；提醒要等你授权后才会发出来。</text>
       <button class="btn-primary" bindtap="onSavedBack">返回上一页</button>
+      <view wx:if="{{guest}}" class="saved-login-tip">
+        <text class="saved-login-title">登录后，到日子会收到微信提醒</text>
+        <text class="saved-login-sub">现在只是访客记录，仅存在这台手机</text>
+        <button class="guest-login" bindtap="onGuestLoginFromSaved">登录</button>
+      </view>
     </view>
     <form wx:else bindsubmit="onSubmit">
       <view class="form-intro">

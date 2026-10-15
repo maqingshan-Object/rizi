@@ -1,4 +1,5 @@
 const { prepare, notify, refreshDaysReminderNotice } = require('../../utils/page');
+const auth = require('../../services/auth');
 const events = require('../../services/events');
 const dates = require('../../utils/date');
 const lunar = require('../../utils/lunar');
@@ -452,6 +453,11 @@ Page({
   },
 
   /** 保存完成、返回上一页。未登录时顺便提示一次「登录才收得到提醒」✅ */
+  /** 成功页上的登录入口（引导，不强制 ✅） */
+  onGuestLoginFromSaved() {
+    wx.navigateTo({ url: '/pages/login/login' });
+  },
+
   onSavedBack() {
     if (!this.data.saved) return;
     try {
