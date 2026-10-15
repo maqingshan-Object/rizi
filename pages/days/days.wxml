@@ -3,7 +3,11 @@
   <view class="days-content safe-bottom">
     <view wx:if="{{guest}}" class="guest-banner">
       <view class="guest-dot" />
-      <text>当前为访客记录 · 仅保存在此设备</text>
+      <view class="guest-text">
+        <text class="guest-title">当前为访客记录 · 仅保存在此设备</text>
+        <text class="guest-sub">登录后云端备份，换手机也不丢</text>
+      </view>
+      <button class="guest-login" bindtap="onGuestLogin">登录</button>
     </view>
 
     <!-- 时间胶囊提示条：只在【有可启封】或【有可送出的心意】时出现，其余时候完全占位为 0 -->

@@ -93,6 +93,11 @@ Page({
     wx.navigateTo({ url: '/pages/capsules/capsules' });
   },
 
+  /** 访客点「登录」：跳登录页（不强制、不自动，用户自己决定 ✅）。 */
+  onGuestLogin() {
+    wx.navigateTo({ url: '/pages/login/login' });
+  },
+
   onShow() {
     this.loadCapsuleBanner();
     // 转发 + 分享到朋友圈：朋友圈入口需要本页定义 onShareTimeline 才会出现

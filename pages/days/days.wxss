@@ -227,3 +227,4 @@
   .feature-count { padding-right: 176rpx; }
 }
 .capsule-banner{display:flex;align-items:center;gap:12rpx;margin:0 0 22rpx;padding:20rpx 24rpx;border-radius:22rpx;background:var(--soft);border:1rpx solid var(--accent)}.capsule-banner-icon{font-size:26rpx}.capsule-banner-text{flex:1;font-size:24rpx;color:var(--accent);font-weight:500}.capsule-banner-arrow{font-size:24rpx;color:var(--accent)}
+.guest-banner{display:flex;align-items:center;gap:14rpx}.guest-banner .guest-text{flex:1;min-width:0}.guest-banner .guest-title{display:block;font-size:23rpx}.guest-banner .guest-sub{display:block;font-size:20rpx;color:var(--muted);margin-top:4rpx}.guest-login{margin:0;padding:12rpx 26rpx;font-size:23rpx;line-height:1.4;border-radius:999rpx;background:var(--accent);color:#fff;flex-shrink:0}
