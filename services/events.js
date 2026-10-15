@@ -5,7 +5,7 @@ const reminderOptions = require('../utils/reminder');
 const KEY = 'days_guest_events_v1';
 function initializeGuest() {
   const raw=wx.getStorageSync(KEY);
-  if(raw && Array.isArray(raw.events)) return;
+  if(raw && Array.isArray(raw.events) && (raw.events.length || raw.samplesCleared)) return;
   const base=dates.today(), year=Number(base.slice(0,4));
   const plus=n=>{const p=base.split('-').map(Number);const d=new Date(Date.UTC(p[0],p[1]-1,p[2]+n));return dates.dateString(d.getUTCFullYear(),d.getUTCMonth()+1,d.getUTCDate());};
   const birthday=plus(12), anniversary=plus(39), dad=plus(29);
@@ -22,7 +22,7 @@ function get(id){return list().find(e=>e.id===id);}
 function save(record){const all=list();if(record.pin)all.forEach(e=>e.pin=false);const r=Object.assign({},record,{sample:false});if(!r.id)r.id='event-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,9);const i=all.findIndex(e=>e.id===r.id);if(i>=0)all[i]=r;else all.push(r);wx.setStorageSync(KEY,{events:all});return r;}
 function remove(id){wx.setStorageSync(KEY,{events:list().filter(e=>e.id!==id)});}
 function togglePin(id){const all=list();const e=all.find(e=>e.id===id);if(!e)return;const pin=!e.pin;all.forEach(e=>e.pin=false);e.pin=pin;wx.setStorageSync(KEY,{events:all});return pin;}
-function clearSamples(){wx.setStorageSync(KEY,{events:list().filter(e=>!e.sample)});}
+function clearSamples(){wx.setStorageSync(KEY,{events:list().filter(e=>!e.sample),samplesCleared:true});}
 function remoteReady(){return !!auth.currentUser() && auth.isConfigured();}
 function remotePayload(record){
   return {
