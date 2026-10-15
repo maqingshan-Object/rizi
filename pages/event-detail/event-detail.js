@@ -108,10 +108,10 @@ Page({
         title: '登录后，到日子会收到微信提醒',
         content: '微信提醒要先把日子存到云端。登录只要一秒，不用填任何资料 —— 到那天就会发到你的微信。',
         confirmText: '去登录',
-          cancelText: '以后再说',
-          success: result => {
-            if (result.confirm) wx.navigateTo({ url: '/pages/login/login' });
-          }
+        cancelText: '以后再说',
+        success: result => {
+          if (result.confirm) wx.navigateTo({ url: '/pages/login/login' });
+        }
       });
       return;
     }
@@ -120,11 +120,8 @@ Page({
       wx.showModal({
         title: response.ok ? '提醒已开启' : '提醒还没开启',
         content: response.message,
-        confirmText: '去登录',
-          cancelText: '以后再说',
-          success: result => {
-            if (result.confirm) wx.navigateTo({ url: '/pages/login/login' });
-          }
+        showCancel: false,
+        confirmText: '知道了'
       });
       if (response.ok) {
         // 授权已成功，先把状态显示成"已开启"，再拉一次服务端权威状态。
