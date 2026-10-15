@@ -194,7 +194,31 @@ Page({
    * 提醒日已经过去的不提示（本轮的发送窗口已经错过，提示了也点不出结果）。
    */
   refreshReminderNotice() {
-    if (eventsService.isGuest() || !eventsService.remoteReady()) {
+    // 访客也要看到这条：他设了提醒却收不到，正是最需要知道原因的时候 ✅
+    // 点一下 → 引导登录（而不是直接隐藏、让他一直以为提醒开着 ⚠️）
+    if (eventsService.isGuest()) {
+      var localList = this._events || [];
+      if (!localList.length) {
+        if (this.data.reminderNotice) this.setData({ reminderNotice: null });
+        return;
+      }
+      var withReminder = localList.filter(function (e) {
+        return e && e.reminder && e.reminder !== '\u4e0d\u63d0\u9192';
+      }).length;
+      this.setData({
+        reminderNotice: {
+          guest: true,
+          title: '\u5fae\u4fe1\u63d0\u9192\u8fd8\u6ca1\u5f00\u542f',
+          desc: withReminder
+            ? '\u6709 ' + withReminder + ' \u4e2a\u65e5\u5b50\u8bbe\u4e86\u63d0\u9192\uff0c\u767b\u5f55\u540e\u624d\u80fd\u53d1\u5230\u5fae\u4fe1'
+            : '\u6709 ' + localList.length + ' \u4e2a\u65e5\u5b50\uff0c\u767b\u5f55\u540e\u53ef\u4ee5\u5728\u5fae\u4fe1\u91cc\u63d0\u9192\u4f60',
+          timeText: '\u767b\u5f55\u53ea\u8981\u4e00\u79d2\uff0c\u4e0d\u7528\u586b\u4efb\u4f55\u8d44\u6599',
+          action: '\u53bb\u767b\u5f55'
+        }
+      });
+      return;
+    }
+    if (!eventsService.remoteReady()) {
       if (this.data.reminderNotice) this.setData({ reminderNotice: null });
       return;
     }
@@ -235,6 +259,19 @@ Page({
   },
 
   onReminderNoticeTap() {
+    // 访客看到的那条 → 引导登录（不是去授权）✅
+    if (this.data.reminderNotice && this.data.reminderNotice.guest) {
+      wx.showModal({
+        title: '\u767b\u5f55\u540e\uff0c\u5230\u65e5\u5b50\u4f1a\u6536\u5230\u5fae\u4fe1\u63d0\u9192',
+        content: '\u65e5\u5b50\u5df2\u7ecf\u5b58\u5728\u8fd9\u53f0\u624b\u673a\u4e86\u3002\u767b\u5f55\u4e00\u4e0b\uff0c\u5230\u90a3\u5929\u5fae\u4fe1\u5c31\u4f1a\u63d0\u9192\u4f60 \u2014\u2014 \u6362\u624b\u673a\u4e5f\u4e0d\u4f1a\u4e22\u3002',
+        confirmText: '\u53bb\u767b\u5f55',
+        cancelText: '\u4ee5\u540e\u518d\u8bf4',
+        success: function (result) {
+          if (result.confirm) wx.navigateTo({ url: '/pages/login/login' });
+        }
+      });
+      return;
+    }
     const notice = this.data.reminderNotice;
     if (!notice || !notice.eventId) return;
     wx.navigateTo({
