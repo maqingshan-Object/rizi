@@ -45,11 +45,11 @@
         </view>
 
         <view class="form-group">
-          <text class="form-label">日子提醒</text>
+          <text class="form-label">日子微信提醒</text>
           <picker mode="selector" range="{{reminders}}" value="{{reminderIndex}}" bindchange="onReminderChange" disabled="{{saving}}">
             <view class="form-input picker-value"><text>{{reminder}}</text><app-icon name="bell" size="{{28}}" /></view>
           </picker>
-          <text class="form-help">选择提前3天后，保存本机记录；登录且完成配置时才会请求微信授权，不会伪造已发送。</text>
+          <text class="form-help">开启后，会在到期日之前用微信通知你 —— 不让重要的日子被悄悄错过。</text>
         </view>
         <view class="form-group">
           <text class="form-label">日子分类</text>
