@@ -93,34 +93,7 @@ Page({
     wx.navigateTo({ url: '/pages/capsules/capsules' });
   },
 
-  /**
-   * 进入首页即【静默】登录。
-   *
-   * wx.login 不需要用户任何操作（不弹窗、不要授权），所以"登录"这件事对用户是无感的 ✅
-   * 登录后数据进云端、胶囊与提醒才能用，粘性也来自这里。
-   *
-   * ⚠️ 三条底线：
-   *   1. 失败静默降级为访客 —— 网络抖动/未配置都不能让用户进不去 ✅
-   *   2. 不弹任何错误提示（用户没主动做任何事，不该被打扰）✅
-   *   3. 领取卡等落地页不触发（那里保持免登录，传播才走得远）✅
-   */
-  autoSignIn() {
-    if (auth.currentUser()) {
-      return Promise.resolve(true);
-    }
-    if (!auth.isConfigured || !auth.isConfigured()) {
-      return Promise.resolve(false);
-    }
-    return auth.signIn().then(() => {
-      try { prepare(this, 0); } catch (error) { /* 忽略：登录成功但页面状态刷新失败不影响使用 */ }
-      this.setData({ guest: false });
-      this.loadCapsuleBanner();
-      return true;
-    }).catch(() => false);
-  },
-
   onShow() {
-    this.autoSignIn();
     this.loadCapsuleBanner();
     // 转发 + 分享到朋友圈：朋友圈入口需要本页定义 onShareTimeline 才会出现
     wx.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage', 'shareTimeline'] });
