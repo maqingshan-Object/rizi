@@ -13,7 +13,7 @@ function initializeGuest() {
 }
 function isGuest(){return !auth.currentUser();}
 // 旧成长分类只归一化展示/后续保存，不删除记录，也不在读取时重写用户存储。
-function list(){initializeGuest();return wx.getStorageSync(KEY).events.map(e=>Object.assign({},e,{category:e.category==='growth'?'other':e.category}));}
+function list(){initializeGuest();return wx.getStorageSync(KEY).events.filter(e=>!e.sample).map(e=>Object.assign({},e,{category:e.category==='growth'?'other':e.category}));}
 function get(id){return list().find(e=>e.id===id);}
 function save(record){const all=list();if(record.pin)all.forEach(e=>e.pin=false);const r=Object.assign({},record,{sample:false});if(!r.id)r.id='event-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,9);const i=all.findIndex(e=>e.id===r.id);if(i>=0)all[i]=r;else all.push(r);wx.setStorageSync(KEY,{events:all});return r;}
 function remove(id){wx.setStorageSync(KEY,{events:list().filter(e=>e.id!==id)});}
