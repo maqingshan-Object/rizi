@@ -454,7 +454,10 @@ Page({
   /** 保存完成、返回上一页。未登录时顺便提示一次「登录才收得到提醒」✅ */
   onSavedBack() {
     // NOT_LOGGED_PROMPTED：一次会话只提示一次，避免每次保存都弹 ⚠️
-    if (!auth.currentUser() && !this.NOT_LOGGED_PROMPTED) {
+    // 只在【真的开了提醒】时才提示 —— 没开提醒的用户不需要登录也能正常用，
+    // 乱弹只会打扰他 ⚠️（提醒选项的"未开启"标签是 '不提醒'）
+    const reminderOn = !!this.data.reminder && this.data.reminder !== '不提醒';
+    if (!auth.currentUser() && reminderOn && !this.NOT_LOGGED_PROMPTED) {
       this.NOT_LOGGED_PROMPTED = true;
       wx.showModal({
         title: '登录后，到日子会收到微信提醒',
