@@ -9,7 +9,7 @@ function initializeGuest() {
     // 示例记录已全部去掉（boss 要求）。这里只保证存储结构存在：
     // 否则 list() 读 .events 会 undefined 报错 ⚠️
     wx.setStorageSync(KEY,{events:[]});
-  wx.setStorageSync(KEY,{events:list});
+
 }
 function isGuest(){return !auth.currentUser();}
 // 旧成长分类只归一化展示/后续保存，不删除记录，也不在读取时重写用户存储。
