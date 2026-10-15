@@ -410,11 +410,21 @@ Page({
         confirmText: '去登录',
         cancelText: '以后再说',
         success: result => {
-          wx.navigateBack({ delta: 1, fail: () => wx.switchTab({ url: '/pages/days/days' }) });
-          if (result.confirm) {
-            setTimeout(() => wx.navigateTo({ url: '/pages/login/login' }), 150);
-          }
-        }
+          // ⚠️ 不要「返回 + 延时跳转」捆在一起：两个导航动作打架时后一个会被丢掉 ⚠️
+"
+              "          // （boss 实测：点「去登录」没进登录页，反而回了首页）
+"
+              "          if (result.confirm) {
+"
+              "            wx.navigateTo({ url: '/pages/login/login' });
+"
+              "            return;
+"
+              "          }
+"
+              "          wx.navigateBack({ delta: 1, fail: () => wx.switchTab({ url: '/pages/days/days' }) });
+"
+              "        }
       });
       return;
     }
