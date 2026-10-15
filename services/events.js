@@ -12,11 +12,6 @@ function initializeGuest() {
   const inYear=(s,y)=>{const p=s.split('-').map(Number);return dates.dateString(y,p[1],Math.min(p[2],new Date(Date.UTC(y,p[1],0)).getUTCDate()));};
   const list=[
     {id:'sample-mom',name:'妈妈的生日',date:inYear(birthday,1970),category:'birthday',mode:'countdown',repeat:'yearly',icon:'cake',tint:'pink',note:'提前订好蛋糕，再给妈妈一个拥抱。',pin:true},
-    {id:'sample-anniversary',name:'我们的结婚纪念日',date:inYear(anniversary,Math.min(2020,year)),category:'anniversary',mode:'countdown',repeat:'yearly',icon:'heart',tint:'pink',note:'每一年，都继续认真地喜欢你。'},
-    {id:'sample-dad',name:'爸爸的生日',date:inYear(dad,1968),category:'birthday',mode:'countdown',repeat:'yearly',icon:'cake',tint:'blue',note:'记得陪爸爸吃一顿饭。'},
-    {id:'sample-smoke',name:'坚持戒烟',date:plus(-119),category:'other',mode:'countup',repeat:'none',icon:'leaf',tint:'mint',note:'每天，都离更好的自己近一点。'},
-    {id:'sample-spring',name:'下一次春节',date:'2027-02-06',category:'holiday',mode:'countdown',repeat:'none',icon:'lantern',tint:'yellow',note:'记录正月初一，不代表假期开始日。'},
-    {id:'sample-life',name:'来到世界的日子',date:'1997-08-21',category:'other',mode:'countup',repeat:'none',icon:'flower',tint:'mint',note:'普通的每一天，也有自己的闪光。'}
   ].map(e=>Object.assign(e,{calendarType:'solar',reminder:'不提醒',sample:true}));
   wx.setStorageSync(KEY,{events:list});
 }
