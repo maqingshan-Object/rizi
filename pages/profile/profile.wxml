@@ -16,7 +16,7 @@
       <view class="profile-info">
         <text class="profile-name">{{nickname}}</text>
         <text class="profile-description muted">认真生活的人，自带温柔滤镜。</text>
-        <button class="profile-link" bindtap="openLogin">
+        <button class="profile-link {{guest ? 'profile-login-cta' : ''}}" bindtap="openLogin">
           <app-icon name="{{guest ? 'user' : 'edit'}}" size="{{25}}" color="accent" variant="{{theme}}" />
           <text>{{guest ? '去登录 · 到日子收到微信提醒' : '编辑头像与昵称'}}</text>
         </button>

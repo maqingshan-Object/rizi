@@ -451,7 +451,22 @@ Page({
     });
   },
 
+  /** 保存完成、返回上一页。未登录时顺便提示一次「登录才收得到提醒」✅ */
   onSavedBack() {
+    // NOT_LOGGED_PROMPTED：一次会话只提示一次，避免每次保存都弹 ⚠️
+    if (!auth.currentUser() && !this.NOT_LOGGED_PROMPTED) {
+      this.NOT_LOGGED_PROMPTED = true;
+      wx.showModal({
+        title: '登录后，到日子会收到微信提醒',
+        content: '日子已经存到这台手机了。登录一下，到那天微信就会提醒你 —— 换手机也不会丢。',
+        confirmText: '去登录',
+        cancelText: '以后再说',
+        success: result => {
+          if (result.confirm) wx.navigateTo({ url: '/pages/login/login' });
+        }
+      });
+      return;
+    }
     if (!this.data.saved) return;
     try {
       wx.navigateBack({ delta: 1, fail: () => {

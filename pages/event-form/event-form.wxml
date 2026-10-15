@@ -43,6 +43,14 @@
           <input id="event-name" class="form-input name-input" name="name" value="{{name}}" maxlength="20" placeholder="比如，妈妈的生日" bindinput="onNameInput" disabled="{{saving}}" />
           <text class="form-help length-help">{{name.length}} / 20</text>
         </view>
+
+        <view class="form-group">
+          <text class="form-label">日子提醒</text>
+          <picker mode="selector" range="{{reminders}}" value="{{reminderIndex}}" bindchange="onReminderChange" disabled="{{saving}}">
+            <view class="form-input picker-value"><text>{{reminder}}</text><app-icon name="bell" size="{{28}}" /></view>
+          </picker>
+          <text class="form-help">选择提前3天后，保存本机记录；登录且完成配置时才会请求微信授权，不会伪造已发送。</text>
+        </view>
         <view class="form-group">
           <text class="form-label">日子分类</text>
           <picker mode="selector" range="{{categories}}" range-key="label" value="{{categoryIndex}}" data-field="category" bindchange="onSelect" disabled="{{saving}}">
@@ -153,13 +161,6 @@
             <view class="form-input picker-value"><text>{{pins[pinIndex].label}}</text><app-icon name="next" size="{{24}}" /></view>
           </picker>
           <text class="form-help">置顶会替换首页当前置顶，不会删除其他日子。</text>
-        </view>
-        <view class="form-group">
-          <text class="form-label">日子提醒</text>
-          <picker mode="selector" range="{{reminders}}" value="{{reminderIndex}}" bindchange="onReminderChange" disabled="{{saving}}">
-            <view class="form-input picker-value"><text>{{reminder}}</text><app-icon name="bell" size="{{28}}" /></view>
-          </picker>
-          <text class="form-help">选择提前3天后，保存本机记录；登录且完成配置时才会请求微信授权，不会伪造已发送。</text>
         </view>
         <view class="form-group note-group">
           <label class="form-label" for="event-note">留一句小小的心意</label>
