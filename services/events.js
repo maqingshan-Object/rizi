@@ -6,13 +6,9 @@ const KEY = 'days_guest_events_v1';
 function initializeGuest() {
   const raw=wx.getStorageSync(KEY);
   if(raw && Array.isArray(raw.events) && (raw.events.length || raw.samplesCleared)) return;
-  const base=dates.today(), year=Number(base.slice(0,4));
-  const plus=n=>{const p=base.split('-').map(Number);const d=new Date(Date.UTC(p[0],p[1]-1,p[2]+n));return dates.dateString(d.getUTCFullYear(),d.getUTCMonth()+1,d.getUTCDate());};
-  const birthday=plus(12), anniversary=plus(39), dad=plus(29);
-  const inYear=(s,y)=>{const p=s.split('-').map(Number);return dates.dateString(y,p[1],Math.min(p[2],new Date(Date.UTC(y,p[1],0)).getUTCDate()));};
-  const list=[
-    {id:'sample-mom',name:'妈妈的生日',date:inYear(birthday,1970),category:'birthday',mode:'countdown',repeat:'yearly',icon:'cake',tint:'pink',note:'提前订好蛋糕，再给妈妈一个拥抱。',pin:true},
-  ].map(e=>Object.assign(e,{calendarType:'solar',reminder:'不提醒',sample:true}));
+    // 示例记录已全部去掉（boss 要求）。这里只保证存储结构存在：
+    // 否则 list() 读 .events 会 undefined 报错 ⚠️
+    wx.setStorageSync(KEY,{events:[]});
   wx.setStorageSync(KEY,{events:list});
 }
 function isGuest(){return !auth.currentUser();}
