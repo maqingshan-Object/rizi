@@ -67,6 +67,11 @@ function scheduleView(event, currentDate) {
 }
 
 Page({
+  /** 访客点「登录」→ 登录页（引导，不强制 ✅） */
+  onGuestLogin() {
+    wx.navigateTo({ url: '/pages/login/login' });
+  },
+
   data: {
     theme: 'cream',
     user: null,

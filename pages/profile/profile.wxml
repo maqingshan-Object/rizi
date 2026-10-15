@@ -18,14 +18,14 @@
         <text class="profile-description muted">认真生活的人，自带温柔滤镜。</text>
         <button class="profile-link" bindtap="openLogin">
           <app-icon name="{{guest ? 'user' : 'edit'}}" size="{{25}}" color="accent" variant="{{theme}}" />
-          <text>{{guest ? '去登录 · 开启云端备份' : '编辑头像与昵称'}}</text>
+          <text>{{guest ? '去登录 · 到日子收到微信提醒' : '编辑头像与昵称'}}</text>
         </button>
       </view>
     </view>
 
     <view wx:if="{{guest}}" class="guest-banner profile-guest">
       <app-icon name="lock" size="{{30}}" color="accent" variant="{{theme}}" />
-      <view><text class="guest-title">正在用访客模式收藏日子</text><text class="guest-note">数据仅在本机，未登录、未上传。</text></view>
+      <view><text class="guest-title">登录后，到日子会收到微信提醒</text><text class="guest-note">现在只是访客记录，仅存在这台手机</text></view>
     </view>
 
     <view class="stats">
