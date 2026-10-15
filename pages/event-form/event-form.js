@@ -399,7 +399,9 @@ Page({
       return;
     }
     // 未登录 + 这个日子开了提醒 -> show login prompt instead of the saved page
-    var reminderOn = !!savedRecord.reminder && savedRecord.reminder !== '不提醒';
+    // ⚠️ savedRecord 是在上面 try 块里声明的（const），出来就取不到了，
+    //    直接用会 ReferenceError —— 页面就卡在「正在保存」。这里用表单自己的状态。
+    var reminderOn = !!this.data.reminder && this.data.reminder !== '不提醒';
     if (!auth.currentUser() && reminderOn && !this.NOT_LOGGED_PROMPTED) {
       this.NOT_LOGGED_PROMPTED = true;
       this.setData({ saving: false });
