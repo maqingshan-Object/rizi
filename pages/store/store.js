@@ -13,7 +13,7 @@ const GROUPS = [
 const GROUPS_VISIBLE = (function () {
   let on = true;
   try { on = require('../../config/backend').capsuleEnabled === true; } catch (error) { on = true; }
-  return on ? GROUPS_VISIBLE : GROUPS_VISIBLE.filter(function (g) { return g.key !== 'capsule'; });
+  return on ? GROUPS : GROUPS.filter(function (g) { return g.key !== 'capsule'; });
 })();
 
 function priceText(cents) {
