@@ -35,7 +35,8 @@ Page({
     ],
     ownedThemes: [],
     hasStore: false,
-    capsuleNote: '写一段话，指定未来某天启封'
+    capsuleNote: '写一段话，指定未来某天启封',
+    capsuleEnabled: (require('../../config/backend').capsuleEnabled === true)
   },
 
   /** 时间胶囊入口：把"有几个"直接写在入口上（可启封时优先显示）。 */

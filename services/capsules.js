@@ -9,6 +9,11 @@
 const auth = require('./auth');
 const http = require('./http');
 
+/** 胶囊功能开关（关闭时所有入口不展示，代码保留 ✅） */
+function isEnabled() {
+  try { return require('../config/backend').capsuleEnabled === true; } catch (error) { return false; }
+}
+
 function isReady() {
   return !!auth.currentUser() && http.isBackendReady();
 }
@@ -64,4 +69,4 @@ function requestReminderAuth() {
   });
 }
 
-module.exports = { isReady, list, create, detail, open, remove, giftView, claim, requestReminderAuth };
+module.exports = { isEnabled, isReady, list, create, detail, open, remove, giftView, claim, requestReminderAuth };

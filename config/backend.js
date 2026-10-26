@@ -16,6 +16,8 @@ module.exports = {
   timeout: 10000,
 
   // 订阅消息模板 ID（在微信公众平台申请后填写，并同时把 subscribeEnabled 改为 true）
+  // 时间胶囊开关：当前版本为了类目不冲突先关闭（代码全部保留，改回 true 即可重启）
+  capsuleEnabled: false,
   subscribeTemplateId: 'lBn8jTXf4VIeSde5cW_G8mXlzZHbKzAOW0_7owNKqYo',
   subscribeEnabled: true
 };

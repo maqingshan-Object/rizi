@@ -79,6 +79,11 @@ Page({
 
   /** 读胶囊数量，决定首页提示条显示什么（读不到就保持不显示）。 */
   loadCapsuleBanner() {
+    // 胶囊开关关闭时不显示提示条（入口隐藏了，不能让人点进空页面 ⚠️）
+    if (capsulesService && capsulesService.isEnabled && !capsulesService.isEnabled()) {
+      if (this.data.capsuleBanner) this.setData({ capsuleBanner: '' });
+      return;
+    }
     if (!auth.currentUser() || !capsulesService.isReady()) {
       if (this.data.capsuleBanner) this.setData({ capsuleBanner: '' });
       return;

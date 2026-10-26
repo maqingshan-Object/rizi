@@ -9,6 +9,13 @@ const GROUPS = [
   { key: 'support', title: '支持作者', hint: '', match: id => id.indexOf('support_') === 0 }
 ];
 
+// 胶囊开关关闭时从商店分组里去掉（商品仍在后台，只是不展示 ✅）
+const GROUPS_VISIBLE = (function () {
+  let on = true;
+  try { on = require('../../config/backend').capsuleEnabled === true; } catch (error) { on = true; }
+  return on ? GROUPS_VISIBLE : GROUPS_VISIBLE.filter(function (g) { return g.key !== 'capsule'; });
+})();
+
 function priceText(cents) {
   return '¥' + (Number(cents || 0) / 100).toFixed(2);
 }
@@ -53,7 +60,7 @@ Page({
     this.setData({ loading: true, error: '' });
     store.products().then(list => {
       const items = (list || []).map(item => Object.assign({}, item, { priceText: priceText(item.priceCents) }));
-      const groups = GROUPS.map(group => ({
+      const groups = GROUPS_VISIBLE.map(group => ({
         key: group.key,
         title: group.title,
         hint: group.hint,
