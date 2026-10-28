@@ -34,3 +34,6 @@ target/
 *.keystore
 credentials*.json
 secrets*.json
+
+# Build/package outputs (backend deploy zips ~56MB, not for VCS)
+outputs/
