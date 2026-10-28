@@ -39,7 +39,6 @@ Page({
     capsuleEnabled: (require('../../config/backend').capsuleEnabled === true)
   },
 
-  /** 时间胶囊入口：把"有几个"直接写在入口上（可启封时优先显示）。 */
   onOpenCapsules() {
     wx.navigateTo({ url: '/pages/capsules/capsules' });
   },

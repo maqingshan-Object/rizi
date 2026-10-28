@@ -5,7 +5,6 @@ const store = require('../../services/store');
 /** 商品按用途分组，顺序固定 —— 主题在前（最容易理解），赞赏在后。 */
 const GROUPS = [
   { key: 'theme', title: '主题', hint: '一次购买，永久可用', match: id => id.indexOf('theme_') === 0 },
-  { key: 'capsule', title: '时间胶囊', hint: '写一段话，指定未来某天启封', match: id => id.indexOf('capsule_') === 0 },
   { key: 'support', title: '支持作者', hint: '', match: id => id.indexOf('support_') === 0 }
 ];
 

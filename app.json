@@ -7,9 +7,6 @@
     "pages/event-detail/event-detail",
     "pages/share/share",
     "pages/store/store",
-    "pages/capsules/capsules",
-    "pages/capsule-edit/capsule-edit",
-    "pages/capsule-gift/capsule-gift",
     "pages/login/login",
     "pages/privacy/privacy"
   ],
@@ -30,9 +27,18 @@
     "backgroundColor": "#fffdf7",
     "borderStyle": "white",
     "list": [
-      {"pagePath": "pages/days/days", "text": "日子"},
-      {"pagePath": "pages/calendar/calendar", "text": "日历"},
-      {"pagePath": "pages/profile/profile", "text": "我的"}
+      {
+        "pagePath": "pages/days/days",
+        "text": "日子"
+      },
+      {
+        "pagePath": "pages/calendar/calendar",
+        "text": "日历"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的"
+      }
     ]
   },
   "lazyCodeLoading": "requiredComponents",

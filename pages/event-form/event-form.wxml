@@ -167,11 +167,6 @@
           </picker>
           <text class="form-help">置顶会替换首页当前置顶，不会删除其他日子。</text>
         </view>
-        <view class="form-group note-group">
-          <label class="form-label" for="event-note">留一句小小的心意</label>
-          <textarea id="event-note" class="form-input note-input" name="note" value="{{note}}" maxlength="120" placeholder="想做的事，想说的话，都可以记在这里。" bindinput="onNoteInput" disabled="{{saving}}" />
-          <text class="form-help length-help">{{note.length}} / 120</text>
-        </view>
       </view>
       <view wx:if="{{error}}" class="form-error submit-error" aria-role="alert">{{error}}</view>
       <button class="btn-primary save-button" form-type="submit" loading="{{saving}}" disabled="{{saving || lunarError || holidayError || monthlyError}}">{{saving ? '正在保存…' : '把这个日子记下来'}}</button>
