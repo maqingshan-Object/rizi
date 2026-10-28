@@ -103,8 +103,37 @@ Page({
     wx.navigateTo({ url: '/pages/login/login' });
   },
 
+  /**
+   * 登录后问一次：把本机的日子同步到云端？
+   * ⚠️ 访客期记的日子如果不上云，提醒建不起来、换手机也看不到（这次踩过的坑）✅
+   * 只问一次（days_cloud_sync_offered），拒绝就不再来烦 ✅
+   */
+  offerCloudSync() {
+    if (!auth.currentUser() || !eventsService.remoteReady()) return;
+    if (wx.getStorageSync('days_cloud_sync_offered')) return;
+    var all = [];
+    try { all = eventsService.list() || []; } catch (error) { all = []; }
+    if (!all.length) return;
+    wx.setStorageSync('days_cloud_sync_offered', true);
+    wx.showModal({
+      title: '把本机的日子同步到云端？',
+      content: '本机有 ' + all.length + ' 个日子。同步后换手机也能看到，微信提醒才能正常发出来。',
+      confirmText: '同步',
+      cancelText: '以后再说',
+      success: function (result) {
+        if (!result.confirm) return;
+        wx.showLoading({ title: '同步中…' });
+        eventsService.syncAllToCloud().then(function (count) {
+          wx.hideLoading();
+          wx.showToast({ title: '已同步 ' + count + ' 个', icon: 'none' });
+        }).catch(function () { wx.hideLoading(); });
+      }
+    });
+  },
+
   onShow() {
     this.loadCapsuleBanner();
+    this.offerCloudSync();
     // 转发 + 分享到朋友圈：朋友圈入口需要本页定义 onShareTimeline 才会出现
     wx.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage', 'shareTimeline'] });
     this.refresh();

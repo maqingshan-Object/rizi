@@ -87,4 +87,19 @@ function removeRemote(id){
   if(!id) return Promise.reject(new Error('缺少事件编号，无法删除云端记录。'));
   return http.request ? http.request('DELETE', `/api/events/${encodeURIComponent(id)}`) : Promise.reject(new Error('网络服务不支持删除请求。'));
 }
-module.exports={initializeGuest,isGuest,list,get,save,remove,togglePin,clearSamples,remoteReady,listRemote,syncRemote,saveRemote,mergeRemote,removeRemote};
+  /**
+   * 把本机所有日子推到云端（幂等：同 id 覆盖）。
+   * ⚠️ 访客期记的日子，登录后如果不上云，会出现「提醒建不起来 / 云端看不到」的问题。
+   */
+  function syncAllToCloud() {
+    if (!remoteReady()) return Promise.resolve(0);
+    var all = list();
+    var okCount = 0;
+    return all.reduce(function (chain, e) {
+      return chain.then(function () {
+        return saveRemote(e).then(function () { okCount += 1; }).catch(function () {});
+      });
+    }, Promise.resolve()).then(function () { return okCount; });
+  }
+
+module.exports={syncAllToCloud,initializeGuest,isGuest,list,get,save,remove,togglePin,clearSamples,remoteReady,listRemote,syncRemote,saveRemote,mergeRemote,removeRemote};
