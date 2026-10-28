@@ -21,6 +21,7 @@ Page({
   },
 
   onShow() {
+    setTimeout(() => this.syncEventQuietly(), 300);
     try { prepare(this, -1); } catch (error) { notify(error); }
     // 显式打开「转发」和「分享到朋友圈」入口（朋友圈需要页面定义 onShareTimeline 才会出现）
     wx.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage', 'shareTimeline'] });
@@ -101,6 +102,15 @@ Page({
     });
   },
 
+  /** 静默把当前事件推到云端（在加载时做，不占用点击手势 ✅）。
+   *  这样用户点「开启提醒」时，服务端已经有这条事件，提醒任务才建得起来 ✅ */
+  syncEventQuietly() {
+    try {
+      if (!events.remoteReady || !events.remoteReady() || !this.data.event) return;
+      events.saveRemote(this.data.event).catch(function () {});
+    } catch (error) { /* 忽略：同步失败不影响页面使用 */ }
+  },
+
   onSubscribeReminder() {
     if (this.data.reminderBusy || !this.data.event || this.data.deleted) return;
     if (!auth.currentUser()) {
@@ -116,16 +126,7 @@ Page({
       return;
     }
     this.setData({ reminderBusy: true });
-    // ⚠️ 先把这条日子推到云端：若它只存在于本机，
-    //    服务端没有这条事件，提醒任务就建不起来，会出现「弹窗说已开启、
-    //   页面又显示提醒任务已取消」的矛盾⚠️
-    var syncFirst = Promise.resolve();
-    try {
-      if (typeof events.remoteReady === 'function' && events.remoteReady() && this.data.event) {
-        syncFirst = events.saveRemote(this.data.event).catch(function () { return null; });
-      }
-    } catch (error) { syncFirst = Promise.resolve(); }
-    syncFirst.then(() => remindersService.subscribeForEvent(this._id)).then(response => {
+    remindersService.subscribeForEvent(this._id).then(response => {
       wx.showModal({
         title: response.ok ? '提醒已开启' : '提醒还没开启',
         content: response.message,
