@@ -76,7 +76,10 @@ public class ReminderTaskService {
         // 也接受 failed：发送失败（微信抖动、临时缺次数）之后，用户在详情页重新点「开启提醒」时，
         // 这条任务必须能被重新激活 —— 否则它会永远卡在失败状态，谁都救不回来。
         List<ReminderDtos.ReminderView> authorized = markAuthorized(userId, request,
-                List.of(ReminderStatus.needs_authorization, ReminderStatus.pending, ReminderStatus.failed));
+                // cancelled 也要能被重新激活：用户改过日子/关过提醒后任务会变成 cancelled，
+                // 他再点「开启提醒」时必须能重新生效，否则永远卡在已取消 ⚠️
+                List.of(ReminderStatus.needs_authorization, ReminderStatus.pending, ReminderStatus.failed,
+                        ReminderStatus.cancelled));
         // 这条日志用来证明"用户点了授权，且请求真的到了后端"。
         log.info("REMINDER_AUTHORIZE user={} tasks={}", userId, authorized.size());
         return authorized;
